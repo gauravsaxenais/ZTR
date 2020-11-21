@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PackageId>ZTR.Business</PackageId>
+    <Authors>ZTR.Business</Authors>
+    <Company>ZTR.Business</Company>
+    <Product>ZTR.Business</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ben.Demystifier" Version="0.1.6" />
+    <PackageReference Include="Ensure.That" Version="9.2.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.14.0" />
+    <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Nett" Version="0.15.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ZTR.Framework.Business">
+      <HintPath>..\Framework\Framework.Business\bin\Debug\netcoreapp3.1\ZTR.Framework.Business.dll</HintPath>
+    </Reference>
+    <Reference Include="ZTR.Framework.Configuration">
+      <HintPath>..\Framework\Framework.Configuration\bin\Debug\netcoreapp3.1\ZTR.Framework.Configuration.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

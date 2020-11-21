@@ -1,0 +1,119 @@
+﻿namespace ZTR.Framework.Business.File
+{
+    using System;
+    using System.Reflection;
+
+    public enum TrimInputMode
+    {
+        NoTrim,
+        Trim,
+        TrimStart,
+        TrimEnd
+    }
+
+    /// <summary>
+    /// https://www.codeproject.com/Articles/16143/Handling-Fixed-width-Flat-Files-with-NET-Custom-At
+    /// </summary>
+    public abstract class StringLayoutUtility
+    {
+        private TrimInputMode _trimInput = TrimInputMode.NoTrim;
+        private char _paddingChar = ' ';
+
+        public TrimInputMode TrimInput
+        {
+            get { return _trimInput; }
+            set { _trimInput = value; }
+        }
+
+        public char PaddingChar
+        {
+            get { return _paddingChar; }
+            set { _paddingChar = value; }
+        }
+
+        public void Parse(string input)
+        {
+            if (!string.IsNullOrEmpty(input))
+            {
+                foreach (PropertyInfo property in GetType().GetProperties())
+                {
+                    foreach (Attribute attribute in property.GetCustomAttributes(true))
+                    {
+                        var stringLayoutAttribute = attribute as StringLayoutAttribute;
+                        if (stringLayoutAttribute != null)
+                        {
+                            string tmp = string.Empty;
+                            if (stringLayoutAttribute.StartPosition <= input.Length - 1)
+                            {
+                                tmp = input.Substring(stringLayoutAttribute.StartPosition, Math.Min(stringLayoutAttribute.EndPosition - stringLayoutAttribute.StartPosition + 1, input.Length - stringLayoutAttribute.StartPosition));
+                            }
+
+                            switch (_trimInput)
+                            {
+                                case TrimInputMode.Trim:
+                                    tmp = tmp.Trim();
+                                    break;
+                                case TrimInputMode.TrimStart:
+                                    tmp = tmp.TrimStart();
+                                    break;
+                                case TrimInputMode.TrimEnd:
+                                    tmp = tmp.TrimEnd();
+                                    break;
+                            }
+
+                            property.SetValue(this, tmp, null);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        public override string ToString()
+        {
+            string result = string.Empty;
+
+            foreach (PropertyInfo property in GetType().GetProperties())
+            {
+                foreach (Attribute attribute in property.GetCustomAttributes(false))
+                {
+                    StringLayoutAttribute stringLayoutAttribute = attribute as StringLayoutAttribute;
+                    if (stringLayoutAttribute != null)
+                    {
+                        string propertyValue = (string)property.GetValue(this, null);
+                        if (stringLayoutAttribute.StartPosition > 0 && result.Length < stringLayoutAttribute.StartPosition)
+                        {
+                            result = result.PadRight(stringLayoutAttribute.StartPosition, _paddingChar);
+                        }
+
+                        string left = string.Empty;
+                        string right = string.Empty;
+
+                        if (stringLayoutAttribute.StartPosition > 0)
+                        {
+                            left = result.Substring(0, stringLayoutAttribute.StartPosition);
+                        }
+
+                        if (result.Length > stringLayoutAttribute.EndPosition + 1)
+                        {
+                            right = result.Substring(stringLayoutAttribute.EndPosition + 1);
+                        }
+
+                        if (propertyValue.Length < stringLayoutAttribute.EndPosition - stringLayoutAttribute.StartPosition + 1)
+                        {
+                            propertyValue = propertyValue.PadRight(stringLayoutAttribute.EndPosition - stringLayoutAttribute.StartPosition + 1, _paddingChar);
+                        }
+
+                        result = left + propertyValue + right;
+                    }
+
+                    break;
+                }
+            }
+
+            return result;
+        }
+
+        public abstract bool IsValid();
+    }
+}
