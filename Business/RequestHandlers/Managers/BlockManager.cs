@@ -51,7 +51,7 @@
             var gitConnectionOptions = _repoManager.GetConnectionOptions();
 
             string[] files = Directory.GetFiles(gitConnectionOptions.TomlConfiguration.BlocksUrl);
-            
+            int fileIndex = 1;
             foreach (var currentFile in files)
             {
                 string filename = Path.GetFullPath(currentFile);
@@ -70,8 +70,9 @@
                 else if (parserType.Contains(fileBlocks))
                 {
                     flattenList = dictionary.Where(x => x.Key == fileArguments).Select(x => x.Value).ToList();
-                    BlockParserToJson(currentFile, ref json, ref readFile, ref strData, flattenList);
+                    BlockParserToJson(currentFile, ref json, ref readFile, ref strData, flattenList, fileIndex);
                 }
+                fileIndex++;
             }
 
             if (parserType.Contains(fileModules))
@@ -101,12 +102,12 @@
         /// <param name="flattenList"></param>
         /// <param name="newDir"></param>
         private static void BlockParserToJson(string currentFile, ref StringBuilder json, ref TextReader readFile,
-            ref string strData, List<object> flattenList)
+            ref string strData, List<object> flattenList, int fileIndex)
         {
 
             if (flattenList.Any())
             {
-                json.Insert(json.Length, "{\"type\":\"" + Path.GetFileNameWithoutExtension(currentFile) + "\",\"tag\":" + "\"\"," + "\"args\":[");
+                json.Insert(json.Length, "{\"id\":" + fileIndex + ",\"type\":\"" + Path.GetFileNameWithoutExtension(currentFile) + "\",\"tag\":" + "\"\"," + "\"args\":[");
                 //var str2 = Regex.Replace()
                 string[] str1 = Convert.ToString(flattenList[0])
                     .Replace("_ =", "")
