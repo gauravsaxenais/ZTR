@@ -51,7 +51,7 @@
             var gitConnectionOptions = _repoManager.GetConnectionOptions();
 
             string[] files = Directory.GetFiles(gitConnectionOptions.TomlConfiguration.BlocksUrl);
-            //await _repoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.TomlConfiguration.BlocksUrl);
+            
             foreach (var currentFile in files)
             {
                 string filename = Path.GetFullPath(currentFile);
