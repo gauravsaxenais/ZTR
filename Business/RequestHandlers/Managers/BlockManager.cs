@@ -14,16 +14,16 @@
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
 
-
     public class BlockManager : Manager, IBlockManager
     {
-        #region PrivateVariables
+        #region Private Variables
         private readonly IGitRepositoryManager _repoManager;
         private static readonly string fileArguments = "arguments";
         private static readonly string fileModules = "module";
         private static readonly string fileBlocks = "blocks";
         #endregion
 
+        #region Constructors
         public BlockManager(ILogger<ModuleManager> logger, IGitRepositoryManager repoManager, IEnvironmentSettings environmentSettings) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -34,7 +34,9 @@
             var environmentOptions = environmentSettings.GetDeviceGitConnectionOptions();
             _repoManager.SetConnectionOptions(environmentOptions);
         }
+        #endregion
 
+        #region Public Methods
         /// <summary>
         /// toml file parser
         /// </summary>
@@ -43,21 +45,23 @@
         /// <returns></returns>
         public async Task<string> ParseTomlFilesAsync(string firmwareVersion, string deviceType, string parserType)
         {
-            string fulljson = string.Empty;
+            string finalJson = string.Empty;
             StringBuilder json = new StringBuilder();
             var gitConnectionOptions = _repoManager.GetConnectionOptions();
 
             string[] files = Directory.GetFiles(gitConnectionOptions.TomlConfiguration.BlocksUrl);
             int fileIndex = 1;
-            
+
             foreach (var currentFile in files)
             {
                 string filename = Path.GetFullPath(currentFile);
                 TextReader readFile = new StreamReader(filename);
                 string content = readFile.ReadToEnd();
-                TomlTable t = Toml.ReadString(content);
+                var fileContent = Toml.ReadString(content);
+
                 string strData = string.Empty;
-                Dictionary<string, object> dictionary = t.ToDictionary(t => t.Key, t => (object)t.Value.ToString());
+
+                var dictionary = fileContent.ToDictionary(t => t.Key, t => (object)t.Value.ToString());
                 List<object> flattenList;
 
                 if (parserType.Contains(fileModules))
@@ -75,21 +79,23 @@
 
             if (parserType.Contains(fileModules))
             {
-                fulljson = "{\"" + parserType + "\":[" + json.Append("]}").ToString().Replace(",\"},", "}");
+                finalJson = "{\"" + parserType + "\":[" + json.Append("]}").ToString().Replace(",\"},", "}");
             }
             else
             {
-                fulljson = json.Insert(0, "{\"" + parserType + "\":[").Append("]}").ToString().Trim().Replace("}]},]}", "}]}]}");
+                finalJson = json.Insert(0, "{\"" + parserType + "\":[").Append("]}").ToString().Trim().Replace("}]},]}", "}]}]}");
             }
 
-            if (!IsValidJson(fulljson))
+            if (!IsValidJson(finalJson))
             {
-                fulljson = string.Empty;
+                finalJson = string.Empty;
             }
 
-            return fulljson;
+            return finalJson;
         }
+        #endregion
 
+        #region Private Methods
         /// <summary>
         /// Block parser
         /// </summary>
@@ -98,12 +104,11 @@
         /// <param name="readFile"></param>
         /// <param name="strData"></param>
         /// <param name="flattenList"></param>
-        /// <param name="newDir"></param>
+        /// <param name="fileIndex"></param>
         private static void BlockParserToJson(string currentFile, ref StringBuilder json, ref TextReader readFile,
             ref string strData, List<object> flattenList, int fileIndex)
         {
-
-            if (flattenList.Any())
+            if (flattenList != null && flattenList.Any())
             {
                 json.Insert(json.Length, "{\"id\":"
                     + fileIndex
@@ -112,19 +117,20 @@
                     + "\",\"tag\":" + "\"\","
                     + "\"args\":[");
 
-                string[] str1 = Convert.ToString(flattenList[0])
+                string[] tempData = Convert.ToString(flattenList[0])
                     .Replace("_ =", "")
                     .Replace("\r\n", "")
                     .Replace(" ", "")
                     .Replace("[", "")
                     .Replace("{", "{\"")
                     .Split("},");
+
                 if (json.Length > 0)
                 {
                     json.Append(',');
                 }
 
-                foreach (var item in str1)
+                foreach (var item in tempData)
                 {
                     strData =
                         item
@@ -155,10 +161,9 @@
         private static void ModuleParserToJson(string currentFile, ref StringBuilder json, ref TextReader readFile,
             ref string strData, List<object> flattenList)
         {
-
-            if (flattenList.Any())
+            if (flattenList != null && flattenList.Any())
             {
-                string[] str1 =
+                string[] tempData =
                     Convert.ToString(
                         flattenList[0])
                         .Replace("_ =", "")
@@ -178,7 +183,7 @@
                 {
                     json.Append(',');
                 }
-                foreach (var item in str1)
+                foreach (var item in tempData)
                 {
                     strData = "{" + item
                         .Replace("{", "{\"")
@@ -224,6 +229,7 @@
             {
                 return false;
             }
-        }
+        } 
+        #endregion
     }
 }
