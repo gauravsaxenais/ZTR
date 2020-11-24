@@ -1,6 +1,5 @@
 ﻿namespace Business.RequestHandlers.Managers
 {
-    using Business.Configuration;
     using Business.RequestHandlers.Interfaces;
     using EnsureThat;
     using LibGit2Sharp;
