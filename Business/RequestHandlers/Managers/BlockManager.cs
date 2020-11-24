@@ -37,8 +37,8 @@
 
             var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
-            _blockGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _blockGitConnectionOptions.GitLocalFolder);
-            
+            _blockGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _blockGitConnectionOptions.GitLocalFolder, _blockGitConnectionOptions.BlockLocalFolder);
+
             _repoManager.SetConnectionOptions(_blockGitConnectionOptions);
         }
         #endregion
@@ -57,9 +57,9 @@
             StringBuilder json = new StringBuilder();
             var gitConnectionOptions = _repoManager.GetConnectionOptions();
 
-            //await _repoManager.CloneRepositoryAsync();
+            await _repoManager.CloneRepositoryAsync();
 
-            string[] files = Directory.GetFiles(/*gitConnectionOptions.GitLocalFolder*/ @"F:\ZTR\DeviceConfigAPI\bin\Debug\netcoreapp3.1\BlockConfig\blocks");
+            string[] files = Directory.GetFiles(gitConnectionOptions.GitLocalFolder);
 
             int fileIndex = 1;
 
@@ -240,7 +240,7 @@
             {
                 return false;
             }
-        } 
+        }
         #endregion
     }
 }
