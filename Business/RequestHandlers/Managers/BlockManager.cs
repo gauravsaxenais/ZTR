@@ -36,8 +36,8 @@
             _blockGitConnectionOptions = blockGitConnectionOptions;
 
             var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            var localPath = Path.Combine(currentDirectory, _blockGitConnectionOptions.GitLocalFolder);
-            _blockGitConnectionOptions.GitLocalFolder = localPath;
+
+            _blockGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _blockGitConnectionOptions.GitLocalFolder);
 
             _repoManager.SetConnectionOptions(_blockGitConnectionOptions);
         }
@@ -55,18 +55,17 @@
         {
             string finalJson = string.Empty;
             StringBuilder json = new StringBuilder();
-            var gitConnectionOptions = _repoManager.GetConnectionOptions();
+            var gitConnectionOptions = (BlockGitConnectionOptions)_repoManager.GetConnectionOptions();
 
             //await _repoManager.CloneRepositoryAsync();
 
-            string[] files = Directory.GetFiles(gitConnectionOptions.GitLocalFolder);
+            string[] files = Directory.GetFiles(blocksFolder);
 
             int fileIndex = 1;
 
             foreach (var currentFile in files)
             {
-                string filename = Path.GetFullPath(currentFile);
-                TextReader readFile = new StreamReader(filename);
+                TextReader readFile = new StreamReader(currentFile);
                 string content = readFile.ReadToEnd();
                 var fileContent = Toml.ReadString(content);
 
