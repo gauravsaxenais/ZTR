@@ -1,5 +1,6 @@
 ﻿namespace Business.Configuration
 {
+    using System.IO;
     using ZTR.Framework.Business.File;
     public sealed class ModuleGitConnectionOptions : GitConnectionOptions, IGitConnectionOptions
     {
@@ -16,7 +17,9 @@
 
         public void SetConnection()
         {
-            throw new System.NotImplementedException();
+            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            this.GitLocalFolder = Path.Combine(currentDirectory, this.GitLocalFolder);
         }
 
         public override string ToString()

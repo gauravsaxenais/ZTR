@@ -1,5 +1,6 @@
 ﻿namespace Business.Configuration
 {
+    using System.IO;
     using ZTR.Framework.Business.File;
     public sealed class BlockGitConnectionOptions : GitConnectionOptions, IGitConnectionOptions
     {
@@ -19,7 +20,9 @@
 
         public void SetConnection()
         {
-            
+            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            this.GitLocalFolder = Path.Combine(currentDirectory, this.GitLocalFolder);
         }
 
         public override string ToString()
