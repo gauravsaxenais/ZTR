@@ -1,5 +1,6 @@
 ﻿namespace Business.RequestHandlers.Managers
 {
+    using Business.Configuration;
     using Business.Models;
     using Business.RequestHandlers.Interfaces;
     using EnsureThat;
@@ -13,17 +14,24 @@
 
     public class ModuleManager : Manager, IModuleManager
     {
-        private readonly IGitRepositoryManager _repoManager;
-        
-        public ModuleManager(ILogger<ModuleManager> logger, IGitRepositoryManager repoManager, IEnvironmentSettings environmentSettings) : base(logger)
+        private readonly IGitRepositoryManager _gitRepoManager;
+        private readonly IGitConnectionOptionsFactory _gitFactoryManager;
+
+        public ModuleManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, IGitConnectionOptionsFactory gitFactoryManager) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(environmentSettings, nameof(environmentSettings));
+            EnsureArg.IsNotNull(gitFactoryManager, nameof(gitFactoryManager));
 
-            _repoManager = repoManager;
+            _gitRepoManager = gitRepoManager;
+            _gitFactoryManager = gitFactoryManager;
 
-            var environmentOptions = environmentSettings.GetDeviceGitConnectionOptions();
-            _repoManager.SetConnectionOptions(environmentOptions);
+            SetConnectionOptions();
+        }
+
+        public void SetConnectionOptions()
+        {
+            var connectionOptions = _gitFactoryManager.GetGitConnectionOption(GitConnectionOptionType.Module);
+            _gitRepoManager.SetConnectionOptions(connectionOptions);
         }
 
         public async Task<IEnumerable<ModuleReadModel>> GetAllModulesAsync(string firmwareVersion, string deviceType)
@@ -77,21 +85,21 @@
 
         private async Task<string> GetDeviceDataFromFirmwareVersionAsync(string firmwareVersion, string deviceType)
         {
-            var gitConnectionOptions = _repoManager.GetConnectionOptions();
+            var gitConnectionOptions = _gitRepoManager.GetConnectionOptions();
 
-            var listOfFiles = await _repoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.TomlConfiguration.DeviceTomlFile);
+            //var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.TomlConfiguration.DeviceTomlFile);
 
-            // case insensitive search.
-            var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
+            //// case insensitive search.
+            //var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
 
-            var fileContent = string.Empty;
+            //var fileContent = string.Empty;
 
-            if (deviceTypeFile != null)
-            {
-                fileContent = System.Text.Encoding.UTF8.GetString(deviceTypeFile.Data);
-            }
+            //if (deviceTypeFile != null)
+            //{
+            //    fileContent = System.Text.Encoding.UTF8.GetString(deviceTypeFile.Data);
+            //}
 
-            return fileContent;
+            return string.Empty;
         }
     }
 }

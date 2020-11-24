@@ -1,5 +1,6 @@
 ﻿namespace Business.RequestHandlers.Managers
 {
+    using Business.Configuration;
     using Business.RequestHandlers.Interfaces;
     using EnsureThat;
     using Microsoft.Extensions.Logging;
@@ -18,25 +19,34 @@
     {
         #region Private Variables
         private readonly IGitRepositoryManager _repoManager;
+        private readonly IGitConnectionOptionsFactory _gitFactoryManager;
+
         private static readonly string fileArguments = "arguments";
         private static readonly string fileModules = "module";
         private static readonly string fileBlocks = "blocks";
         #endregion
 
         #region Constructors
-        public BlockManager(ILogger<ModuleManager> logger, IGitRepositoryManager repoManager, IEnvironmentSettings environmentSettings) : base(logger)
+        public BlockManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, IGitConnectionOptionsFactory gitFactoryManager) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(environmentSettings, nameof(environmentSettings));
+            EnsureArg.IsNotNull(gitFactoryManager, nameof(gitFactoryManager));
 
-            _repoManager = repoManager;
+            _repoManager = gitRepoManager;
+            _gitFactoryManager = gitFactoryManager;
 
-            var environmentOptions = environmentSettings.GetDeviceGitConnectionOptions();
-            _repoManager.SetConnectionOptions(environmentOptions);
+            SetConnectionOptions();
         }
         #endregion
 
         #region Public Methods
+
+        public void SetConnectionOptions()
+        {
+            var connectionOptions = _gitFactoryManager.GetGitConnectionOption(GitConnectionOptionType.Block);
+            _repoManager.SetConnectionOptions(connectionOptions);
+        }
+
         /// <summary>
         /// toml file parser
         /// </summary>

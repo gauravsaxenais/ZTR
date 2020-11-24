@@ -1,7 +1,7 @@
 ﻿namespace Business.Configuration
 {
     using ZTR.Framework.Business.File;
-    public sealed class BlockGitConnectionOptions : GitConnectionOptions
+    public sealed class BlockGitConnectionOptions : GitConnectionOptions, IGitConnectionOptions
     {
         public BlockGitConnectionOptions()
         {
@@ -16,7 +16,12 @@
         }
 
         public string BlockLocalFolder { get; set; }
-        
+
+        public void SetConnection()
+        {
+            
+        }
+
         public override string ToString()
         {
             return $"BlockGitConnectionOptions(${this.GitLocalFolder} {this.GitRepositoryUrl} {this.BlockLocalFolder})";

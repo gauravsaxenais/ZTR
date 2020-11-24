@@ -1,5 +1,6 @@
 ﻿namespace Business.RequestHandlers.Managers
 {
+    using Business.Configuration;
     using Business.Models.ConfigModels;
     using Business.RequestHandlers.Interfaces;
     using EnsureThat;
@@ -15,16 +16,24 @@
 
     public class DefaultValueManager : Manager, IDefaultValueManager
     {
-        private readonly IGitRepositoryManager _repoManager;
-        public DefaultValueManager(ILogger<ModuleManager> logger, IGitRepositoryManager repoManager, IEnvironmentSettings environmentSettings) : base(logger)
+        private readonly IGitRepositoryManager _gitRepoManager;
+        private readonly IGitConnectionOptionsFactory _gitFactoryManager;
+
+        public DefaultValueManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, IGitConnectionOptionsFactory gitFactoryManager) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(environmentSettings, nameof(environmentSettings));
+            EnsureArg.IsNotNull(gitFactoryManager, nameof(gitFactoryManager));
 
-            _repoManager = repoManager;
+            _gitRepoManager = gitRepoManager;
+            _gitFactoryManager = gitFactoryManager;
 
-            var environmentOptions = environmentSettings.GetDeviceGitConnectionOptions();
-            _repoManager.SetConnectionOptions(environmentOptions);
+            SetConnectionOptions();
+        }
+
+        public void SetConnectionOptions()
+        {
+            var connectionOptions = _gitFactoryManager.GetGitConnectionOption(GitConnectionOptionType.Module);
+            _gitRepoManager.SetConnectionOptions(connectionOptions);
         }
 
         public async Task<IEnumerable<ModuleReadModel>> GetDefaultValuesAllModulesAsync(string firmwareVersion, string deviceType)
@@ -38,7 +47,7 @@
         {
             var listOfModules = new List<ModuleReadModel>();
 
-            var fileContent = await GetDeviceDataFromFirmwareVersionAsync(firmwareVersion, deviceType);
+            var fileContent = /*await GetDeviceDataFromFirmwareVersionAsync(firmwareVersion, deviceType)*/ string.Empty;
             if (!string.IsNullOrWhiteSpace(fileContent))
             {
                 var data = GetTomlData(fileContent);
@@ -77,24 +86,24 @@
             return tomlData;
         }
 
-        private async Task<string> GetDeviceDataFromFirmwareVersionAsync(string firmwareVersion, string deviceType)
-        {
-            var gitConnectionOptions = _repoManager.GetConnectionOptions();
+        //private async Task<string> GetDeviceDataFromFirmwareVersionAsync(string firmwareVersion, string deviceType)
+        //{
+        //    var gitConnectionOptions = (_gitRepoManager.GetConnectionOptions();
 
-            var listOfFiles = await _repoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.TomlConfiguration.DeviceTomlFile);
+        //    var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.TomlConfiguration.DeviceTomlFile);
 
-            // case insensitive search.
-            var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
+        //    // case insensitive search.
+        //    var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
 
-            var fileContent = string.Empty;
+        //    var fileContent = string.Empty;
 
-            if (deviceTypeFile != null)
-            {
-                fileContent = System.Text.Encoding.UTF8.GetString(deviceTypeFile.Data);
-            }
+        //    if (deviceTypeFile != null)
+        //    {
+        //        fileContent = System.Text.Encoding.UTF8.GetString(deviceTypeFile.Data);
+        //    }
 
-            return fileContent;
-        }
+        //    return fileContent;
+        //}
 
         private void GenerateCSharpFileFromProtoFile(string protoFileLocation, string csharpFileDirectory, string protoFileName)
         {
