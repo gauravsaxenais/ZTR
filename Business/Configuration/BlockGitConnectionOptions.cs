@@ -2,7 +2,7 @@
 {
     using System.IO;
     using ZTR.Framework.Business.File;
-    public sealed class BlockGitConnectionOptions : GitConnectionOptions, IGitConnectionOptions
+    public sealed class BlockGitConnectionOptions : GitConnectionOptions
     {
         public BlockGitConnectionOptions()
         {
@@ -14,6 +14,8 @@
             base(gitLocalFolder, userName, password, gitRepositoryUrl)
         {
             BlockLocalFolder = blockLocalFolder;
+
+            SetConnection();
         }
 
         public string BlockLocalFolder { get; set; }

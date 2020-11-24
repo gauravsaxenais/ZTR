@@ -2,7 +2,7 @@
 {
     using System.IO;
     using ZTR.Framework.Business.File;
-    public sealed class ModuleGitConnectionOptions : GitConnectionOptions, IGitConnectionOptions
+    public sealed class ModuleGitConnectionOptions : GitConnectionOptions
     {
         public ModuleGitConnectionOptions()
         {
@@ -13,13 +13,6 @@
         public ModuleGitConnectionOptions(string gitLocalFolder, string userName, string password, string gitRepositoryUrl, TomlConfigurationFile tomlConfiguration) :
             base(gitLocalFolder, userName, password, gitRepositoryUrl)
         {
-        }
-
-        public void SetConnection()
-        {
-            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            this.GitLocalFolder = Path.Combine(currentDirectory, this.GitLocalFolder);
         }
 
         public override string ToString()

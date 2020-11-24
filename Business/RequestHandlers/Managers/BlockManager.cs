@@ -19,7 +19,7 @@
     {
         #region Private Variables
         private readonly IGitRepositoryManager _repoManager;
-        private readonly IGitConnectionOptionsFactory _gitFactoryManager;
+        private readonly BlockGitConnectionOptions _blockGitConnectionOptions;
 
         private static readonly string fileArguments = "arguments";
         private static readonly string fileModules = "module";
@@ -27,28 +27,26 @@
         #endregion
 
         #region Constructors
-        public BlockManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, IGitConnectionOptionsFactory gitFactoryManager) : base(logger)
+        public BlockManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, BlockGitConnectionOptions blockGitConnectionOptions) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(gitFactoryManager, nameof(gitFactoryManager));
+            EnsureArg.IsNotNull(blockGitConnectionOptions, nameof(blockGitConnectionOptions));
 
             _repoManager = gitRepoManager;
-            _gitFactoryManager = gitFactoryManager;
+            _blockGitConnectionOptions = blockGitConnectionOptions;
 
-            SetConnectionOptions();
+            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            _blockGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _blockGitConnectionOptions.GitLocalFolder);
+            
+            _repoManager.SetConnectionOptions(_blockGitConnectionOptions);
         }
         #endregion
 
         #region Public Methods
 
-        public void SetConnectionOptions()
-        {
-            var connectionOptions = _gitFactoryManager.GetGitConnectionOption(GitConnectionOptionType.Block);
-            _repoManager.SetConnectionOptions(connectionOptions);
-        }
-
         /// <summary>
-        /// toml file parser
+        /// Toml file parser
         /// </summary>
         /// <param name="firmwareVersion"></param>
         /// <param name="deviceType"></param>

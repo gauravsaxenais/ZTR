@@ -18,6 +18,8 @@
         private UsernamePasswordCredentials _credentials;
         private DefaultCredentials _defaultCredentials;
         private GitConnectionOptions _gitConnection;
+        private FetchOptions _fetchOptions;
+        private CloneOptions _cloneOptions;
         private readonly string GitFolder = ".git";
         private readonly string TextMimeType = "text/plain";
         #endregion
@@ -49,6 +51,15 @@
             };
 
             _defaultCredentials = new DefaultCredentials();
+
+            var credentialsProvider = new CredentialsHandler((url, usernameFromUrl, types) => _credentials);
+            _fetchOptions = new FetchOptions() { TagFetchMode = TagFetchMode.All, CredentialsProvider = credentialsProvider };
+            
+            _cloneOptions = new CloneOptions() { CredentialsProvider = credentialsProvider };
+            _cloneOptions.CertificateCheck += delegate (Certificate certificate, bool valid, string host)
+            {
+                return true;
+            };
         }
 
         public GitConnectionOptions GetConnectionOptions()
@@ -58,35 +69,42 @@
 
         public async Task CloneRepositoryAsync()
         {
-            if (!IsExistsContentRepositoryDirectory())
+            try
             {
-                Directory.CreateDirectory(_gitConnection.GitLocalFolder);
-                await Task.Run(() =>
+                if (!IsExistsContentRepositoryDirectory())
                 {
-                    // The following modification allowed me to fetch from repositories over LAN
-                    var cloneOptions = new CloneOptions
+                    Directory.CreateDirectory(_gitConnection.GitLocalFolder);
+                    await Task.Run(() =>
                     {
-                        CredentialsProvider = new CredentialsHandler((url, usernameFromUrl, types) => _defaultCredentials)
-                    };
-
-                    cloneOptions.CertificateCheck += delegate (Certificate certificate, bool valid, string host)
-                    {
-                        return true;
-                    };
-
-                    Repository.Clone(_gitConnection.GitRepositoryUrl, _gitConnection.GitLocalFolder, cloneOptions);
-                });
+                        Repository.Clone(_gitConnection.GitRepositoryUrl, _gitConnection.GitLocalFolder, _cloneOptions);
+                    });
+                }
+                else
+                {
+                    using var repo = new Repository(_gitConnection.GitLocalFolder);
+                    var network = repo.Network.Remotes.First();
+                    var refSpecs = new List<string>() { network.FetchRefSpecs.First().Specification };
+                    
+                    repo.Network.Fetch(network.Name, refSpecs, _fetchOptions);
+                }
             }
-            else
+            catch (LibGit2SharpException ex)
             {
-                using var repo = new Repository(_gitConnection.GitLocalFolder);
-                var network = repo.Network.Remotes.First();
-                var refSpecs = new List<string>() { network.FetchRefSpecs.First().Specification };
+                var message = ex.Message;
+                if (message.Contains("401"))
+                {
+                    throw new Exception("Unauthorised: Incorrect username/password");
+                }
+                if (message.Contains("403"))
+                {
+                    throw new Exception("Forbidden: Possbily Incorrect username/password");
+                }
+                if (message.Contains("404"))
+                {
+                    throw new Exception("Not found: The repository was not found");
+                }
 
-                var fetchOptions = new FetchOptions { TagFetchMode = TagFetchMode.All };
-
-                fetchOptions.CredentialsProvider += (url, fromUrl, types) => _defaultCredentials;
-                repo.Network.Fetch(network.Name, refSpecs, fetchOptions);
+                throw new Exception("There was an unknown problem with the Git repository you provided");
             }
         }
 

@@ -17,23 +17,17 @@
     public class DefaultValueManager : Manager, IDefaultValueManager
     {
         private readonly IGitRepositoryManager _gitRepoManager;
-        private readonly IGitConnectionOptionsFactory _gitFactoryManager;
+        private readonly DeviceGitConnectionOptions _deviceGitConnectionOptions;
 
-        public DefaultValueManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, IGitConnectionOptionsFactory gitFactoryManager) : base(logger)
+        public DefaultValueManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, DeviceGitConnectionOptions deviceGitConnectionOptions) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(gitFactoryManager, nameof(gitFactoryManager));
+            EnsureArg.IsNotNull(deviceGitConnectionOptions, nameof(deviceGitConnectionOptions));
 
             _gitRepoManager = gitRepoManager;
-            _gitFactoryManager = gitFactoryManager;
+            _deviceGitConnectionOptions = deviceGitConnectionOptions;
 
-            SetConnectionOptions();
-        }
-
-        public void SetConnectionOptions()
-        {
-            var connectionOptions = _gitFactoryManager.GetGitConnectionOption(GitConnectionOptionType.Module);
-            _gitRepoManager.SetConnectionOptions(connectionOptions);
+            _gitRepoManager.SetConnectionOptions(_deviceGitConnectionOptions);
         }
 
         public async Task<IEnumerable<ModuleReadModel>> GetDefaultValuesAllModulesAsync(string firmwareVersion, string deviceType)

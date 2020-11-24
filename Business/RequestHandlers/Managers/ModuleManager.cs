@@ -7,6 +7,7 @@
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
@@ -15,23 +16,19 @@
     public class ModuleManager : Manager, IModuleManager
     {
         private readonly IGitRepositoryManager _gitRepoManager;
-        private readonly IGitConnectionOptionsFactory _gitFactoryManager;
+        private readonly ModuleGitConnectionOptions _moduleGitConnectionOptions;
 
-        public ModuleManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, IGitConnectionOptionsFactory gitFactoryManager) : base(logger)
+        public ModuleManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, ModuleGitConnectionOptions moduleGitConnectionOptions) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(gitFactoryManager, nameof(gitFactoryManager));
+            EnsureArg.IsNotNull(moduleGitConnectionOptions, nameof(moduleGitConnectionOptions));
 
             _gitRepoManager = gitRepoManager;
-            _gitFactoryManager = gitFactoryManager;
+            _moduleGitConnectionOptions = moduleGitConnectionOptions;
 
-            SetConnectionOptions();
-        }
+            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
-        public void SetConnectionOptions()
-        {
-            var connectionOptions = _gitFactoryManager.GetGitConnectionOption(GitConnectionOptionType.Module);
-            _gitRepoManager.SetConnectionOptions(connectionOptions);
+            _moduleGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _moduleGitConnectionOptions.GitLocalFolder);
         }
 
         public async Task<IEnumerable<ModuleReadModel>> GetAllModulesAsync(string firmwareVersion, string deviceType)

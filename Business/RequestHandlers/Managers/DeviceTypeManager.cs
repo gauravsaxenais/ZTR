@@ -5,6 +5,7 @@
     using EnsureThat;
     using Microsoft.Extensions.Logging;
     using System.Collections.Generic;
+    using System.IO;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
     using ZTR.Framework.Business.File.FileReaders;
@@ -12,23 +13,22 @@
     public class DeviceTypeManager : Manager, IDeviceTypeManager
     {
         private readonly IGitRepositoryManager _repoManager;
-        private readonly IGitConnectionOptionsFactory _gitFactoryManager;
+        private readonly DeviceGitConnectionOptions _deviceGitConnectionOptions;
 
-        public DeviceTypeManager(ILogger<DeviceTypeManager> logger, IGitRepositoryManager gitRepoManager, IGitConnectionOptionsFactory gitFactoryManager) : base(logger)
+        public DeviceTypeManager(ILogger<DeviceTypeManager> logger, IGitRepositoryManager gitRepoManager, DeviceGitConnectionOptions deviceGitConnectionOptions) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(gitFactoryManager, nameof(gitFactoryManager));
+            EnsureArg.IsNotNull(deviceGitConnectionOptions, nameof(deviceGitConnectionOptions));
 
             _repoManager = gitRepoManager;
-            _gitFactoryManager = gitFactoryManager;
+            _deviceGitConnectionOptions = deviceGitConnectionOptions;
 
-            SetConnectionOptions();
-        }
+            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
-        public void SetConnectionOptions()
-        {
-            var connectionOptions = _gitFactoryManager.GetGitConnectionOption(GitConnectionOptionType.Device);
-            _repoManager.SetConnectionOptions(connectionOptions);
+            _deviceGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder);
+            _deviceGitConnectionOptions.TomlConfiguration.DeviceFolder = Path.Combine(_deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.TomlConfiguration.DeviceFolder);
+
+            _repoManager.SetConnectionOptions(_deviceGitConnectionOptions);
         }
 
         public async Task<IEnumerable<string>> GetAllDevicesAsync()
