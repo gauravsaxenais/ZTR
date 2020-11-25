@@ -1,5 +1,6 @@
 ﻿namespace Service
 {
+    using Business.Configuration;
     using Business.RequestHandlers.Interfaces;
     using Business.RequestHandlers.Managers;
     using EnsureThat;
@@ -12,10 +13,12 @@
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
+            services.AddScoped<IGitConnectionOptionsFactory, GitConnectionOptionsFactory>();
+            services.AddScoped<IGitRepositoryManager, GitRepositoryManager>();
+
             services.AddScoped<IModuleManager, ModuleManager>();
             services.AddScoped<IDeviceTypeManager, DeviceTypeManager>();
             services.AddScoped<IDefaultValueManager, DefaultValueManager>();
-            services.AddScoped<IGitRepositoryManager, GitRepositoryManager>();
             services.AddScoped<IBlockManager, BlockManager>();
 
             return services;

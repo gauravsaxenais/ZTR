@@ -3,7 +3,7 @@
     using System.IO;
     using ZTR.Framework.Business.File;
 
-    public sealed class DeviceGitConnectionOptions : GitConnectionOptions, IGitConnectionOptions
+    public sealed class DeviceGitConnectionOptions : GitConnectionOptions
     {
         public DeviceGitConnectionOptions()
         {
@@ -18,14 +18,6 @@
         }
 
         public TomlConfigurationFile TomlConfiguration { get; set; }
-
-        public void SetConnection()
-        {
-            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            this.GitLocalFolder = Path.Combine(currentDirectory, this.GitLocalFolder);
-            this.TomlConfiguration.DeviceFolder = Path.Combine(this.GitLocalFolder, this.TomlConfiguration.DeviceFolder);
-        }
 
         public override string ToString()
         {

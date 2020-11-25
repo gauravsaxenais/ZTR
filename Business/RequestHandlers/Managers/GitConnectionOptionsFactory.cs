@@ -12,11 +12,11 @@
             switch (connectionType)
             {
                 case GitConnectionOptionType.Module:
-                    return new ModuleGitConnectionOptions();
+                    return (ModuleGitConnectionOptions)Activator.CreateInstance(Type.GetType(typeof(ModuleGitConnectionOptions).AssemblyQualifiedName, false));
                 case GitConnectionOptionType.Device:
-                    return new DeviceGitConnectionOptions();
+                    return (DeviceGitConnectionOptions)Activator.CreateInstance(Type.GetType(typeof(DeviceGitConnectionOptions).AssemblyQualifiedName, false));
                 case GitConnectionOptionType.Block:
-                    return new BlockGitConnectionOptions();
+                    return (BlockGitConnectionOptions)Activator.CreateInstance(Type.GetType(typeof(BlockGitConnectionOptions).AssemblyQualifiedName, false));
                 default:
                     throw new NotImplementedException();
             }

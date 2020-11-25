@@ -19,7 +19,7 @@
     {
         #region Private Variables
         private readonly IGitRepositoryManager _repoManager;
-        private readonly IGitConnectionOptionsFactory _gitFactoryManager;
+        private readonly BlockGitConnectionOptions _blockGitConnectionOptions;
 
         private static readonly string fileArguments = "arguments";
         private static readonly string fileModules = "module";
@@ -27,28 +27,26 @@
         #endregion
 
         #region Constructors
-        public BlockManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, IGitConnectionOptionsFactory gitFactoryManager) : base(logger)
+        public BlockManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, BlockGitConnectionOptions blockGitConnectionOptions) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(gitFactoryManager, nameof(gitFactoryManager));
+            EnsureArg.IsNotNull(blockGitConnectionOptions, nameof(blockGitConnectionOptions));
 
             _repoManager = gitRepoManager;
-            _gitFactoryManager = gitFactoryManager;
+            _blockGitConnectionOptions = blockGitConnectionOptions;
 
-            SetConnectionOptions();
+            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            _blockGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _blockGitConnectionOptions.GitLocalFolder);
+
+            _repoManager.SetConnectionOptions(_blockGitConnectionOptions);
         }
         #endregion
 
         #region Public Methods
 
-        public void SetConnectionOptions()
-        {
-            var connectionOptions = _gitFactoryManager.GetGitConnectionOption(GitConnectionOptionType.Block);
-            _repoManager.SetConnectionOptions(connectionOptions);
-        }
-
         /// <summary>
-        /// toml file parser
+        /// Toml file parser
         /// </summary>
         /// <param name="firmwareVersion"></param>
         /// <param name="deviceType"></param>
@@ -57,15 +55,17 @@
         {
             string finalJson = string.Empty;
             StringBuilder json = new StringBuilder();
-            var gitConnectionOptions = _repoManager.GetConnectionOptions();
+            var gitConnectionOptions = (BlockGitConnectionOptions)_repoManager.GetConnectionOptions();
+
+            //await _repoManager.CloneRepositoryAsync();
 
             string[] files = Directory.GetFiles(gitConnectionOptions.GitLocalFolder);
+
             int fileIndex = 1;
 
             foreach (var currentFile in files)
             {
-                string filename = Path.GetFullPath(currentFile);
-                TextReader readFile = new StreamReader(filename);
+                TextReader readFile = new StreamReader(currentFile);
                 string content = readFile.ReadToEnd();
                 var fileContent = Toml.ReadString(content);
 
@@ -82,9 +82,12 @@
                 else if (parserType.Contains(fileBlocks))
                 {
                     flattenList = dictionary.Where(x => x.Key == fileArguments).Select(x => x.Value).ToList();
-                    BlockParserToJson(currentFile, ref json, ref readFile, ref strData, flattenList, fileIndex);
+                    if (flattenList != null && flattenList.Any())
+                    {
+                        BlockParserToJson(currentFile, ref json, ref readFile, ref strData, flattenList, fileIndex);
+                        fileIndex++;
+                    }
                 }
-                fileIndex++;
             }
 
             if (parserType.Contains(fileModules))
@@ -118,45 +121,43 @@
         private static void BlockParserToJson(string currentFile, ref StringBuilder json, ref TextReader readFile,
             ref string strData, List<object> flattenList, int fileIndex)
         {
-            if (flattenList != null && flattenList.Any())
+
+            json.Insert(json.Length, "{\"id\":"
+                + fileIndex
+                + ",\"type\":\""
+                + Path.GetFileNameWithoutExtension(currentFile)
+                + "\",\"tag\":" + "\"\","
+                + "\"args\":[");
+
+            string[] tempData = Convert.ToString(flattenList[0])
+                .Replace("_ =", "")
+                .Replace("\r\n", "")
+                .Replace(" ", "")
+                .Replace("[", "")
+                .Replace("{", "{\"")
+                .Split("},");
+
+            if (json.Length > 0)
             {
-                json.Insert(json.Length, "{\"id\":"
-                    + fileIndex
-                    + ",\"type\":\""
-                    + Path.GetFileNameWithoutExtension(currentFile)
-                    + "\",\"tag\":" + "\"\","
-                    + "\"args\":[");
-
-                string[] tempData = Convert.ToString(flattenList[0])
-                    .Replace("_ =", "")
-                    .Replace("\r\n", "")
-                    .Replace(" ", "")
-                    .Replace("[", "")
-                    .Replace("{", "{\"")
-                    .Split("},");
-
-                if (json.Length > 0)
-                {
-                    json.Append(',');
-                }
-
-                foreach (var item in tempData)
-                {
-                    strData =
-                        item
-                        .Replace("=", "\":")
-                        .Replace(",", ",\"") + "},";
-
-                    json.Append(strData);
-                }
-
-                json = json
-                    .Replace("]}},", "}")
-                    .Replace("[,", "[");
-
-                readFile.Close();
-                readFile = null;
+                json.Append(',');
             }
+
+            foreach (var item in tempData)
+            {
+                strData =
+                    item
+                    .Replace("=", "\":")
+                    .Replace(",", ",\"") + "},";
+
+                json.Append(strData);
+            }
+
+            json = json
+                .Replace("]}},", "}")
+                .Replace("[,", "[");
+
+            readFile.Close();
+            readFile = null;
         }
 
         /// <summary>
@@ -239,7 +240,7 @@
             {
                 return false;
             }
-        } 
+        }
         #endregion
     }
 }

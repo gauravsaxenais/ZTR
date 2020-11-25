@@ -1,32 +1,39 @@
 ﻿namespace Business.Parsers
 {
+    using EnsureThat;
     using System;
     using System.Diagnostics;
     using System.IO;
     using System.Reflection;
     using System.Threading;
 
-    public static class InputFileLoader
+    public class InputFileLoader
     {
-        public static string CombinePathFromAppRoot(string path)
+        public void GenerateFiles(string path, params string[] args)
         {
-            string loaderPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
-            if (!string.IsNullOrEmpty(loaderPath)
-                && loaderPath[loaderPath.Length - 1] != Path.DirectorySeparatorChar
-                && loaderPath[loaderPath.Length - 1] != Path.AltDirectorySeparatorChar)
+            EnsureArg.IsNotEmptyOrWhiteSpace(path);
+
+            bool deletePath = false;
+
+            try
             {
-                loaderPath += Path.DirectorySeparatorChar;
+                // try to use protoc
+                path = CompileProtoFile(path, args);
+                deletePath = true;
             }
-            if (loaderPath.StartsWith(@"file:\"))
+            finally
             {
-                loaderPath = loaderPath.Substring(6);
+                if (deletePath)
+                {
+                    File.Delete(path);
+                }
             }
-            return Path.Combine(Path.GetDirectoryName(loaderPath), path);
         }
-        public static string GetProtocPath(out string folder)
+
+        public string GetProtocPath(out string folder)
         {
             const string Name = "protoc.exe";
-            string lazyPath = InputFileLoader.CombinePathFromAppRoot(Name);
+            string lazyPath = CombinePathFromAppRoot(Name);
 
             if (File.Exists(lazyPath))
             {   // use protoc.exe from the existing location (faster)
@@ -37,7 +44,7 @@
             folder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("n"));
             Directory.CreateDirectory(folder);
             string path = Path.Combine(folder, Name);
-
+            
             // look inside ourselves...
             using (Stream resStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
                 typeof(InputFileLoader).Namespace + "." + Name))
@@ -56,7 +63,7 @@
             return path;
         }
 
-        private static string CompileDescriptor(string path, TextWriter stderr, params string[] args)
+        public string CompileProtoFile(string path, params string[] args)
         {
             string tmp = Path.GetTempFileName();
             string tmpFolder = null, protocPath = null;
@@ -65,16 +72,15 @@
                 protocPath = GetProtocPath(out tmpFolder);
                 ProcessStartInfo psi = new ProcessStartInfo(
                     protocPath,
-                    string.Format(@"""--descriptor_set_out={0}"" ""--proto_path={1}"" ""--proto_path={2}"" --error_format=gcc ""{3}"" {4}",
+                    string.Format(@""" --include_imports --include_source_info --csharp_out={0}"" ""--proto_path={1}"" ""--proto_path={2}"" --error_format=gcc ""{3}"" {4}",
                              tmp, // output file
-                             Environment.CurrentDirectory, // primary search path
+                             /*Environment.CurrentDirectory*/@"F:\ZTR\Business\Parsers\ProtoFiles\Proto", // primary search path
                              Path.GetDirectoryName(protocPath), // secondary search path
-                             Path.Combine(Environment.CurrentDirectory, path), // input file
+                             Path.Combine(/*Environment.CurrentDirectory*/@"F:\ZTR\Business\Parsers\ProtoFiles\Proto", path), // input file
                              string.Join(" ", args) // extra args
                     )
                 );
-                Debug.WriteLine(psi.FileName + " " + psi.Arguments, "protoc");
-
+                
                 psi.CreateNoWindow = true;
                 psi.WindowStyle = ProcessWindowStyle.Hidden;
                 psi.WorkingDirectory = Environment.CurrentDirectory;
@@ -83,8 +89,8 @@
 
                 using (Process proc = Process.Start(psi))
                 {
-                    Thread errThread = new Thread(DumpStream(proc.StandardError, stderr));
-                    Thread outThread = new Thread(DumpStream(proc.StandardOutput, stderr));
+                    Thread errThread = new Thread(DumpStream(proc.StandardError));
+                    Thread outThread = new Thread(DumpStream(proc.StandardOutput));
                     errThread.Name = "stderr reader";
                     outThread.Name = "stdout reader";
                     errThread.Start();
@@ -96,7 +102,7 @@
                     {
                         if (HasByteOrderMark(path))
                         {
-                            stderr.WriteLine("The input file should be UTF8 without a byte-order-mark (in Visual Studio use \"File\" -> \"Advanced Save Options...\" to rectify)");
+                            //stderr.WriteLine("The input file should be UTF8 without a byte-order-mark (in Visual Studio use \"File\" -> \"Advanced Save Options...\" to rectify)");
                         }
                         throw new ProtoParseException(Path.GetFileName(path));
                     }
@@ -120,7 +126,7 @@
             }
         }
 
-        private static bool HasByteOrderMark(string path)
+        private bool HasByteOrderMark(string path)
         {
             try
             {
@@ -136,7 +142,7 @@
             }
         }
 
-        static ThreadStart DumpStream(TextReader reader, TextWriter writer)
+        private ThreadStart DumpStream(TextReader reader)
         {
             return (ThreadStart)delegate
             {
@@ -144,9 +150,24 @@
                 while ((line = reader.ReadLine()) != null)
                 {
                     Debug.WriteLine(line);
-                    writer.WriteLine(line);
                 }
             };
+        }
+
+        private string CombinePathFromAppRoot(string path)
+        {
+            string loaderPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
+            if (!string.IsNullOrEmpty(loaderPath)
+                && loaderPath[loaderPath.Length - 1] != Path.DirectorySeparatorChar
+                && loaderPath[loaderPath.Length - 1] != Path.AltDirectorySeparatorChar)
+            {
+                loaderPath += Path.DirectorySeparatorChar;
+            }
+            if (loaderPath.StartsWith(@"file:\"))
+            {
+                loaderPath = loaderPath.Substring(6);
+            }
+            return Path.Combine(Path.GetDirectoryName(loaderPath), path);
         }
     }
     public sealed class ProtoParseException : Exception
