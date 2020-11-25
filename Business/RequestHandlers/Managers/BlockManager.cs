@@ -59,9 +59,7 @@
 
             //await _repoManager.CloneRepositoryAsync();
 
-            var blocksFolder = Path.Combine(gitConnectionOptions.GitLocalFolder, gitConnectionOptions.BlockLocalFolder);
-
-            string[] files = Directory.GetFiles(blocksFolder);
+            string[] files = Directory.GetFiles(gitConnectionOptions.GitLocalFolder);
 
             int fileIndex = 1;
 
