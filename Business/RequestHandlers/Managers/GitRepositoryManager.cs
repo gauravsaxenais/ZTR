@@ -54,7 +54,7 @@
 
             var credentialsProvider = new CredentialsHandler((url, usernameFromUrl, types) => _defaultCredentials);
             _fetchOptions = new FetchOptions() { TagFetchMode = TagFetchMode.All, CredentialsProvider = credentialsProvider };
-            
+
             _cloneOptions = new CloneOptions() { CredentialsProvider = credentialsProvider };
             _cloneOptions.CertificateCheck += delegate (Certificate certificate, bool valid, string host)
             {
@@ -110,7 +110,10 @@
             string[] tagNames;
             var tags = new List<Tag>();
 
-            await CloneRepositoryAsync();
+            if (!IsExistsContentRepositoryDirectory())
+            {
+                await CloneRepositoryAsync();
+            }
 
             using (var repo = new Repository(_gitConnection.GitLocalFolder))
             {
@@ -341,19 +344,26 @@
         /// <param name="directory">The name of the directory to remove.</param>
         private void DeleteReadOnlyDirectory(string directory)
         {
-            foreach (var subdirectory in Directory.EnumerateDirectories(directory))
+            try
             {
-                DeleteReadOnlyDirectory(subdirectory);
+                foreach (var subdirectory in Directory.EnumerateDirectories(directory))
+                {
+                    DeleteReadOnlyDirectory(subdirectory);
+                }
+                foreach (var fileName in Directory.EnumerateFiles(directory))
+                {
+                    var fileInfo = new FileInfo(fileName);
+                    fileInfo.Attributes = FileAttributes.Normal;
+                    fileInfo.Delete();
+                }
+                Directory.Delete(directory);
             }
-            foreach (var fileName in Directory.EnumerateFiles(directory))
+            catch (Exception)
             {
-                var fileInfo = new FileInfo(fileName);
-                fileInfo.Attributes = FileAttributes.Normal;
-                fileInfo.Delete();
+                throw;
+                // swallow.
             }
-            Directory.Delete(directory);
         }
-
 
         #endregion
     }

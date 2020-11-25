@@ -1,33 +1,57 @@
 ﻿namespace Business.Parsers
 {
     using EnsureThat;
+    using Google.Protobuf;
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using System.Threading;
 
     public class InputFileLoader
     {
-        public void GenerateFiles(string path, params string[] args)
+        public void GenerateFiles(string protoFileName, params string[] args)
         {
-            EnsureArg.IsNotEmptyOrWhiteSpace(path);
+            EnsureArg.IsNotEmptyOrWhiteSpace(protoFileName);
 
             bool deletePath = false;
-
+            
             try
             {
                 // try to use protoc
-                path = CompileProtoFile(path, args);
+                protoFileName = GenerateCSharpFile(protoFileName, args);
+                var message = GetAllMessages(protoFileName + "Power.cs");
+                
                 deletePath = true;
             }
             finally
             {
                 if (deletePath)
                 {
-                    File.Delete(path);
+                    File.Delete(protoFileName);
                 }
             }
+        }
+
+        public IMessage GetAllMessages(string path)
+        {
+            var assembly = Assembly.LoadFile(path);
+
+            var instances = from t in Assembly.GetExecutingAssembly().GetTypes()
+                            where t.GetInterfaces().Contains(typeof(IMessage))
+                                     && t.GetConstructor(Type.EmptyTypes) != null
+                            select Activator.CreateInstance(t) as IMessage;
+
+            foreach (var instance in instances)
+            {
+                if (instance.Descriptor.Name == "Config" && CanConvertToMessageType(instance.GetType()))
+                {
+                    return instance;
+                }
+            }
+
+            return null;
         }
 
         public string GetProtocPath(out string folder)
@@ -63,22 +87,24 @@
             return path;
         }
 
-        public string CompileProtoFile(string path, params string[] args)
+        public string GenerateCSharpFile(string path, params string[] args)
         {
-            string tmp = Path.GetTempFileName();
+            string tmpOutputFolder = string.Empty;
             string tmpFolder = null, protocPath = null;
             try
             {
+                tmpOutputFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("n"));
+                Directory.CreateDirectory(tmpOutputFolder);
+
                 protocPath = GetProtocPath(out tmpFolder);
-                ProcessStartInfo psi = new ProcessStartInfo(
+
+                var protoFileLocation = @"F:\ZTR\Business\Parsers\ProtoFiles\Proto";
+                
+                var fileName = path;
+
+                var psi = new ProcessStartInfo(
                     protocPath,
-                    string.Format(@""" --include_imports --include_source_info --csharp_out={0}"" ""--proto_path={1}"" ""--proto_path={2}"" --error_format=gcc ""{3}"" {4}",
-                             tmp, // output file
-                             /*Environment.CurrentDirectory*/@"F:\ZTR\Business\Parsers\ProtoFiles\Proto", // primary search path
-                             Path.GetDirectoryName(protocPath), // secondary search path
-                             Path.Combine(/*Environment.CurrentDirectory*/@"F:\ZTR\Business\Parsers\ProtoFiles\Proto", path), // input file
-                             string.Join(" ", args) // extra args
-                    )
+                    arguments: $" --include_imports --include_source_info --proto_path={protoFileLocation} --csharp_out={tmpOutputFolder} --error_format=gcc {fileName} {string.Join(" ", args)}"
                 );
                 
                 psi.CreateNoWindow = true;
@@ -106,18 +132,21 @@
                         }
                         throw new ProtoParseException(Path.GetFileName(path));
                     }
-                    return tmp;
+                    return tmpOutputFolder;
                 }
             }
             catch
             {
-                try { if (File.Exists(tmp)) File.Delete(tmp); }
-                catch { } // swallow
+                if (!string.IsNullOrWhiteSpace(tmpOutputFolder))
+                {
+                    try { Directory.Delete(tmpOutputFolder, true); }
+                    catch { } // swallow
+                }
                 throw;
             }
             finally
             {
-                if (!string.IsNullOrEmpty(tmpFolder))
+                if (!string.IsNullOrWhiteSpace(tmpFolder))
                 {
                     try { Directory.Delete(tmpFolder, true); }
                     catch { } // swallow
@@ -140,6 +169,17 @@
                 Debug.WriteLine(ex); // log only
                 return false;
             }
+        }
+
+        // <summary>
+        // Called by NewtonSoft.Json's method to ask if this object can serialize
+        // an object of a given type.
+        // </summary>
+        // <returns>True if the objectType is a Protocol Message.</returns>
+        private bool CanConvertToMessageType(Type objectType)
+        {
+            return typeof(IMessage)
+                .IsAssignableFrom(objectType);
         }
 
         private ThreadStart DumpStream(TextReader reader)
