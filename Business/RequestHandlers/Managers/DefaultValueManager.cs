@@ -2,6 +2,7 @@
 {
     using Business.Configuration;
     using Business.Models.ConfigModels;
+    using Business.Parsers;
     using Business.RequestHandlers.Interfaces;
     using EnsureThat;
     using Microsoft.Extensions.Logging;
@@ -9,6 +10,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
@@ -27,29 +29,44 @@
             _gitRepoManager = gitRepoManager;
             _deviceGitConnectionOptions = deviceGitConnectionOptions;
 
+            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            _deviceGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder);
+
             _gitRepoManager.SetConnectionOptions(_deviceGitConnectionOptions);
         }
 
-        public async Task<IEnumerable<ModuleReadModel>> GetDefaultValuesAllModulesAsync(string firmwareVersion, string deviceType)
+        public async Task GetDefaultValuesAllModulesAsync(string firmwareVersion, string deviceType)
         {
-            var listOfModules = await GetListOfModulesAsync(firmwareVersion, deviceType);
+            await GetDataFromDefaultFileAsync(firmwareVersion, deviceType);
 
-            return listOfModules;
+            //return listOfModules;
         }
 
-        private async Task<IEnumerable<ModuleReadModel>> GetListOfModulesAsync(string firmwareVersion, string deviceType)
+        private async Task GetDataFromDefaultFileAsync(string firmwareVersion, string deviceType)
         {
-            var listOfModules = new List<ModuleReadModel>();
+            var inputFileLoader = new InputFileLoader();
 
-            var fileContent = /*await GetDeviceDataFromFirmwareVersionAsync(firmwareVersion, deviceType)*/ string.Empty;
-            if (!string.IsNullOrWhiteSpace(fileContent))
+            var compilerPath = string.Empty;
+            inputFileLoader.GetProtocPath(out compilerPath);
+
+            if(!string.IsNullOrWhiteSpace(compilerPath))
             {
-                var data = GetTomlData(fileContent);
-
-                listOfModules = data.Module;
+                inputFileLoader.GenerateFiles("power.proto");
             }
 
-            return listOfModules;
+            var fileContent = await GetDefaultData(firmwareVersion, deviceType);
+
+
+            //var listOfMessages = 
+            if (!string.IsNullOrWhiteSpace(fileContent))
+            {
+                var defaultFileData = GetTomlData(fileContent);
+
+                //listOfModules = defaultFileData.Module;
+            }
+
+            //return listOfModules;
         }
 
         public static List<T> ReadDataModel<T>(string data, string fieldToRead, TomlSettings settings) where T : class, new()
@@ -80,24 +97,24 @@
             return tomlData;
         }
 
-        //private async Task<string> GetDeviceDataFromFirmwareVersionAsync(string firmwareVersion, string deviceType)
-        //{
-        //    var gitConnectionOptions = (_gitRepoManager.GetConnectionOptions();
+        private async Task<string> GetDefaultData(string firmwareVersion, string deviceType)
+        {
+            var gitConnectionOptions = (DeviceGitConnectionOptions)_gitRepoManager.GetConnectionOptions();
 
-        //    var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.TomlConfiguration.DeviceTomlFile);
+            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.TomlConfiguration.DefaultTomlFile);
 
-        //    // case insensitive search.
-        //    var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
+            // case insensitive search.
+            var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
 
-        //    var fileContent = string.Empty;
+            var fileContent = string.Empty;
 
-        //    if (deviceTypeFile != null)
-        //    {
-        //        fileContent = System.Text.Encoding.UTF8.GetString(deviceTypeFile.Data);
-        //    }
+            if (deviceTypeFile != null)
+            {
+                fileContent = System.Text.Encoding.UTF8.GetString(deviceTypeFile.Data);
+            }
 
-        //    return fileContent;
-        //}
+            return fileContent;
+        }
 
         private void GenerateCSharpFileFromProtoFile(string protoFileLocation, string csharpFileDirectory, string protoFileName)
         {

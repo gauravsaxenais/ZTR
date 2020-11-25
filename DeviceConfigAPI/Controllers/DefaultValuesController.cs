@@ -37,9 +37,9 @@
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllDefaultValues([Required, FromQuery] string firmwareVersion, string deviceType)
         {
-            var result = await this.manager.GetDefaultValuesAllModulesAsync(firmwareVersion, deviceType).ConfigureAwait(false);
+            await this.manager.GetDefaultValuesAllModulesAsync(firmwareVersion, deviceType).ConfigureAwait(false);
 
-            return this.StatusCode(StatusCodes.Status200OK, result);
+            return this.StatusCode(StatusCodes.Status200OK, null);
         }
     }
 }
