@@ -8,6 +8,7 @@
     using EnsureThat;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Newtonsoft.Json.Linq;
     using ZTR.Framework.Service;
 
     [ApiController]
@@ -39,7 +40,13 @@
         {
             var result = await this.manager.GetDefaultValuesAllModulesAsync(firmwareVersion, deviceType).ConfigureAwait(false);
 
-            return this.StatusCode(StatusCodes.Status200OK, result);
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                return this.StatusCode(StatusCodes.Status200OK, result);
+            }
+
+            var json = JObject.Parse(result);
+            return this.StatusCode(StatusCodes.Status200OK, json);
         }
     }
 }

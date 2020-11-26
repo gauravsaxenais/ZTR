@@ -7,6 +7,7 @@
     using Google.Protobuf;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
@@ -38,11 +39,11 @@
             var outputFolderPath = @"ProtoFiles\GeneratedFiles\";
             var protoFilePath = @"ProtoFiles\Proto";
 
-            var json = string.Empty;
+            var jsonStrings = new List<string>();
 
             var inputFileLoader = new InputFileLoader();
+            var customMessageParser = new CustomMessageParser();
             var moduleParser = new ModuleParser();
-            var defaultValueParser = new DefaultValueParser();
 
             var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();
 
@@ -52,19 +53,26 @@
             foreach (string file in Directory.EnumerateFiles(protoFilePath, "*.proto"))
             {
                 var fileName = Path.GetFileName(file);
-                inputFileLoader.GenerateFiles(fileName, outputFolderPath, protoFilePath);
+                inputFileLoader.GenerateCodeFiles(fileName, protoFilePath, outputFolderPath);
             }
 
-            var messages = moduleParser.GetAllMessages();
+            var messages = customMessageParser.GetAllMessages();
 
             foreach (IMessage message in messages)
             {
-                var formattedMessage = moduleParser.Format(message);
+                var formattedMessage = customMessageParser.Format(message);
 
-                json += defaultValueParser.ReadFileAsJson(defaultFileContent, tomlSettings, formattedMessage);
+                var jsonContent = moduleParser.ReadFileAsJson(defaultFileContent, tomlSettings, formattedMessage);
+
+                if (!string.IsNullOrWhiteSpace(jsonContent))
+                {
+                    jsonStrings.Add(jsonContent);
+                }
             }
 
-            return json;
+            var finalJson = string.Join(",", jsonStrings);
+
+            return finalJson;
         }
 
         private async Task<string> GetDefaultData(string firmwareVersion, string deviceType)

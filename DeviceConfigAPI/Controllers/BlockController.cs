@@ -31,7 +31,7 @@
         public async Task<IActionResult> GetAllBlocks([Required, FromQuery] string firmwareVersion, [Required, FromQuery] string deviceType)
         {
             var result = await this.manager.ParseTomlFilesAsync(firmwareVersion, deviceType, "blocks").ConfigureAwait(false);
-            if (string.IsNullOrEmpty(result))
+            if (string.IsNullOrWhiteSpace(result))
             {
                 return this.StatusCode(StatusCodes.Status200OK, result);
             }

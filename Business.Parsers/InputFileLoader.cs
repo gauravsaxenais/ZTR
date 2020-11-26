@@ -9,7 +9,7 @@
 
     public class InputFileLoader
     {
-        public void GenerateFiles(string protoFileName, string outputFolderPath, string protoFilePath, params string[] args)
+        public void GenerateCodeFiles(string protoFileName, string protoFilePath, string outputFolderPath, params string[] args)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(protoFileName);
 
@@ -19,7 +19,7 @@
                 protoFilePath = CombinePathFromAppRoot(protoFilePath);
 
                 // try to use protoc
-                GenerateCSharpFile(fileName: protoFileName, outputFolderPath: outputFolderPath, protoFilePath: protoFilePath,  args);
+                GenerateCSharpFile(protoFileName, protoFilePath, outputFolderPath, args);
             }
             catch
             {
@@ -61,7 +61,7 @@
             return path;
         }
 
-        public void GenerateCSharpFile(string fileName, string outputFolderPath, string protoFilePath, params string[] args)
+        public void GenerateCSharpFile(string fileName, string protoFilePath, string outputFolderPath, params string[] args)
         {
             string tmpFolder = null;
 
