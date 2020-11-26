@@ -9,34 +9,32 @@
 
     public class InputFileLoader
     {
-        public void GenerateFiles(string path, params string[] args)
+        public void GenerateFiles(string protoFileName, string outputFolderPath, string protoFilePath, params string[] args)
         {
-            EnsureArg.IsNotEmptyOrWhiteSpace(path);
-
-            bool deletePath = false;
+            EnsureArg.IsNotEmptyOrWhiteSpace(protoFileName);
 
             try
             {
+                outputFolderPath = CombinePathFromAppRoot(outputFolderPath);
+                protoFilePath = CombinePathFromAppRoot(protoFilePath);
+
                 // try to use protoc
-                path = CompileProtoFile(path, args);
-                deletePath = true;
+                GenerateCSharpFile(fileName: protoFileName, outputFolderPath: outputFolderPath, protoFilePath: protoFilePath,  args);
             }
-            finally
+            catch
             {
-                if (deletePath)
-                {
-                    File.Delete(path);
-                }
+                throw;
             }
         }
 
-        public string GetProtocPath(out string folder)
+        public string GetProtoCompilerPath(out string folder)
         {
             const string Name = "protoc.exe";
             string lazyPath = CombinePathFromAppRoot(Name);
 
             if (File.Exists(lazyPath))
-            {   // use protoc.exe from the existing location (faster)
+            {   
+                // use protoc.exe from the existing location (faster)
                 folder = null;
                 return lazyPath;
             }
@@ -44,7 +42,7 @@
             folder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("n"));
             Directory.CreateDirectory(folder);
             string path = Path.Combine(folder, Name);
-            
+
             // look inside ourselves...
             using (Stream resStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
                 typeof(InputFileLoader).Namespace + "." + Name))
@@ -63,34 +61,37 @@
             return path;
         }
 
-        public string CompileProtoFile(string path, params string[] args)
+        public void GenerateCSharpFile(string fileName, string outputFolderPath, string protoFilePath, params string[] args)
         {
-            string tmp = Path.GetTempFileName();
-            string tmpFolder = null, protocPath = null;
+            string tmpFolder = null;
+
             try
             {
-                protocPath = GetProtocPath(out tmpFolder);
-                ProcessStartInfo psi = new ProcessStartInfo(
+                if (!Directory.Exists(outputFolderPath))
+                {
+                    Directory.CreateDirectory(outputFolderPath);
+                }
+
+                string protocPath = GetProtoCompilerPath(out tmpFolder);
+
+                var psi = new ProcessStartInfo(
                     protocPath,
-                    string.Format(@""" --include_imports --include_source_info --csharp_out={0}"" ""--proto_path={1}"" ""--proto_path={2}"" --error_format=gcc ""{3}"" {4}",
-                             tmp, // output file
-                             /*Environment.CurrentDirectory*/@"F:\ZTR\Business\Parsers\ProtoFiles\Proto", // primary search path
-                             Path.GetDirectoryName(protocPath), // secondary search path
-                             Path.Combine(/*Environment.CurrentDirectory*/@"F:\ZTR\Business\Parsers\ProtoFiles\Proto", path), // input file
-                             string.Join(" ", args) // extra args
-                    )
-                );
-                
-                psi.CreateNoWindow = true;
-                psi.WindowStyle = ProcessWindowStyle.Hidden;
-                psi.WorkingDirectory = Environment.CurrentDirectory;
-                psi.UseShellExecute = false;
+                    arguments: $" --include_imports --include_source_info --proto_path={protoFilePath} --csharp_out={outputFolderPath} --error_format=gcc {fileName} {string.Join(" ", args)}"
+                )
+                {
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    WorkingDirectory = Environment.CurrentDirectory,
+                    UseShellExecute = false
+                };
+
                 psi.RedirectStandardOutput = psi.RedirectStandardError = true;
 
                 using (Process proc = Process.Start(psi))
                 {
-                    Thread errThread = new Thread(DumpStream(proc.StandardError));
-                    Thread outThread = new Thread(DumpStream(proc.StandardOutput));
+                    var errThread = new Thread(DumpStream(proc.StandardError));
+                    var outThread = new Thread(DumpStream(proc.StandardOutput));
+
                     errThread.Name = "stderr reader";
                     outThread.Name = "stdout reader";
                     errThread.Start();
@@ -98,31 +99,28 @@
                     proc.WaitForExit();
                     outThread.Join();
                     errThread.Join();
+                    
                     if (proc.ExitCode != 0)
                     {
-                        if (HasByteOrderMark(path))
+                        if (HasByteOrderMark(fileName))
                         {
                             //stderr.WriteLine("The input file should be UTF8 without a byte-order-mark (in Visual Studio use \"File\" -> \"Advanced Save Options...\" to rectify)");
                         }
-                        throw new ProtoParseException(Path.GetFileName(path));
+                        throw new ProtoParseException(Path.GetFileName(fileName));
                     }
-                    return tmp;
                 }
             }
             catch
             {
-                try { if (File.Exists(tmp)) File.Delete(tmp); }
-                catch { } // swallow
                 throw;
             }
             finally
             {
-                if (!string.IsNullOrEmpty(tmpFolder))
+                if (!string.IsNullOrWhiteSpace(tmpFolder))
                 {
                     try { Directory.Delete(tmpFolder, true); }
                     catch { } // swallow
                 }
-
             }
         }
 
@@ -130,10 +128,8 @@
         {
             try
             {
-                using (Stream s = File.OpenRead(path))
-                {
-                    return s.ReadByte() > 127;
-                }
+                using Stream s = File.OpenRead(path);
+                return s.ReadByte() > 127;
             }
             catch (Exception ex)
             {
@@ -154,7 +150,7 @@
             };
         }
 
-        private string CombinePathFromAppRoot(string path)
+        public string CombinePathFromAppRoot(string path)
         {
             string loaderPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
             if (!string.IsNullOrEmpty(loaderPath)

@@ -33,7 +33,7 @@
         {
             services.AddControllers();
 
-            //services.AddAllowAllOriginsCorsPolicy();
+            services.AddAllowAllOriginsCorsPolicy();
 
             services.AddMvc()
                 .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new StringEnumConverter()))
