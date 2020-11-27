@@ -86,9 +86,12 @@
 
                 if (message != null)
                 {
-                    var customIMessage = new CustomIMessage();
-                    customIMessage.Name = filePath.Key;
-                    customIMessage.Message = message;
+                    var customIMessage = new CustomIMessage
+                    {
+                        Name = filePath.Key,
+                        Message = message
+                    };
+
                     messages.Add(customIMessage);
                 }
             }

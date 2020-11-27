@@ -22,8 +22,7 @@
         /// <param name="userName">Name of the user.</param>
         /// <param name="password">The password.</param>
         /// <param name="gitRepositoryUrl">The git repository URL.</param>
-        /// <param name="tomlConfiguration">The toml configuration.</param>
-        public ModuleGitConnectionOptions(string gitLocalFolder, string userName, string password, string gitRepositoryUrl, TomlConfigurationFile tomlConfiguration) :
+        public ModuleGitConnectionOptions(string gitLocalFolder, string userName, string password, string gitRepositoryUrl) :
             base(gitLocalFolder, userName, password, gitRepositoryUrl)
         {
         }

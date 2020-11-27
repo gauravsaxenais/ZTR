@@ -2,6 +2,11 @@
 {
     using System.IO;
     using ZTR.Framework.Business.File;
+
+    /// <summary>
+    /// This class maps to the connection options in appsettings.json file.
+    /// </summary>
+    /// <seealso cref="ZTR.Framework.Business.File.GitConnectionOptions" />
     public sealed class BlockGitConnectionOptions : GitConnectionOptions
     {
         /// <summary>

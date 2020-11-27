@@ -19,14 +19,12 @@
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(protoFileName);
 
-            var outputFolder = string.Empty;
-
             try
             {
                 protoFilePath = CombinePathFromAppRoot(protoFilePath);
 
                 // try to use protoc
-                outputFolder = GenerateCSharpFile(protoFileName, protoFilePath, args);
+                string outputFolder = GenerateCSharpFile(protoFileName, protoFilePath, args);
                 outputFolder = FileReaderExtensions.NormalizeFolderPath(outputFolder);
 
                 var dllPath = GenerateDllFromCsFile(protoFileName, outputFolder);
@@ -253,8 +251,10 @@
         {
             string loaderPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
             if (!string.IsNullOrEmpty(loaderPath)
+#pragma warning disable IDE0056 // Use index operator
                 && loaderPath[loaderPath.Length - 1] != Path.DirectorySeparatorChar
                 && loaderPath[loaderPath.Length - 1] != Path.AltDirectorySeparatorChar)
+#pragma warning restore IDE0056 // Use index operator
             {
                 loaderPath += Path.DirectorySeparatorChar;
             }
