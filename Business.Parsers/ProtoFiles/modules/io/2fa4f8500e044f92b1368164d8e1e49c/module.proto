@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package _a2fa4f8500e044f92b1368164d8e1e49c;
+
+enum Allocator {
+    // This needs to be here as a zero value.
+    DO_NOT_REMOVE = 0;
+    VALUE = 1;
+};
+
+enum StandardEventCodes {
+    // Signal: Zero based harness input pin number.
+    INPUT_LOW = 0;
+
+    // Signal: Zero based harness input pin number.
+    INPUT_HIGH = 1;
+};
+
+enum StandardFilterCodes {
+    // Signal: Zero based harness pin number.
+    IS_LOW = 0;   
+
+    // Signal: Zero based harness pin number.
+    IS_HIGH = 1;
+};
+
+enum StandardActionCodes {
+    // Signal: Zero based harness output pin number.
+    SET_LOW = 0;
+
+    // Signal: Zero based harness output pin number.
+    SET_HIGH = 1;
+};
+
+message Config {
+    message AnalogInput {
+        // Index of ADC channel to use as source voltage.
+        uint64 adc_input = 1;
+
+        // Index to map the digital input state into.
+        uint64 digital_input = 2;
+
+        // High threshold for ON state.
+        uint64 set_value = 3;
+
+        // Low threshold for OFF state.
+        uint64 clear_value = 4;
+    };
+
+    // Sets the time in seconds that an input must settle in before a change of
+    // state occurs.
+    repeated int64 input_debounce_interval = 1;
+
+    // List of all virtual analog inputs to monitor.
+    repeated AnalogInput analog_inputs = 2;
+};

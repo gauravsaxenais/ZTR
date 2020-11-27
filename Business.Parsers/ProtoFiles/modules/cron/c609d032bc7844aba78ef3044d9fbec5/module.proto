@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package _c609d032bc7844aba78ef3044d9fbec5;
+
+enum Allocator {
+	// This needs to be here as a zero value.
+	DO_NOT_REMOVE = 0;
+
+	// Encode a dynamic resource with a count.
+	VALUE = 3;
+}
+
+enum StandardEventCodes {
+	// Signal: A 0-based index for the timer.
+	EXPIRED = 0;
+}
+
+enum StandardFilterCodes {
+	// Signal: A 0-based index for the timer.
+	ACTIVE = 0;
+}
+
+enum StandardActionCodes {
+	// Signal: A 0-based index for the timer.
+	CANCEL = 0;
+}
+
+enum ExtendedActionCodes {
+	// Signal: A 0-based index for the timer.
+	// Modifier: The timer's duration in minutes.
+	AFTER = 0;
+
+	// Signal: A 0-based index for the timer.
+	// Modifier: The timer's duration in minutes.
+	EVERY = 1;
+
+	// Signal: A 0-based index for the timer.
+	// Modifier: The timer's duration in minutes.
+	WAKE_AFTER = 2;
+
+	// Signal: A 0-based index for the timer.
+	// Modifier: The timer's duration in minutes.
+	WAKE_EVERY = 3;
+}
+
+message Config {
+	// Number of resources allocated by goat.
+	uint32 resource_count = 1;
+}

@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package _a9003aaa09a0c47fc8e24e738499835ef;
+
+enum Allocator {
+	// This needs to be here as a zero value.
+	DO_NOT_REMOVE = 0;
+	VALUE         = 1;
+};
+
+enum StandardEventCodes {
+	// Signal: Action.
+	START = 0;
+
+	// Signal: Action.
+	ABORT = 1;
+};
+
+enum StandardFilterCodes {
+	// Signal: Action.
+	IS_RUNNING = 0;
+};
+
+enum StandardActionCodes {
+	// Signal: Action.
+	COMPLETE = 0;
+
+	// Signal: Action.
+	HEARTBEAT = 1;
+};
+
+enum ExtendedActionCodes {
+	// Signal: Action.
+	// Modifier: Error value.
+	ERROR = 0;
+};
+
+message Config {
+	// Seconds before we send an error with value `timeout` after starting an Action.
+	int32 timeout_s = 1;
+};

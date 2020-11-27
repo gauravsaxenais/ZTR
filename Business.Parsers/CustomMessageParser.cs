@@ -42,25 +42,6 @@
             WriteMessage(protoParserMessage, message);
         }
 
-        public List<IMessage> GetAllMessages()
-        {
-            var messages = new List<IMessage>();
-            var instances = from t in Assembly.GetExecutingAssembly().GetTypes()
-                            where t.GetInterfaces().Contains(typeof(IMessage))
-                                     && t.GetConstructor(Type.EmptyTypes) != null
-                            select Activator.CreateInstance(t) as IMessage;
-
-            foreach (var instance in instances)
-            {
-                if (instance.Descriptor.Name == "Config" && CanConvertToMessageType(instance.GetType()))
-                {
-                    messages.Add(instance);
-                }
-            }
-
-            return messages;
-        }
-
         private void WriteMessage(Message protoParserMessage, IMessage message)
         {
             if (message == null)
@@ -148,17 +129,6 @@
                 default:
                     return false;
             }
-        }
-
-        // <summary>
-        // Called by method to ask if this object can serialize
-        // an object of a given type.
-        // </summary>
-        // <returns>True if the objectType is a Protocol Message.</returns>
-        private bool CanConvertToMessageType(Type objectType)
-        {
-            return typeof(IMessage)
-                .IsAssignableFrom(objectType);
         }
 
         private object GetDefaultValue(FieldDescriptor descriptor)

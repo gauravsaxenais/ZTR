@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package _e757221195064b5ba9a93be57b2967b1;
+
+enum Allocator {
+    // This needs to be here as a zero value.
+    DO_NOT_REMOVE = 0;
+    VALUE = 1;
+};
+
+message Config {
+    message RegisterConfiguration {
+        // Zero based register index to assign the argument to.
+        uint32 index = 1;
+
+        // Zero based subsystem argument index to pass to the intended register.
+        uint32 arg = 2;
+    };
+
+	message VirtualConfiguration {
+        // Configure the virtual register index and arg.
+        RegisterConfiguration config = 1;
+
+        // Zero based bit index to configure in the intended register.
+        uint32 bit = 2;
+	};
+
+    // List of registers allocated through the digital-io module protocol.
+    repeated VirtualConfiguration digital_registers = 1;
+
+    // List of registers allocated through the analog-io module protocol.
+    repeated RegisterConfiguration analog_registers = 2;
+
+    // List of registers allocated through the kv module protocol.
+    repeated RegisterConfiguration kv_registers = 3;
+};

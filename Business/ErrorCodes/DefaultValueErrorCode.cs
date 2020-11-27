@@ -1,5 +1,8 @@
 ﻿namespace Business.ErrorCodes
 {
+    /// <summary>
+    /// Error codes.
+    /// </summary>
     public enum DefaultValueErrorCode
     {
         /// <summary>

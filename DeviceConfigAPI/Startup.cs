@@ -15,18 +15,34 @@
     using ZTR.Framework.Security;
     using ZTR.Framework.Service;
 
+    /// <summary>
+    ///   Added Startup class.
+    /// </summary>
     public class Startup
     {
         private static ILogger logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Startup"/> class.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
         public Startup(IConfiguration configuration)
         {
             this.Configuration = configuration;
         }
 
+        /// <summary>
+        /// Gets the configuration.
+        /// </summary>
+        /// <value>
+        /// The configuration.
+        /// </value>
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// This method gets called by the runtime. Use this method to add services to the container.
+        /// </summary>
+        /// <param name="services">service collection.</param>
 #pragma warning disable CA1822 // Mark members as static
         public void ConfigureServices(IServiceCollection services)
 #pragma warning restore CA1822 // Mark members as static
@@ -77,7 +93,10 @@
             services.AddServices();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// </summary>
+        /// <param name="app">application builder.</param>
 #pragma warning disable CA1822 // Mark members as static
         public void Configure(IApplicationBuilder app)
 #pragma warning restore CA1822 // Mark members as static

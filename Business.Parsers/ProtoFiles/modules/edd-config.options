@@ -1,0 +1,2 @@
+Config.Modules.uuid max_size:16, fixed_length:true
+Config.Version.uuid max_size:16, fixed_length:true

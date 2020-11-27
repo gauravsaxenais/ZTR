@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package _edce8ad7992042ecb031bff36e195163;
+
+enum Allocator {
+	// This needs to be here as a zero value.
+	DO_NOT_REMOVE = 0;
+	VALUE = 1;
+};
+
+enum StandardEventCodes {
+	// Signal: N/A.
+	FIX_ACQUIRED = 0;
+
+	// Signal: N/A.
+	FIX_LOST = 1;
+
+	// Signal: FixType config enum value for fix state.
+	FIX_STATE_CHANGE = 2;
+};
+
+enum StandardFilterCodes {
+	// Signal: N/A.
+	HAS_FIX = 0;
+
+	// Signal: FixType config enum value for fix state being tested.
+	IS_FIX_TYPE = 1;
+
+	// Signal: QualityType config enum value for quality being tested.
+	IS_FIX_QUALITY_EQUAL_OR_ABOVE = 2;
+};
+
+message Config {
+	enum FixType {
+		NO_FIX = 0;
+		DEAD_RECKONING_FIX = 1;
+		FIX_2D = 2;
+		FIX_3D = 3;
+		GNSS_FIX = 4;
+		TIME_ONLY_FIX = 5;
+		INVALID = 6;
+	};
+
+	// @warning Must be in ascending order of quality.
+	enum FixQualityType {
+		POOR = 0;
+		FAIR = 1;
+		MODERATE = 2;
+		GOOD = 3;
+		EXCELLENT = 4;
+		IDEAL = 5;
+	};
+}

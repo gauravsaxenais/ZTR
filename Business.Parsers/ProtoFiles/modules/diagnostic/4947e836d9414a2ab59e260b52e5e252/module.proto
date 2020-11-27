@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package _a4947e836d9414a2ab59e260b52e5e252;
+
+enum Allocator {
+	// This needs to be here as a zero value.
+	DO_NOT_REMOVE = 0;
+
+	VALUE = 1;
+}
+
+enum StandardActionCodes {
+	// Signal: Mask of which diagnostic PGN(s) to enable, index map included in the Config::Type.
+	ENABLE = 0;
+	
+	// Signal: Mask of which diagnostic PGN(s) to disable, index map included in the Config::Type.
+	DISABLE = 1;
+}
+
+message Config {
+	// Values used to create a bit packed number for diagnostic PGNs
+	enum Type {
+		HEARTBEAT = 0;
+		NETWORK = 1;
+		TIMESTAMP = 2;
+		ANALOG = 3;
+		IO = 4;
+	};
+
+	message Diagnostic {
+		// The diagnostic PGN type
+		Type pgn = 1;
+
+		// Frequency PGN is written to the j1939 bus e.g. 100 ms
+		uint32 frequency_ms = 2;
+	};
+
+	// List of each diagnostic PGN and its write frequency
+	repeated Diagnostic diagnostics = 1;
+};

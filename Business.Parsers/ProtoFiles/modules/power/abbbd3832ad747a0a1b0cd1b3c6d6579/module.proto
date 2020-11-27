@@ -1,4 +1,4 @@
-﻿syntax = "proto3";
+syntax = "proto3";
 
 package _abbbd3832ad747a0a1b0cd1b3c6d6579;
 
@@ -44,37 +44,15 @@ message Config {
       HIBERNATE = 2;
     };
 
-    // The profile's 1 state.
-    State state = 2;
+    // The profile's state.
+    State state = 1;
 
     // What will wake the device up (input, adc_threshold, cell, etc).
-    uint32 wakeup_mask = 3;
+    uint32 wakeup_mask = 2;
 
     // How long to wait before applying this profile in seconds.
-    uint32 delay_s = 4;
+    uint32 delay_s = 3;
   };
 
-  enum BaudRate {
-		// Slow rate (250 KBPS).
-		LOW = 0;
-
-		// Fast rate (500 KBPS).
-		HIGH = 1;
-	};
-
-	enum Pdu1 {
-		// Enable the Pdu1 PGN Mask.
-		ENABLE = 0;
-
-		// Disable the Pdu1 PGN Mask.
-		DISABLE = 1;
-
-		TEST = 2;
-	};
-
-	// The profile's 3 state.
-	repeated Profile profiles = 1;
-
-	// Protocol Data Units message format.
-	Pdu1 pdu = 2;
+  repeated Profile profiles = 1;
 };

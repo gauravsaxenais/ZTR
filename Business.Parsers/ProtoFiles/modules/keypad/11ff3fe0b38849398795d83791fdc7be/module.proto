@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package _a11ff3fe0b38849398795d83791fdc7be;
+
+enum Allocator {
+    // This needs to be here as a zero value.
+    DO_NOT_REMOVE = 0;
+
+    VALUE = 1;
+}
+
+enum StandardEventCodes {
+    // Signal: N/A.
+    CHECKED_IN = 0;
+}
+
+enum StandardActionCodes {
+    // Signal: N/A.
+    START_AUTOCHECKOUT = 0;
+
+    // Signal: N/A.
+    STOP_AUTOCHECKOUT = 1;
+}
+
+message Config {
+    // Time before user gets checked out.
+    uint32 autocheckout_delay_s = 1;
+};

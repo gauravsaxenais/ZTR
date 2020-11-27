@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package _a018e7e898ac74a06936fab03b5fc6094;
+
+enum Allocator {
+	// This needs to be here as a zero value.
+	DO_NOT_REMOVE = 0;
+	VALUE = 3;
+};
+
+enum StandardEventCodes {
+    // Signal: Timer instance number.
+    EXPIRED = 0;
+};
+
+enum StandardFilterCodes {
+    // Signal: Timer instance number.
+    ACTIVE = 0;
+};
+
+enum StandardActionCodes {
+    // Signal: Timer instance number.
+    CANCEL = 0;
+};
+
+enum ExtendedActionCodes {
+    // Signal: Timer instance number.
+    // Modifier: Frequency for timer to be set at.
+    AFTER = 0;
+    EVERY = 1;
+};
+
+message Config {
+	// Number of resources allocated through EDD.
+	uint32 resource_count = 1;
+};

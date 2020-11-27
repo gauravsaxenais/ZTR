@@ -1,0 +1,420 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Business</name>
+    </assembly>
+    <members>
+        <member name="T:Business.Configuration.DeviceGitConnectionOptions">
+            <summary>
+            This class maps to the connection options in appsettings.json file.
+            </summary>
+        </member>
+        <member name="M:Business.Configuration.DeviceGitConnectionOptions.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Business.Configuration.DeviceGitConnectionOptions"/> class.
+            </summary>
+        </member>
+        <member name="M:Business.Configuration.DeviceGitConnectionOptions.#ctor(System.String,System.String,System.String,System.String,Business.TomlConfigurationFile)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Business.Configuration.DeviceGitConnectionOptions"/> class.
+            </summary>
+            <param name="gitLocalFolder">The git local folder.</param>
+            <param name="userName">Name of the user.</param>
+            <param name="password">The password.</param>
+            <param name="gitRepositoryUrl">The git repository URL.</param>
+            <param name="tomlConfiguration">The toml configuration.</param>
+        </member>
+        <member name="P:Business.Configuration.DeviceGitConnectionOptions.TomlConfiguration">
+            <summary>
+            Gets or sets the toml configuration.
+            </summary>
+            <value>
+            The toml configuration.
+            </value>
+        </member>
+        <member name="M:Business.Configuration.DeviceGitConnectionOptions.ToString">
+            <summary>
+            Converts to string.
+            </summary>
+            <returns>
+            A <see cref="T:System.String" /> that represents this instance.
+            </returns>
+        </member>
+        <member name="F:Business.ErrorCodes.DefaultValueErrorCode.UnknownError">
+            <summary>
+            Unknown Error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DefaultValueErrorCode.AdobeTrafficFileUploadError">
+            <summary>
+            The adobe traffic file upload error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DefaultValueErrorCode.AdobeTrafficFileDeleteError">
+            <summary>
+            The Reputation file delete error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DefaultValueErrorCode.AdobeTrafficFileDataImportError">
+            <summary>
+            The Reputation file data import error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DefaultValueErrorCode.AdobeMakeFileProcessError">
+            <summary>
+            The adobe make file process error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DefaultValueErrorCode.AdobeProviderFileProcessError">
+            <summary>
+            The adobe provider file process error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DefaultValueErrorCode.AdobeFileIsInImportProcess">
+            <summary>
+            The adobe file is in import process
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DefaultValueErrorCode.AdobeTrafficJobProcessError">
+            <summary>
+            The adobe traffic job failed at the base level of the import process.
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DefaultValueErrorCode.AdobeDependantLoadingProcessError">
+            <summary>
+            The adobe traffic job failed to load the dependant data.
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DefaultValueErrorCode.AdobeTrafficDeletionProcessError">
+            <summary>
+            The adobe traffic job failed to delete failed traffic import records.
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DeviceErrorCode.UnknownError">
+            <summary>
+            Unknown Error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DeviceErrorCode.FileUploadError">
+            <summary>
+            The adobe traffic file upload error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DeviceErrorCode.FileDeleteError">
+            <summary>
+            The Reputation file delete error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DeviceErrorCode.AdobeTrafficFileDataImportError">
+            <summary>
+            The Reputation file data import error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DeviceErrorCode.AdobeMakeFileProcessError">
+            <summary>
+            The adobe make file process error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DeviceErrorCode.AdobeProviderFileProcessError">
+            <summary>
+            The adobe provider file process error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DeviceErrorCode.AdobeFileIsInImportProcess">
+            <summary>
+            The adobe file is in import process
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DeviceErrorCode.AdobeTrafficJobProcessError">
+            <summary>
+            The adobe traffic job failed at the base level of the import process.
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DeviceErrorCode.AdobeDependantLoadingProcessError">
+            <summary>
+            The adobe traffic job failed to load the dependant data.
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.DeviceErrorCode.AdobeTrafficDeletionProcessError">
+            <summary>
+            The adobe traffic job failed to delete failed traffic import records.
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.ModuleErrorCode.UnknownError">
+            <summary>
+            Unknown Error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.ModuleErrorCode.AdobeTrafficFileUploadError">
+            <summary>
+            The adobe traffic file upload error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.ModuleErrorCode.AdobeTrafficFileDeleteError">
+            <summary>
+            The Reputation file delete error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.ModuleErrorCode.AdobeTrafficFileDataImportError">
+            <summary>
+            The Reputation file data import error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.ModuleErrorCode.AdobeMakeFileProcessError">
+            <summary>
+            The adobe make file process error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.ModuleErrorCode.AdobeProviderFileProcessError">
+            <summary>
+            The adobe provider file process error
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.ModuleErrorCode.AdobeFileIsInImportProcess">
+            <summary>
+            The adobe file is in import process
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.ModuleErrorCode.AdobeTrafficJobProcessError">
+            <summary>
+            The adobe traffic job failed at the base level of the import process.
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.ModuleErrorCode.AdobeDependantLoadingProcessError">
+            <summary>
+            The adobe traffic job failed to load the dependant data.
+            </summary>
+        </member>
+        <member name="F:Business.ErrorCodes.ModuleErrorCode.AdobeTrafficDeletionProcessError">
+            <summary>
+            The adobe traffic job failed to delete failed traffic import records.
+            </summary>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.BlockManager.ParseTomlFilesAsync(System.String,System.String,System.String)">
+            <summary>
+            Toml file parser
+            </summary>
+            <param name="firmwareVersion"></param>
+            <param name="deviceType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.BlockManager.BlockParserToJson(System.String,System.Text.StringBuilder@,System.IO.TextReader@,System.String@,System.Collections.Generic.List{System.Object},System.Int32)">
+            <summary>
+            Block parser
+            </summary>
+            <param name="currentFile"></param>
+            <param name="json"></param>
+            <param name="readFile"></param>
+            <param name="strData"></param>
+            <param name="flattenList"></param>
+            <param name="fileIndex"></param>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.BlockManager.ModuleParserToJson(System.String,System.Text.StringBuilder@,System.IO.TextReader@,System.String@,System.Collections.Generic.List{System.Object})">
+            <summary>
+            Module parser
+            </summary>
+            <param name="currentFile"></param>
+            <param name="json"></param>
+            <param name="readFile"></param>
+            <param name="strData"></param>
+            <param name="flattenList"></param>
+            <param name="newDir"></param>
+        </member>
+        <member name="T:Business.RequestHandlers.Managers.DefaultValueManager">
+            <summary>
+            This class returns all the modules, their name and uuid information.
+            It also returns of the default values for all the modules.
+            It integrates with module parser to parse a proto file,
+            recieves all the default values from default.toml and 
+            receives the module.proto from corresponding module name
+            and uuid folder.
+            </summary>
+            <seealso cref="T:ZTR.Framework.Business.Manager" />
+            <seealso cref="T:Business.RequestHandlers.Interfaces.IDefaultValueManager" />
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.ModuleManager},Business.RequestHandlers.Interfaces.IGitRepositoryManager,Business.Configuration.DeviceGitConnectionOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.DefaultValueManager"/> class.
+            </summary>
+            <param name="logger">The logger.</param>
+            <param name="gitRepoManager">The git repo manager.</param>
+            <param name="deviceGitConnectionOptions">The device git connection options.</param>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetDefaultValuesAllModulesAsync(System.String,System.String)">
+            <summary>
+            Gets the default values for all modules in asynchronous fashion.
+            </summary>
+            <param name="firmwareVersion">The firmware version.</param>
+            <param name="deviceType">Type of the device.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetProtoFilePath(System.String,System.Collections.Generic.IEnumerable{Business.Models.ModuleReadModel})">
+            <summary>
+            Gets the proto file path.
+            </summary>
+            <param name="moduleFilePath">The module file path.</param>
+            <param name="listOfModules">The list of modules.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetListOfModulesAsync(System.String,System.String)">
+            <summary>
+            Gets the list of modules asynchronous.
+            </summary>
+            <param name="firmwareVersion">The firmware version.</param>
+            <param name="deviceType">Type of the device.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetTomlData(System.String)">
+            <summary>
+            Gets the toml data.
+            </summary>
+            <param name="fileContent">Content of the file.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetDeviceDataFromFirmwareVersionAsync(System.String,System.String)">
+            <summary>
+            Gets the device data from firmware version asynchronous.
+            </summary>
+            <param name="firmwareVersion">The firmware version.</param>
+            <param name="deviceType">Type of the device.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Business.RequestHandlers.Managers.GitRepositoryManager">
+            <summary>
+            Git repo manager is responsible for cloning a git repo,
+            gets all the tags.
+            </summary>
+            <seealso cref="T:Business.RequestHandlers.Interfaces.IGitRepositoryManager" />
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.GitRepositoryManager.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.GitRepositoryManager"/> class.
+            </summary>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.GitRepositoryManager.SetConnectionOptions(ZTR.Framework.Business.File.GitConnectionOptions)">
+            <summary>
+            Sets the connection options.
+            </summary>
+            <param name="gitConnection">The git connection.</param>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.GitRepositoryManager.GetConnectionOptions">
+            <summary>
+            Gets the connection options.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.GitRepositoryManager.CloneRepositoryAsync">
+            <summary>
+            Clones the repository asynchronous.
+            </summary>
+            <exception cref="T:System.Exception">
+            Unauthorised: Incorrect username/password
+            or
+            Forbidden: Possbily Incorrect username/password
+            or
+            Not found: The repository was not found
+            </exception>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.GitRepositoryManager.LoadTagNamesAsync">
+            <summary>
+            Loads the tag names asynchronous.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.GitRepositoryManager.GetFileDataFromTagAsync(System.String,System.String)">
+            <summary>
+            This method returns a filedata as string from a particular tag.
+            If a tag is "1.0.7", then the method returns data from all the files
+            for a particular tag.
+            </summary>
+            <param name="tag">Tag like 1.0.7 etc. in github.</param>
+            <param name="fileName">file name to search</param>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.GitRepositoryManager.TreeContainsFile(LibGit2Sharp.Tree,System.String)">
+            <summary>
+            Checks a GIT tree to see if a file exists
+            </summary>
+            <param name="tree">The GIT tree</param>
+            <param name="fileName">The file name</param>
+            <returns>true if file exists</returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.GitRepositoryManager.IsExistsContentRepositoryDirectory">
+            <summary>
+            This method checks whether a folder 
+            exists in a local directory
+            and if there is ".git" sub folder
+            within the same.
+            </summary>
+            <returns>
+            true: if a folder and ".git" folder is present.
+            false: if a folder and ".git" folder isn't present.
+            </returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.GitRepositoryManager.CheckForGitSubDir(System.String)">
+            <summary>
+            Helper function to check whether the ".git" 
+            folder exists in a repository folder.
+            </summary>
+            <param name="pathToRep">path to a repository folder.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.GitRepositoryManager.DeleteReadOnlyDirectory(System.String)">
+            <summary>
+            Recursively deletes a directory as well as any subdirectories and files. If the files are read-only, they are flagged as normal and then deleted.
+            </summary>
+            <param name="directory">The name of the directory to remove.</param>
+        </member>
+        <member name="T:Business.TomlConfigurationFile">
+            <summary>
+            Toml configuration file. 
+            </summary>
+        </member>
+        <member name="P:Business.TomlConfigurationFile.DeviceFolder">
+            <summary>
+            Gets or sets the device folder.
+            </summary>
+            <value>
+            The device folder.
+            </value>
+        </member>
+        <member name="P:Business.TomlConfigurationFile.TomlConfigFolder">
+            <summary>
+            Gets or sets the toml configuration folder.
+            </summary>
+            <value>
+            The toml configuration folder.
+            </value>
+        </member>
+        <member name="P:Business.TomlConfigurationFile.DeviceTomlFile">
+            <summary>
+            Gets or sets the device toml file.
+            </summary>
+            <value>
+            The device toml file.
+            </value>
+        </member>
+        <member name="P:Business.TomlConfigurationFile.DefaultTomlFile">
+            <summary>
+            Gets or sets the default toml file.
+            </summary>
+            <value>
+            The default toml file.
+            </value>
+        </member>
+        <member name="P:Business.TomlConfigurationFile.ModulesProtoFolder">
+            <summary>
+            Gets or sets the modules proto folder.
+            </summary>
+            <value>
+            The modules proto folder.
+            </value>
+        </member>
+        <member name="M:Business.TomlConfigurationFile.ToString">
+            <summary>
+            Converts to string.
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
