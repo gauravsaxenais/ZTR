@@ -17,12 +17,12 @@
         /// </summary>
         /// <param name="message">The message to format.</param>
         /// <returns>The formatted message.</returns>
-        public Message Format(IMessage message)
+        public Parser.Models.Array Format(IMessage message)
         {
             EnsureArg.IsNotNull(message);
 
             var messageName = Path.GetFileNameWithoutExtension(message.Descriptor.File.Name);
-            var protoParserMessage = new Message() { Name = messageName };
+            var protoParserMessage = new Parser.Models.Array() { Name = messageName };
 
             Format(message, protoParserMessage);
 
@@ -35,14 +35,14 @@
         /// <param name="message">The message to format.</param>
         /// <param name="protoParserMessage">The field to parse the formatted message to.</param>
         /// <returns>The formatted message.</returns>
-        public void Format(IMessage message, Message protoParserMessage)
+        public void Format(IMessage message, Parser.Models.Array protoParserMessage)
         {
             ProtoPreconditions.CheckNotNull(message, nameof(message));
 
             WriteMessage(protoParserMessage, message);
         }
 
-        private void WriteMessage(Message protoParserMessage, IMessage message)
+        private void WriteMessage(Parser.Models.Array protoParserMessage, IMessage message)
         {
             if (message == null)
             {
@@ -52,19 +52,19 @@
             WriteMessageFields(protoParserMessage, message);
         }
 
-        private void WriteMessageFields(Message protoParserMessage, IMessage message)
+        private void WriteMessageFields(Parser.Models.Array protoParserMessage, IMessage message)
         {
             foreach (var fieldDescriptor in message.Descriptor.Fields.InFieldNumberOrder())
             {
                 if (fieldDescriptor.FieldType == FieldType.Message)
                 {
-                    var temp = new Message
+                    var temp = new Parser.Models.Array
                     {
                         Name = fieldDescriptor.Name,
                         IsRepeated = fieldDescriptor.IsRepeated
                     };
 
-                    protoParserMessage.Messages.Add(temp);
+                    protoParserMessage.Arrays.Add(temp);
 
                     IMessage cleanSubmessage = fieldDescriptor.MessageType.Parser.ParseFrom(ByteString.Empty);
                     WriteMessageFields(temp, cleanSubmessage);

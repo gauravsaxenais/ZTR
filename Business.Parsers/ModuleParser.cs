@@ -4,13 +4,15 @@
     using EnsureThat;
     using Nett;
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
 
     public class ModuleParser
     {
-        public string ReadFileAsJson(string fileContent, TomlSettings settings, Message message)
+        public string ReadFileAsJson(string fileContent, TomlSettings settings, Parser.Models.Array message)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(fileContent, (nameof(fileContent)));
 
@@ -29,56 +31,127 @@
             {
                 var configValues = (Dictionary<string, object>)moduleDetail["config"];
 
-                json += "{";
                 WriteData(configValues, message, ref json);
-                json = json.TrimEnd(',');
-
-                json += "}";
             }
 
             return json;
         }
 
-        public static void WriteData(Dictionary<string, object> configValues, Message message, ref string json)
+        public static void WriteData(Dictionary<string, object> configValues, Parser.Models.Array message, ref string json)
         {
-            foreach (KeyValuePair<string, object> entry in configValues)
+            json += "[";
+            foreach (var temp in configValues.Select((Entry, Index) => new { Entry, Index }))
             {
-                var key = entry.Key;
+                var key = temp.Entry.Key;
+                var value = temp.Entry.Value;
+                var index = temp.Index;
 
                 var fields = message.Fields;
-                var messages = message.Messages;
+                var arrays = message.Arrays;
 
                 var foundField = fields.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                var foundMessage = messages.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                var foundArray = arrays.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+
+                json += "{";
+
+                json += $"\"id\": {index}" + ", ";
 
                 // its a field
                 if (foundField != null)
                 {
-                    json += $"\"{foundField.Name}\": {{ \"min\": {foundField.Min}, \"max\": {foundField.Max}, \"value\": {entry.Value}, \"datatype\": \"{foundField.DataType}\" }}";
+                    json += $"\"name\": \"{foundField.Name}\"" + ", ";
+                    json += $"\"min\": {foundField.Min}, ";
+                    json += $"\"max\": {foundField.Max}, ";
+                    json += $"\"value\": " + GetFieldValue(value) + ",";
+                    json += $"\"datatype\": \"{foundField.DataType}\"";
                 }
 
-                if (foundMessage != null)
+                if (foundArray != null)
                 {
-                    if (!foundMessage.Messages.Any())
+                    if (!foundArray.Arrays.Any())
                     {
-                        json += $"\"name\": \"{foundMessage.Name}\"" + ", ";
-                        json += $"\"datatype\": " + (foundMessage.IsRepeated ? "\"array\"" : "\"notarray\"") + ", ";
-                        json += $"\"args\":" + (foundMessage.IsRepeated ? "[" : string.Empty);
-                        json += WriteMessageField(foundMessage.Fields, (Dictionary<string, object>[])entry.Value);
-                        json += foundMessage.IsRepeated ? "]" : string.Empty;
+                        json += $"\"name\": \"{foundArray.Name}\"" + ", ";
+                        json += $"\"datatype\": " + (foundArray.IsRepeated ? "\"array\"" : "\"notarray\"") + ", ";
+                        json += $"\"args\":" + (foundArray.IsRepeated ? "[" : string.Empty);
+                        json += WriteMessageField(foundArray.Fields, (Dictionary<string, object>[])value);
+                        json += foundArray.IsRepeated ? "]" : string.Empty;
                     }
 
                     else
                     {
-                        foreach (var msg in foundMessage.Messages)
+                        foreach (var msg in foundArray.Arrays)
                         {
-                            WriteData((Dictionary<string, object>)entry.Value, msg, ref json);
+                            WriteData((Dictionary<string, object>)value, msg, ref json);
                         }
                     }
                 }
 
+                json += "}";
                 json += ",";
             }
+
+            json = json.TrimEnd(',');
+            json += "]";
+        }
+
+        private static bool IsValueType(object obj)
+        {
+            var objType = obj.GetType();
+            return obj != null && objType.GetTypeInfo().IsValueType;
+        }
+
+        private static object GetFieldValue(object field)
+        {
+            string result = string.Empty;
+
+            Type stringType = typeof(string);
+            Type fieldType = field.GetType();
+
+            if (fieldType.IsArray)
+            {
+                result += "[";
+                var element = ((IEnumerable)field).Cast<object>().FirstOrDefault();
+
+                if (IsValueType(element))
+                {
+                    IEnumerable fields = field as IEnumerable;
+
+                    foreach (var tempItem in fields)
+                    {
+                        result += tempItem + ",";
+                    }
+
+                    result = result.TrimEnd(',');
+                }
+
+                else if (stringType.IsAssignableFrom(element.GetType()))
+                {
+                    string[] stringFields = ((IEnumerable)field).Cast<object>()
+                                                                .Select(x => x.ToString())
+                                                                .ToArray();
+
+                    stringFields = stringFields.ToList().Select(c => { c = $"\"{c}\""; return c; }).ToArray();
+
+                    result += string.Join(",", stringFields);
+                }
+
+                result += "]";
+            }
+
+            else
+            {
+                if (IsValueType(field))
+                {
+                    result = field.ToString();
+                }
+
+                else
+                {
+                    result = $"\"{field}\":";
+                }
+            }
+
+            return result;
         }
 
         public static string WriteMessageField(List<Field> fields, Dictionary<string, object>[] values)
@@ -92,7 +165,7 @@
             foreach (var dictionary in values)
             {
                 json.Append("[");
-                for(int temp = 0; temp  < fields.Count; temp++)
+                for (int temp = 0; temp < fields.Count; temp++)
                 {
                     json.Append("{");
                     object value = dictionary.ContainsKey(fields[temp].Name) ? dictionary[fields[temp].Name] : fields[temp].Value;
@@ -105,7 +178,7 @@
 
                 if (json.Length > 0)
                 {
-                    json.Length --;
+                    json.Length--;
                 }
 
                 json.Append("]");

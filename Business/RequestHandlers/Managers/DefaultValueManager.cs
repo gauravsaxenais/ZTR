@@ -101,7 +101,7 @@
                     }
                     else
                     {
-                        module.Config = JObject.Parse(jsonContent);
+                        module.Config = JArray.Parse(jsonContent);
                     }
                 }
             }
