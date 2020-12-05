@@ -43,7 +43,7 @@
             {
                 throw;
             }
-            
+
         }
 
         public string GetProtoCompilerPath(out string folder)
@@ -89,7 +89,7 @@
             {
                 tmpOutputFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("n"));
                 Directory.CreateDirectory(tmpOutputFolder);
-                
+
                 string protocPath = GetProtoCompilerPath(out tmpFolder);
 
                 var psi = new ProcessStartInfo(
@@ -109,27 +109,25 @@
                 psi.UseShellExecute = false;
                 psi.RedirectStandardOutput = psi.RedirectStandardError = true;
 
-                using (Process proc = Process.Start(psi))
+                using Process proc = Process.Start(psi);
+                Thread errThread = new Thread(DumpStream(proc.StandardError));
+                Thread outThread = new Thread(DumpStream(proc.StandardOutput));
+                errThread.Name = "stderr reader";
+                outThread.Name = "stdout reader";
+                errThread.Start();
+                outThread.Start();
+                proc.WaitForExit();
+                outThread.Join();
+                errThread.Join();
+                if (proc.ExitCode != 0)
                 {
-                    Thread errThread = new Thread(DumpStream(proc.StandardError));
-                    Thread outThread = new Thread(DumpStream(proc.StandardOutput));
-                    errThread.Name = "stderr reader";
-                    outThread.Name = "stdout reader";
-                    errThread.Start();
-                    outThread.Start();
-                    proc.WaitForExit();
-                    outThread.Join();
-                    errThread.Join();
-                    if (proc.ExitCode != 0)
+                    if (HasByteOrderMark(fileName))
                     {
-                        if (HasByteOrderMark(fileName))
-                        {
-                            //stderr.WriteLine("The input file should be UTF8 without a byte-order-mark (in Visual Studio use \"File\" -> \"Advanced Save Options...\" to rectify)");
-                        }
-                        throw new ProtoParseException(Path.GetFileName(fileName));
+                        //stderr.WriteLine("The input file should be UTF8 without a byte-order-mark (in Visual Studio use \"File\" -> \"Advanced Save Options...\" to rectify)");
                     }
-                    return tmpOutputFolder;
+                    throw new ProtoParseException(Path.GetFileName(fileName));
                 }
+                return tmpOutputFolder;
             }
             catch
             {
@@ -199,24 +197,18 @@
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddReferences(
                     MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(Console).GetTypeInfo().Assembly.Location),
-                    MetadataReference.CreateFromFile(Path.Combine(dotnetCoreDirectory, "mscorlib.dll")),
+                    MetadataReference.CreateFromFile(typeof(SyntaxTree).GetTypeInfo().Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(CSharpSyntaxTree).GetTypeInfo().Assembly.Location),
                     MetadataReference.CreateFromFile(Path.Combine(dotnetCoreDirectory, "netstandard.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(dotnetCoreDirectory, "System.Runtime.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(localDllFolder, "Google.Protobuf.dll")))
                 .AddSyntaxTrees(CSharpSyntaxTree.ParseText(content));
 
             var eResult = compilation.Emit(outputFolderPath + fileNameWithoutExtension + ".dll");
+
             if (eResult.Success)
             {
                 return outputFolderPath + fileNameWithoutExtension + ".dll";
-            }
-            else
-            {
-                foreach (Diagnostic codeIssue in eResult.Diagnostics)
-                {
-                    string issue = $"ID: {codeIssue.Id}, Message: {codeIssue.GetMessage()},Location: { codeIssue.Location.GetLineSpan()},Severity: { codeIssue.Severity} ";
-                }
             }
 
             return string.Empty;

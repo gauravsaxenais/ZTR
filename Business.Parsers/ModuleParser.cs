@@ -1,7 +1,6 @@
 ﻿namespace Business.Parsers
 {
     using Business.Parser.Models;
-    using Business.Parsers.Models;
     using EnsureThat;
     using Nett;
     using System;
@@ -9,22 +8,23 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using Message = Parser.Models.Message;
+    using ProtoParsedMessage = Parser.Models.ProtoParsedMessage;
 
     public class ModuleParser
     {
-        public void ReadFileAsJson(string fileContent, TomlSettings settings, Message message)
+        public JsonModel ReadFileAsJson(string fileContent, TomlSettings settings, ProtoParsedMessage protoParserMessage)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(fileContent, (nameof(fileContent)));
             
             var fileData = Toml.ReadString(fileContent, settings);
+            var model = new JsonModel();
+            model.Name = protoParserMessage.Name;
 
             var dictionary = fileData.ToDictionary();
-
             var module = (Dictionary<string, object>[])dictionary["module"];
 
             // here message.name means Power, j1939 etc.
-            var moduleDetail = module.Where(dic => dic.Values.Contains(message.Name.ToLower())).FirstOrDefault();
+            var moduleDetail = module.Where(dic => dic.Values.Contains(protoParserMessage.Name.ToLower())).FirstOrDefault();
 
             if (moduleDetail != null)
             {
@@ -35,62 +35,75 @@
                     configValues = (Dictionary<string, object>)moduleDetail["config"];
                 }
 
-                WriteData(configValues, message);
+                MergeTomlWithProtoMessage(configValues, protoParserMessage, model);
             }
+
+            return model;
         }
 
-        public static void WriteData(Dictionary<string, object> configValues, Message message)
+        public void MergeTomlWithProtoMessage(Dictionary<string, object> configValues, ProtoParsedMessage protoParsedMessage, JsonModel model)
         {
-            foreach (KeyValuePair<string, object> entry in configValues)
+            for (int tempIndex = 0; tempIndex < configValues.Count; tempIndex++)
             {
-                var key = entry.Key;
+                var key = configValues.ElementAt(tempIndex).Key;
 
-                var fields = message.Fields.FirstOrDefault();
-                var messages = message.Messages;
+                var messages = protoParsedMessage.Messages;
+                var fields = protoParsedMessage.Fields;
 
-                Field foundField = null;
-                if (fields != null)
-                {
-                    foundField = fields.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                }
-
-                var foundMessage = messages.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                var field = fields.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                var repeatedMessage = messages.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase) && x.IsRepeated).FirstOrDefault();
 
                 // its a field
-                if (foundField != null)
+                if (field != null)
                 {
-                    foundField.Value = GetFieldValue(entry.Value);
+                    field.Id = tempIndex;
+                    field.Value = GetFieldValue(configValues.ElementAt(tempIndex).Value);
+                    model.Fields.Add(field);
                 }
-
-                if (foundMessage != null)
+                
+                else if (repeatedMessage != null)
                 {
-                    if (!foundMessage.Messages.Any())
-                    {
-                        var arrayFields = foundMessage.Fields.FirstOrDefault();
-                        var fieldsWithData = GetMessageFields(arrayFields, (Dictionary<string, object>[])entry.Value);
+                    Dictionary<string, object>[] values = null;
+                    var arrayMessages = repeatedMessage.Messages.Where(x => x.IsRepeated);
 
-                        foundMessage.Fields.Clear();
-                        foundMessage.Fields.AddRange(fieldsWithData);
+                    if (configValues.ElementAt(tempIndex).Value is Dictionary<string, object>[])
+                    {
+                        values = (Dictionary<string, object>[])configValues.ElementAt(tempIndex).Value;
+                    }
+
+                    // declare empty.
+                    else values = new Dictionary<string, object>[0];
+
+                    if (!arrayMessages.Any())
+                    {
+                        var fieldsWithData = GetFieldsData(repeatedMessage, values);
+                        model.Arrays = fieldsWithData;
                     }
 
                     else
                     {
-                        foreach (var msg in foundMessage.Messages)
+                        JsonModel[] jsonModels = new JsonModel[values.Length];
+                        
+                        for (int temp = 0; temp < values.Length; temp++)
                         {
-                            WriteData((Dictionary<string, object>)entry.Value, msg);
+                            jsonModels[temp] = new JsonModel();
+                            jsonModels[temp].Id = temp;
+                            MergeTomlWithProtoMessage(values[temp], repeatedMessage, jsonModels[temp]);
                         }
+
+                        model.Arrays = jsonModels;
                     }
                 }
             }
         }
 
-        private static bool IsValueType(object obj)
+        private bool IsValueType(object obj)
         {
             var objType = obj.GetType();
             return obj != null && objType.GetTypeInfo().IsValueType;
         }
 
-        private static object GetFieldValue(object field)
+        private object GetFieldValue(object field)
         {
             string result = string.Empty;
 
@@ -144,8 +157,9 @@
             return result;
         }
 
-        public static List<List<Field>> GetMessageFields(List<Field> fields, Dictionary<string, object>[] values)
+        private List<List<Field>> GetFieldsData(ProtoParsedMessage message, Dictionary<string, object>[] values)
         {
+            var fields = message.Fields;
             var arrayOfDataAsFields = new List<List<Field>>();
 
             if (fields == null || !fields.Any() || values == null || !values.Any())
@@ -162,9 +176,12 @@
                 {
                     object value = dictionary.ContainsKey(copyFirstList[tempIndex].Name) ? dictionary[copyFirstList[tempIndex].Name] : copyFirstList[tempIndex].Value;
 
-                    // fix the indexes.
-                    copyFirstList[tempIndex].Id = tempIndex;
-                    copyFirstList[tempIndex].Value = value;
+                    if (value != null)
+                    {
+                        // fix the indexes.
+                        copyFirstList[tempIndex].Id = tempIndex;
+                        copyFirstList[tempIndex].Value = value;
+                    }
                 }
 
                 arrayOfDataAsFields.Add(copyFirstList);

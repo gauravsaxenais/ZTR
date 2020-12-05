@@ -1,15 +1,12 @@
 ﻿namespace Service
 {
-    using DataAccess;
     using EnsureThat;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Converters;
-    using Service.Configuration;
     using ZTR.Framework.Business.Models;
     using ZTR.Framework.Configuration;
     using ZTR.Framework.Security;
@@ -49,7 +46,7 @@
         {
             services.AddControllers();
 
-            services.AddAllowAllOriginsCorsPolicy();
+            //services.AddAllowAllOriginsCorsPolicy();
 
             services.AddMvc()
                 .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new StringEnumConverter()))
@@ -63,31 +60,6 @@
             };
 
             services.AddSwaggerWithComments(ApiConstants.ApiName, ApiConstants.ApiVersion, ApiConstants.ApiDescription, swaggerAssemblies);
-
-            services.AddDbContext<UserDbContext>(
-                (serviceProvider, options) =>
-                {
-                    var applicationOptions = serviceProvider.GetRequiredService<ApplicationOptions>();
-                    if (ApplicationConfiguration.IsDevelopment)
-                    {
-                        options.EnableDetailedErrors();
-                        options.EnableSensitiveDataLogging();
-                    }
-
-                    options.UseNpgsql(applicationOptions.ConnectionString);
-                }, ServiceLifetime.Scoped);
-
-            services.AddDbContext<UserReadOnlyDbContext>(
-            (serviceProvider, options) =>
-            {
-                var applicationOptions = serviceProvider.GetRequiredService<ApplicationOptions>();
-                if (ApplicationConfiguration.IsDevelopment)
-                {
-                    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-                }
-
-                options.UseNpgsql(applicationOptions.ReadOnlyConnectionString);
-            }, ServiceLifetime.Scoped);
 
             // we add our custom services here.
             services.AddServices();

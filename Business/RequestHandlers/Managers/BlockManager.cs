@@ -68,7 +68,7 @@
         public async Task<string> ParseTomlFilesAsync(string firmwareVersion, string deviceType, string parserType)
         {
             string finalJson = string.Empty;
-            StringBuilder json = new StringBuilder();
+            var json = new StringBuilder();
             var gitConnectionOptions = (BlockGitConnectionOptions)_repoManager.GetConnectionOptions();
 
             //await _repoManager.CloneRepositoryAsync();

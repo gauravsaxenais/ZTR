@@ -94,6 +94,7 @@
             var listOfModules = new List<ModuleReadModel>();
 
             var fileContent = await GetDeviceDataFromFirmwareVersionAsync(firmwareVersion, deviceType);
+
             if (!string.IsNullOrWhiteSpace(fileContent))
             {
                 var data = GetTomlData(fileContent);

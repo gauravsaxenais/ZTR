@@ -17,12 +17,12 @@
         /// </summary>
         /// <param name="message">The message to format.</param>
         /// <returns>The formatted message.</returns>
-        public Parser.Models.Message Format(IMessage message)
+        public Parser.Models.ProtoParsedMessage Format(IMessage message)
         {
             EnsureArg.IsNotNull(message);
 
             var messageName = Path.GetFileNameWithoutExtension(message.Descriptor.File.Name);
-            var protoParserMessage = new Parser.Models.Message() { Name = messageName };
+            var protoParserMessage = new Parser.Models.ProtoParsedMessage() { Name = messageName };
 
             Format(message, protoParserMessage);
 
@@ -35,14 +35,14 @@
         /// <param name="message">The message to format.</param>
         /// <param name="protoParserMessage">The field to parse the formatted message to.</param>
         /// <returns>The formatted message.</returns>
-        public void Format(IMessage message, Parser.Models.Message protoParserMessage)
+        public void Format(IMessage message, Parser.Models.ProtoParsedMessage protoParserMessage)
         {
             ProtoPreconditions.CheckNotNull(message, nameof(message));
 
             WriteMessage(protoParserMessage, message);
         }
 
-        private void WriteMessage(Parser.Models.Message protoParserMessage, IMessage message)
+        private void WriteMessage(Parser.Models.ProtoParsedMessage protoParserMessage, IMessage message)
         {
             if (message == null)
             {
@@ -52,14 +52,14 @@
             WriteMessageFields(protoParserMessage, message);
         }
 
-        private void WriteMessageFields(Parser.Models.Message protoParserMessage, IMessage message)
+        private void WriteMessageFields(ProtoParsedMessage protoParserMessage, IMessage message)
         {
             var fieldCollection = message.Descriptor.Fields.InFieldNumberOrder();
             for (int tempIndex = 0; tempIndex < fieldCollection.Count; tempIndex++)
             {
                 if (fieldCollection[tempIndex].FieldType == FieldType.Message)
                 {
-                    var temp = new Parser.Models.Message
+                    var temp = new ProtoParsedMessage
                     {
                         Id = tempIndex,
                         Name = fieldCollection[tempIndex].Name,
@@ -99,15 +99,7 @@
                        field.Max = lastValue.Number;
                     }
 
-                    var fields = protoParserMessage.Fields.FirstOrDefault();
-                    if (fields == null)
-                    {
-                        fields = new List<Field>();
-                    }
-
-                    fields.Add(field);
-
-                    protoParserMessage.Fields.Add(fields);
+                    protoParserMessage.Fields.Add(field);
                 }
             }
         }
