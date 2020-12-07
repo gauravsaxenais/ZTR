@@ -18,3 +18,5 @@ packages
 /Business.Test/obj
 /DataAccess/bin
 /DataAccess/obj
+/Business/obj
+/Business/bin
