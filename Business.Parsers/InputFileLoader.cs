@@ -15,7 +15,7 @@
 
     public class InputFileLoader
     {
-        private readonly string csFileExtension = ".g.cs";
+        private readonly string csFileExtension = ".g.cs", dllExtension = ".dll", fileDescriptorExtension = ".desc";
         public IMessage GenerateCodeFiles(string protoFileName, string protoFilePath, params string[] args)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(protoFileName);
@@ -29,7 +29,7 @@
                 outputFolder = FileReaderExtensions.NormalizeFolderPath(outputFolder);
 
                 var dllPath = GenerateDllFromCsFile(protoFileName, outputFolder);
-
+                
                 if (!string.IsNullOrWhiteSpace(dllPath))
                 {
                     var message = GetIMessage(dllPath);
@@ -46,44 +46,9 @@
 
         }
 
-        public string GetProtoCompilerPath(out string folder)
-        {
-            const string Name = "protoc.exe";
-            string lazyPath = CombinePathFromAppRoot(Name);
-
-            if (File.Exists(lazyPath))
-            {
-                // use protoc.exe from the existing location (faster)
-                folder = null;
-                return lazyPath;
-            }
-
-            folder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("n"));
-            Directory.CreateDirectory(folder);
-            string path = Path.Combine(folder, Name);
-
-            // look inside ourselves...
-            using (Stream resStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
-                typeof(InputFileLoader).Namespace + "." + Name))
-            using (Stream outFile = File.OpenWrite(path))
-            {
-                long len = 0;
-                int bytesRead;
-                byte[] buffer = new byte[4096];
-                while ((bytesRead = resStream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    outFile.Write(buffer, 0, bytesRead);
-                    len += bytesRead;
-                }
-                outFile.SetLength(len);
-            }
-            return path;
-        }
-
         public string GenerateCSharpFile(string fileName, string protoFilePath, params string[] args)
         {
-            string tmpFolder = null;
-            string tmpOutputFolder = null;
+            string tmpFolder = null, tmpOutputFolder = null;
 
             try
             {
@@ -91,10 +56,11 @@
                 Directory.CreateDirectory(tmpOutputFolder);
 
                 string protocPath = GetProtoCompilerPath(out tmpFolder);
+                string tmpDescriptorFile = Path.Combine(tmpOutputFolder, fileName + fileDescriptorExtension);
 
                 var psi = new ProcessStartInfo(
                     protocPath,
-                    arguments: $" --include_imports --proto_path={protoFilePath} --csharp_out={tmpOutputFolder} --csharp_opt=file_extension={csFileExtension} --error_format=gcc {fileName} {string.Join(" ", args)}"
+                    arguments: $" --descriptor_set_out={tmpDescriptorFile} --include_imports --proto_path={protoFilePath} --csharp_out={tmpOutputFolder} --csharp_opt=file_extension={csFileExtension} --error_format=gcc {fileName} {string.Join(" ", args)}"
                 )
                 {
                     CreateNoWindow = true,
@@ -171,6 +137,40 @@
             return null;
         }
 
+        private string GetProtoCompilerPath(out string folder)
+        {
+            const string Name = "protoc.exe";
+            string lazyPath = CombinePathFromAppRoot(Name);
+
+            if (File.Exists(lazyPath))
+            {
+                // use protoc.exe from the existing location (faster)
+                folder = null;
+                return lazyPath;
+            }
+
+            folder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("n"));
+            Directory.CreateDirectory(folder);
+            string path = Path.Combine(folder, Name);
+
+            // look inside ourselves...
+            using (Stream resStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+                typeof(InputFileLoader).Namespace + "." + Name))
+            using (Stream outFile = File.OpenWrite(path))
+            {
+                long len = 0;
+                int bytesRead;
+                byte[] buffer = new byte[4096];
+                while ((bytesRead = resStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    outFile.Write(buffer, 0, bytesRead);
+                    len += bytesRead;
+                }
+                outFile.SetLength(len);
+            }
+            return path;
+        }
+
         // <summary>
         // Called by method to ask if this object can serialize
         // an object of a given type.
@@ -185,10 +185,13 @@
         private string GenerateDllFromCsFile(string fileName, string outputFolderPath)
         {
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-            string filePathOut = outputFolderPath + fileNameWithoutExtension + csFileExtension;
+            string filePath = outputFolderPath + fileNameWithoutExtension;
+            string csFilePath = filePath + csFileExtension;
+            string dllFilePath = filePath + dllExtension;
+
             string localDllFolder = FileReaderExtensions.NormalizeFolderPath(CombinePathFromAppRoot(string.Empty));
 
-            TextReader readFile = new StreamReader(filePathOut);
+            TextReader readFile = new StreamReader(csFilePath);
             string content = readFile.ReadToEnd();
 
             var dotnetCoreDirectory = RuntimeEnvironment.GetRuntimeDirectory();
@@ -204,11 +207,11 @@
                     MetadataReference.CreateFromFile(Path.Combine(localDllFolder, "Google.Protobuf.dll")))
                 .AddSyntaxTrees(CSharpSyntaxTree.ParseText(content));
 
-            var eResult = compilation.Emit(outputFolderPath + fileNameWithoutExtension + ".dll");
+            var eResult = compilation.Emit(dllFilePath);
 
             if (eResult.Success)
             {
-                return outputFolderPath + fileNameWithoutExtension + ".dll";
+                return dllFilePath;
             }
 
             return string.Empty;

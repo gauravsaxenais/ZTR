@@ -7,6 +7,7 @@
     using Business.RequestHandlers.Interfaces;
     using EnsureThat;
     using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -88,7 +89,10 @@
                 var formattedMessage = customMessageParser.Format(message.Message);
                 formattedMessage.Name = message.Name;
 
-                var jsonModel = moduleParser.ReadFileAsJson(defaultValueFromTomlFile, tomlSettings, formattedMessage);
+                var jsonModel = new JsonModel();
+
+                if(formattedMessage.Name == "report")
+                    jsonModel = moduleParser.GetJsonFromDefaultValueAndProtoFile(defaultValueFromTomlFile, tomlSettings, formattedMessage);
 
                 var module = listOfModules.Where(p => p.Name?.IndexOf(formattedMessage.Name, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
 

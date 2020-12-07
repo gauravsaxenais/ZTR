@@ -1,6 +1,6 @@
 ﻿namespace Business.Parsers
 {
-    using Business.Parser.Models;
+    using Business.Parsers.Models;
     using EnsureThat;
     using Nett;
     using System;
@@ -8,17 +8,21 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using ProtoParsedMessage = Parser.Models.ProtoParsedMessage;
-
+    
     public class ModuleParser
     {
-        public JsonModel ReadFileAsJson(string fileContent, TomlSettings settings, ProtoParsedMessage protoParserMessage)
+        public JsonModel GetJsonFromDefaultValueAndProtoFile(string fileContent, TomlSettings settings, ProtoParsedMessage protoParserMessage)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(fileContent, (nameof(fileContent)));
-            
+
+
+            var jsonModel = new JsonModel
+            {
+                Name = protoParserMessage.Name,
+                Arrays = new List<object>()
+            };
+
             var fileData = Toml.ReadString(fileContent, settings);
-            var model = new JsonModel();
-            model.Name = protoParserMessage.Name;
 
             var dictionary = fileData.ToDictionary();
             var module = (Dictionary<string, object>[])dictionary["module"];
@@ -29,16 +33,16 @@
             if (moduleDetail != null)
             {
                 var configValues = new Dictionary<string, object>();
-                
+
                 if (moduleDetail.ContainsKey("config"))
                 {
                     configValues = (Dictionary<string, object>)moduleDetail["config"];
                 }
 
-                MergeTomlWithProtoMessage(configValues, protoParserMessage, model);
+                MergeTomlWithProtoMessage(configValues, protoParserMessage, jsonModel);
             }
 
-            return model;
+            return jsonModel;
         }
 
         public void MergeTomlWithProtoMessage(Dictionary<string, object> configValues, ProtoParsedMessage protoParsedMessage, JsonModel model)
@@ -60,9 +64,15 @@
                     field.Value = GetFieldValue(configValues.ElementAt(tempIndex).Value);
                     model.Fields.Add(field);
                 }
-                
+
                 else if (repeatedMessage != null)
                 {
+                    var jsonArray = new JsonArray
+                    {
+                        Name = repeatedMessage.Name,
+                        IsRepeated = repeatedMessage.IsRepeated
+                    };
+
                     Dictionary<string, object>[] values = null;
                     var arrayMessages = repeatedMessage.Messages.Where(x => x.IsRepeated);
 
@@ -77,13 +87,15 @@
                     if (!arrayMessages.Any())
                     {
                         var fieldsWithData = GetFieldsData(repeatedMessage, values);
-                        model.Arrays = fieldsWithData;
+                        jsonArray.Data = fieldsWithData;
+
+                        model.Arrays = jsonArray;
                     }
 
                     else
                     {
                         JsonModel[] jsonModels = new JsonModel[values.Length];
-                        
+
                         for (int temp = 0; temp < values.Length; temp++)
                         {
                             jsonModels[temp] = new JsonModel();
@@ -105,14 +117,14 @@
 
         private object GetFieldValue(object field)
         {
-            string result = string.Empty;
+            object result = new object();
 
-            Type stringType = typeof(string);
-            Type fieldType = field.GetType();
+            var stringType = typeof(string);
+            var fieldType = field.GetType();
 
             if (fieldType.IsArray)
             {
-                result += "[";
+                var arrayResult = "[";
                 var element = ((IEnumerable)field).Cast<object>().FirstOrDefault();
 
                 if (IsValueType(element))
@@ -121,10 +133,10 @@
 
                     foreach (var tempItem in fields)
                     {
-                        result += tempItem + ",";
+                        arrayResult += tempItem + ",";
                     }
 
-                    result = result.TrimEnd(',');
+                    arrayResult += arrayResult.TrimEnd(',');
                 }
 
                 else if (stringType.IsAssignableFrom(element.GetType()))
@@ -133,25 +145,17 @@
                                                                 .Select(x => x.ToString())
                                                                 .ToArray();
 
-                    stringFields = stringFields.ToList().Select(c => { c = $"\"{c}\""; return c; }).ToArray();
-
-                    result += string.Join(",", stringFields);
+                    arrayResult += string.Join(",", stringFields);
                 }
 
-                result += "]";
+                arrayResult += "]";
+
+                result = arrayResult;
             }
 
             else
             {
-                if (IsValueType(field))
-                {
-                    result = field.ToString();
-                }
-
-                else
-                {
-                    result = $"\"{field}\":";
-                }
+                result = field;
             }
 
             return result;
@@ -160,17 +164,17 @@
         private List<List<Field>> GetFieldsData(ProtoParsedMessage message, Dictionary<string, object>[] values)
         {
             var fields = message.Fields;
+
             var arrayOfDataAsFields = new List<List<Field>>();
 
             if (fields == null || !fields.Any() || values == null || !values.Any())
             {
                 return arrayOfDataAsFields;
             }
-            
+
             foreach (var dictionary in values)
             {
-                // make a copy of first list;
-                var copyFirstList = fields.Select(x => new Field() { Id = x.Id, DataType = x.DataType, Max = x.Max, Min = x.Min, Name = x.Name, Value = x.Value }).ToList();
+                var copyFirstList = fields.Select(x => x.DeepCopy()).ToList();
 
                 for (int tempIndex = 0; tempIndex < copyFirstList.Count; tempIndex++)
                 {

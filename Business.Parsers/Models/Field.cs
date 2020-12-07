@@ -1,7 +1,6 @@
-﻿namespace Business.Parser.Models
+﻿namespace Business.Parsers.Models
 {
-    using System;
-    public class Field : ICloneable
+    public class Field
     {
         public int Id { get; set; }
 
@@ -12,27 +11,22 @@
         public object Min { get; set; }
         
         public object Max { get; set; }
-        
+
+        public object DefaultValue { get; set; }
+
         public string DataType { get; set; }
 
-        public Field Clone()
+        public Field DeepCopy()
         {
-            var newField = new Field
-            {
-                Id = this.Id,
-                Name = this.Name,
-                Value = this.Value,
-                Min = this.Min,
-                Max = this.Max,
-                DataType = this.DataType
-            };
+            Field other = (Field)this.MemberwiseClone();
+            other.Name = Name;
+            other.Value = Value;
+            other.Min = Min;
+            other.Max = Max;
+            other.DefaultValue = DefaultValue;
+            other.DataType = DataType;
 
-            return newField;
-        }
-
-        object ICloneable.Clone()
-        {
-            throw new NotImplementedException();
+            return other;
         }
     }
 }

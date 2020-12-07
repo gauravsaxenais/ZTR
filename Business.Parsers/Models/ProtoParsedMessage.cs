@@ -1,5 +1,6 @@
-﻿namespace Business.Parser.Models
+﻿namespace Business.Parsers.Models
 {
+    using Business.Parsers.Models;
     using Newtonsoft.Json;
     using System.Collections.Generic;
 
