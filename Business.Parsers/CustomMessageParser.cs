@@ -1,14 +1,12 @@
 ﻿namespace Business.Parsers
 {
-    using Business.Parser.Models;
+    using Business.Parsers.Models;
     using EnsureThat;
     using Google.Protobuf;
     using Google.Protobuf.Reflection;
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
 
     public class CustomMessageParser
     {
@@ -17,12 +15,12 @@
         /// </summary>
         /// <param name="message">The message to format.</param>
         /// <returns>The formatted message.</returns>
-        public Message Format(IMessage message)
+        public ProtoParsedMessage Format(IMessage message)
         {
             EnsureArg.IsNotNull(message);
 
             var messageName = Path.GetFileNameWithoutExtension(message.Descriptor.File.Name);
-            var protoParserMessage = new Message() { Name = messageName };
+            var protoParserMessage = new ProtoParsedMessage() { Name = messageName };
 
             Format(message, protoParserMessage);
 
@@ -35,33 +33,14 @@
         /// <param name="message">The message to format.</param>
         /// <param name="protoParserMessage">The field to parse the formatted message to.</param>
         /// <returns>The formatted message.</returns>
-        public void Format(IMessage message, Message protoParserMessage)
+        public void Format(IMessage message, ProtoParsedMessage protoParserMessage)
         {
             ProtoPreconditions.CheckNotNull(message, nameof(message));
 
             WriteMessage(protoParserMessage, message);
         }
 
-        public List<IMessage> GetAllMessages()
-        {
-            var messages = new List<IMessage>();
-            var instances = from t in Assembly.GetExecutingAssembly().GetTypes()
-                            where t.GetInterfaces().Contains(typeof(IMessage))
-                                     && t.GetConstructor(Type.EmptyTypes) != null
-                            select Activator.CreateInstance(t) as IMessage;
-
-            foreach (var instance in instances)
-            {
-                if (instance.Descriptor.Name == "Config" && CanConvertToMessageType(instance.GetType()))
-                {
-                    messages.Add(instance);
-                }
-            }
-
-            return messages;
-        }
-
-        private void WriteMessage(Message protoParserMessage, IMessage message)
+        private void WriteMessage(ProtoParsedMessage protoParserMessage, IMessage message)
         {
             if (message == null)
             {
@@ -71,53 +50,56 @@
             WriteMessageFields(protoParserMessage, message);
         }
 
-        private void WriteMessageFields(Message protoParserMessage, IMessage message)
+        private void WriteMessageFields(ProtoParsedMessage protoParserMessage, IMessage message)
         {
-            foreach (var fieldDescriptor in message.Descriptor.Fields.InFieldNumberOrder())
+            var fieldCollection = message.Descriptor.Fields.InFieldNumberOrder();
+            for (int tempIndex = 0; tempIndex < fieldCollection.Count; tempIndex++)
             {
-                if (fieldDescriptor.FieldType == FieldType.Message)
+                if (fieldCollection[tempIndex].FieldType == FieldType.Message)
                 {
-                    var temp = new Message
+                    var temp = new ProtoParsedMessage
                     {
-                        Name = fieldDescriptor.Name,
-                        IsRepeated = fieldDescriptor.IsRepeated
+                        Id = tempIndex,
+                        Name = fieldCollection[tempIndex].Name,
+                        IsRepeated = fieldCollection[tempIndex].IsRepeated
                     };
 
                     protoParserMessage.Messages.Add(temp);
 
-                    IMessage cleanSubmessage = fieldDescriptor.MessageType.Parser.ParseFrom(ByteString.Empty);
+                    IMessage cleanSubmessage = fieldCollection[tempIndex].MessageType.Parser.ParseFrom(ByteString.Empty);
                     WriteMessageFields(temp, cleanSubmessage);
                 }
                 else
                 {
-                    var field = new Field
-                    {
-                        Name = fieldDescriptor.Name,
-                        DataType = fieldDescriptor.FieldType.ToString().ToLower()
-                    };
-
                     object fieldValue = null;
 
-                    if (IsPrimitiveType(fieldDescriptor))
+                    var typeAndDefaultValue = GetTypeAndDefaultValue(fieldCollection[tempIndex]);
+                    var minAndMaxValue = GetMinMaxValue(fieldCollection[tempIndex]);
+
+                    if (IsPrimitiveType(fieldCollection[tempIndex]))
                     {
-                        fieldValue = GetDefaultValue(fieldDescriptor);
+                        fieldValue = typeAndDefaultValue.Item2;
                     }
 
-                    var minValue = fieldValue;
-                    var maxValue = fieldValue;
-
-                    if (fieldDescriptor.FieldType == FieldType.Enum)
+                    var field = new Field
                     {
-                        var firstValue = fieldDescriptor.EnumType.Values.First();
-                        var lastValue = fieldDescriptor.EnumType.Values.Last();
+                        Id = tempIndex,
+                        Name = fieldCollection[tempIndex].Name,
+                        DataType = typeAndDefaultValue.Item1,
+                        Min = minAndMaxValue.Item1,
+                        Max = minAndMaxValue.Item2,
+                        Value = fieldValue,
+                        DefaultValue = typeAndDefaultValue.Item2
+                    };
 
-                        minValue = firstValue.Number.ToString();
-                        maxValue = lastValue.Number.ToString();
+                    if (fieldCollection[tempIndex].FieldType == FieldType.Enum)
+                    {
+                        var firstValue = fieldCollection[tempIndex].EnumType.Values.First();
+                        var lastValue = fieldCollection[tempIndex].EnumType.Values.Last();
+
+                        field.Min = firstValue.Number;
+                        field.Max = lastValue.Number;
                     }
-
-                    field.Min = minValue;
-                    field.Max = maxValue;
-                    field.Value = fieldValue;
 
                     protoParserMessage.Fields.Add(field);
                 }
@@ -150,48 +132,74 @@
             }
         }
 
-        // <summary>
-        // Called by method to ask if this object can serialize
-        // an object of a given type.
-        // </summary>
-        // <returns>True if the objectType is a Protocol Message.</returns>
-        private bool CanConvertToMessageType(Type objectType)
-        {
-            return typeof(IMessage)
-                .IsAssignableFrom(objectType);
-        }
-
-        private object GetDefaultValue(FieldDescriptor descriptor)
+        private Tuple<string, object> GetTypeAndDefaultValue(FieldDescriptor descriptor)
         {
             switch (descriptor.FieldType)
             {
                 case FieldType.Bool:
-                    return false;
+                    return new Tuple<string, object>("bool", false);
                 case FieldType.Bytes:
                 case FieldType.String:
-                    return "\"\"";
+                    return new Tuple<string, object>("string", string.Empty);
                 case FieldType.Double:
-                    return 0.0;
+                    return new Tuple<string, object>("double", 0.0);
                 case FieldType.SInt32:
                 case FieldType.Int32:
                 case FieldType.SFixed32:
-                case FieldType.Enum:
-                    return (int)0;
                 case FieldType.Fixed32:
                 case FieldType.UInt32:
-                    return (uint)0;
                 case FieldType.Fixed64:
                 case FieldType.UInt64:
-                    return (ulong)0;
                 case FieldType.SFixed64:
                 case FieldType.Int64:
                 case FieldType.SInt64:
-                    return (long)0;
+                    return new Tuple<string, object>("integer", 0);
+                case FieldType.Enum:
+                    return new Tuple<string, object>("enum", 0);
                 case FieldType.Float:
-                    return (float)0f;
+                    return new Tuple<string, object>("float", 0.0);
+                default:
+                    throw new ArgumentException("Invalid field type");
+            }
+        }
+
+        private Tuple<object, object> GetMinMaxValue(FieldDescriptor descriptor)
+        {
+            switch (descriptor.FieldType)
+            {
+                case FieldType.Bool:
+                    return new Tuple<object, object>(0, 0);
+                case FieldType.Bytes:
+                case FieldType.String:
+                    return new Tuple<object, object>("", string.Empty);
+                case FieldType.Double:
+                    return new Tuple<object, object>(double.MinValue, double.MaxValue);
+                case FieldType.SInt32:
+                    return new Tuple<object, object>(int.MinValue, int.MaxValue);
+                case FieldType.Int32:
+                    return new Tuple<object, object>(int.MinValue, int.MaxValue);
+                case FieldType.SFixed32:
+                    return new Tuple<object, object>(int.MinValue, int.MaxValue);
+                case FieldType.Fixed32:
+                    return new Tuple<object, object>(uint.MinValue, uint.MaxValue);
+                case FieldType.UInt32:
+                    return new Tuple<object, object>(uint.MinValue, uint.MaxValue);
+                case FieldType.Fixed64:
+                    return new Tuple<object, object>(ulong.MinValue, ulong.MaxValue);
+                case FieldType.UInt64:
+                    return new Tuple<object, object>(ulong.MinValue, ulong.MaxValue);
+                case FieldType.SFixed64:
+                case FieldType.Int64:
+                case FieldType.SInt64:
+                    return new Tuple<object, object>(long.MinValue, long.MaxValue);
+                case FieldType.Enum:
+                    return new Tuple<object, object>(0, 0);
+                case FieldType.Float:
+                    return new Tuple<object, object>(float.MinValue, float.MaxValue);
                 default:
                     throw new ArgumentException("Invalid field type");
             }
         }
     }
 }
+

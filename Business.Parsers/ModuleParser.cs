@@ -1,128 +1,197 @@
 ﻿namespace Business.Parsers
 {
-    using Business.Parser.Models;
+    using Business.Parsers.Models;
     using EnsureThat;
     using Nett;
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
-
+    using System.Reflection;
+    
     public class ModuleParser
     {
-        public string ReadFileAsJson(string fileContent, TomlSettings settings, Message message)
+        public JsonModel GetJsonFromDefaultValueAndProtoFile(string fileContent, TomlSettings settings, ProtoParsedMessage protoParserMessage)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(fileContent, (nameof(fileContent)));
 
-            var json = string.Empty;
+
+            var jsonModel = new JsonModel
+            {
+                Name = protoParserMessage.Name,
+                Arrays = new List<object>()
+            };
 
             var fileData = Toml.ReadString(fileContent, settings);
 
             var dictionary = fileData.ToDictionary();
-
             var module = (Dictionary<string, object>[])dictionary["module"];
 
             // here message.name means Power, j1939 etc.
-            var moduleDetail = module.Where(dic => dic.Values.Contains(message.Name.ToLower())).FirstOrDefault();
+            var moduleDetail = module.Where(dic => dic.Values.Contains(protoParserMessage.Name.ToLower())).FirstOrDefault();
 
             if (moduleDetail != null)
             {
-                var configValues = (Dictionary<string, object>)moduleDetail["config"];
+                var configValues = new Dictionary<string, object>();
 
-                json += "{";
-                WriteData(configValues, message, ref json);
-                json = json.TrimEnd(',');
-
-                json += "}";
-            }
-
-            return json;
-        }
-
-        public static void WriteData(Dictionary<string, object> configValues, Message message, ref string json)
-        {
-            bool firstFieldWritten = false;
-            foreach (KeyValuePair<string, object> entry in configValues)
-            {
-                var key = entry.Key;
-
-                var fields = message.Fields;
-                var messages = message.Messages;
-
-                var foundField = fields.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                var foundMessage = messages.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-
-                // its a field
-                if (foundField != null)
+                if (moduleDetail.ContainsKey("config"))
                 {
-                    json += $"\"{foundField.Name}\": {{ \"min\": {foundField.Min}, \"max\": {foundField.Max}, \"value\": {entry.Value}, \"datatype\": \"{foundField.DataType}\" }}";
+                    configValues = (Dictionary<string, object>)moduleDetail["config"];
                 }
 
-                if (foundMessage != null)
+                MergeTomlWithProtoMessage(configValues, protoParserMessage, jsonModel);
+            }
+
+            return jsonModel;
+        }
+
+        public void MergeTomlWithProtoMessage(Dictionary<string, object> configValues, ProtoParsedMessage protoParsedMessage, JsonModel model)
+        {
+            for (int tempIndex = 0; tempIndex < configValues.Count; tempIndex++)
+            {
+                var key = configValues.ElementAt(tempIndex).Key;
+
+                var messages = protoParsedMessage.Messages;
+                var fields = protoParsedMessage.Fields;
+
+                var field = fields.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                var repeatedMessage = messages.Where(x => string.Equals(x.Name, key, StringComparison.OrdinalIgnoreCase) && x.IsRepeated).FirstOrDefault();
+
+                // its a field
+                if (field != null)
                 {
-                    if (!foundMessage.Messages.Any())
+                    field.Id = tempIndex;
+                    field.Value = GetFieldValue(configValues.ElementAt(tempIndex).Value);
+                    model.Fields.Add(field);
+                }
+
+                else if (repeatedMessage != null)
+                {
+                    var jsonArray = new JsonArray
                     {
-                        json += $"\"{foundMessage.Name}\":";
-                        json += foundMessage.IsRepeated ? "[" : string.Empty;
-                        json += WriteMessageField(foundMessage.Fields, (Dictionary<string, object>[])entry.Value);
-                        json += foundMessage.IsRepeated ? "]" : string.Empty;
+                        Name = repeatedMessage.Name,
+                        IsRepeated = repeatedMessage.IsRepeated
+                    };
+
+                    Dictionary<string, object>[] values = null;
+                    var arrayMessages = repeatedMessage.Messages.Where(x => x.IsRepeated);
+
+                    if (configValues.ElementAt(tempIndex).Value is Dictionary<string, object>[])
+                    {
+                        values = (Dictionary<string, object>[])configValues.ElementAt(tempIndex).Value;
+                    }
+
+                    // declare empty.
+                    else values = new Dictionary<string, object>[0];
+
+                    if (!arrayMessages.Any())
+                    {
+                        var fieldsWithData = GetFieldsData(repeatedMessage, values);
+                        jsonArray.Data = fieldsWithData;
+
+                        model.Arrays = jsonArray;
                     }
 
                     else
                     {
-                        foreach (var msg in foundMessage.Messages)
+                        JsonModel[] jsonModels = new JsonModel[values.Length];
+
+                        for (int temp = 0; temp < values.Length; temp++)
                         {
-                            WriteData((Dictionary<string, object>)entry.Value, msg, ref json);
+                            jsonModels[temp] = new JsonModel();
+                            jsonModels[temp].Id = temp;
+                            MergeTomlWithProtoMessage(values[temp], repeatedMessage, jsonModels[temp]);
                         }
+
+                        model.Arrays = jsonModels;
                     }
                 }
-
-                if (!firstFieldWritten)
-                {
-                    json += ",";
-                }
-
-                firstFieldWritten = true;
             }
         }
 
-        public static string WriteMessageField(List<Field> fields, Dictionary<string, object>[] values)
+        private bool IsValueType(object obj)
         {
-            var json = new StringBuilder();
+            var objType = obj.GetType();
+            return obj != null && objType.GetTypeInfo().IsValueType;
+        }
+
+        private object GetFieldValue(object field)
+        {
+            object result = new object();
+
+            var stringType = typeof(string);
+            var fieldType = field.GetType();
+
+            if (fieldType.IsArray)
+            {
+                var arrayResult = "[";
+                var element = ((IEnumerable)field).Cast<object>().FirstOrDefault();
+
+                if (IsValueType(element))
+                {
+                    IEnumerable fields = field as IEnumerable;
+
+                    foreach (var tempItem in fields)
+                    {
+                        arrayResult += tempItem + ",";
+                    }
+
+                    arrayResult += arrayResult.TrimEnd(',');
+                }
+
+                else if (stringType.IsAssignableFrom(element.GetType()))
+                {
+                    string[] stringFields = ((IEnumerable)field).Cast<object>()
+                                                                .Select(x => x.ToString())
+                                                                .ToArray();
+
+                    arrayResult += string.Join(",", stringFields);
+                }
+
+                arrayResult += "]";
+
+                result = arrayResult;
+            }
+
+            else
+            {
+                result = field;
+            }
+
+            return result;
+        }
+
+        private List<List<Field>> GetFieldsData(ProtoParsedMessage message, Dictionary<string, object>[] values)
+        {
+            var fields = message.Fields;
+
+            var arrayOfDataAsFields = new List<List<Field>>();
+
             if (fields == null || !fields.Any() || values == null || !values.Any())
             {
-                return json.ToString();
+                return arrayOfDataAsFields;
             }
 
             foreach (var dictionary in values)
             {
-                json.Append("{");
+                var copyFirstList = fields.Select(x => x.DeepCopy()).ToList();
 
-                foreach (var data in fields)
+                for (int tempIndex = 0; tempIndex < copyFirstList.Count; tempIndex++)
                 {
-                    object value = dictionary.ContainsKey(data.Name) ? dictionary[data.Name] : data.Value;
+                    object value = dictionary.ContainsKey(copyFirstList[tempIndex].Name) ? dictionary[copyFirstList[tempIndex].Name] : copyFirstList[tempIndex].Value;
 
-                    json.Append($"\"{data.Name}\": {{ \"min\": {data.Min}, \"max\": {data.Max}, \"value\": {value}, \"datatype\": \"{data.DataType}\"}}");
-
-                    json.Append(",");
+                    if (value != null)
+                    {
+                        // fix the indexes.
+                        copyFirstList[tempIndex].Id = tempIndex;
+                        copyFirstList[tempIndex].Value = value;
+                    }
                 }
 
-                if (json.Length > 0)
-                {
-                    json.Length --;
-                }
-
-                json.Append("}");
-
-                json.Append(",");
+                arrayOfDataAsFields.Add(copyFirstList);
             }
 
-            if (json.Length > 0)
-            {
-                json.Length--;
-            }
-
-            return json.ToString();
+            return arrayOfDataAsFields;
         }
     }
 }
