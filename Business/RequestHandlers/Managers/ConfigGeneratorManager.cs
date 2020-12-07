@@ -1,5 +1,4 @@
-﻿using Business.Models.ConfigModels;
-using Business.RequestHandlers.Interfaces;
+﻿using Business.RequestHandlers.Interfaces;
 using Nett;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
