@@ -1,7 +1,7 @@
 {
   "version": 3,
   "targets": {
-    ".NETCoreApp,Version=v3.1": {
+    "net5.0": {
       "Ben.Demystifier/0.1.6": {
         "type": "package",
         "dependencies": {
@@ -290,9 +290,6 @@
       },
       "System.Reflection.Metadata/5.0.0": {
         "type": "package",
-        "dependencies": {
-          "System.Collections.Immutable": "5.0.0"
-        },
         "compile": {
           "lib/netstandard2.0/System.Reflection.Metadata.dll": {}
         },
@@ -339,7 +336,7 @@
       },
       "Business.Parsers/1.0.0": {
         "type": "project",
-        "framework": ".NETCoreApp,Version=v3.1",
+        "framework": ".NETCoreApp,Version=v5.0",
         "dependencies": {
           "Ensure.That": "9.2.0",
           "Google.Protobuf": "3.14.0",
@@ -930,7 +927,7 @@
     }
   },
   "projectFileDependencyGroups": {
-    ".NETCoreApp,Version=v3.1": [
+    "net5.0": [
       "Ben.Demystifier >= 0.1.6",
       "Business.Parsers >= 1.0.0",
       "Ensure.That >= 9.2.0",
@@ -942,39 +939,35 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\gaurav.saxena\\.nuget\\packages\\": {},
-    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+    "C:\\Users\\Ashish\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\ZTR\\Business\\Business.csproj",
+      "projectUniqueName": "D:\\Office\\RSI\\Projects\\ZTR\\M7Config\\Business\\Business.csproj",
       "projectName": "ZTR.Business",
-      "projectPath": "F:\\ZTR\\Business\\Business.csproj",
-      "packagesPath": "C:\\Users\\gaurav.saxena\\.nuget\\packages\\",
-      "outputPath": "F:\\ZTR\\Business\\obj\\",
+      "projectPath": "D:\\Office\\RSI\\Projects\\ZTR\\M7Config\\Business\\Business.csproj",
+      "packagesPath": "C:\\Users\\Ashish\\.nuget\\packages\\",
+      "outputPath": "D:\\Office\\RSI\\Projects\\ZTR\\M7Config\\Business\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
-      ],
       "configFilePaths": [
-        "C:\\Users\\gaurav.saxena\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\ServiceFabricSDK.config"
+        "C:\\Users\\Ashish\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
-        "netcoreapp3.1"
+        "net5.0"
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\Microsoft SDKs\\Service Fabric\\packages": {},
-        "https://api.nuget.org/v3/index.json": {}
+        "https://api.nuget.org/v3/index.json": {},
+        "https://codeviewtfs.pkgs.visualstudio.com/Research/_packaging/CommonCode/nuget/v3/index.json": {}
       },
       "frameworks": {
-        "netcoreapp3.1": {
+        "net5.0": {
+          "targetAlias": "net5.0",
           "projectReferences": {
-            "F:\\ZTR\\Business.Parsers\\Business.Parsers.csproj": {
-              "projectPath": "F:\\ZTR\\Business.Parsers\\Business.Parsers.csproj"
+            "D:\\Office\\RSI\\Projects\\ZTR\\M7Config\\Business.Parsers\\Business.Parsers.csproj": {
+              "projectPath": "D:\\Office\\RSI\\Projects\\ZTR\\M7Config\\Business.Parsers\\Business.Parsers.csproj"
             }
           }
         }
@@ -986,7 +979,8 @@
       }
     },
     "frameworks": {
-      "netcoreapp3.1": {
+      "net5.0": {
+        "targetAlias": "net5.0",
         "dependencies": {
           "Ben.Demystifier": {
             "target": "Package",
@@ -1032,7 +1026,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.403\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.100\\RuntimeIdentifierGraph.json"
       }
     }
   }

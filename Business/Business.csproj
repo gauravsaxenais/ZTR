@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <PackageId>ZTR.Business</PackageId>
     <Authors>ZTR.Business</Authors>
     <Company>ZTR.Business</Company>
@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>F:\ZTR\Business\Business.xml</DocumentationFile>
+    <DocumentationFile>Business\Business.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

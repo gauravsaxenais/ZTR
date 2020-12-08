@@ -2,11 +2,13 @@
 {
     using EnsureThat;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Converters;
+    using Service.Core;
     using ZTR.Framework.Business.Models;
     using ZTR.Framework.Configuration;
     using ZTR.Framework.Security;
@@ -23,9 +25,10 @@
         /// Initializes a new instance of the <see cref="Startup"/> class.
         /// </summary>
         /// <param name="configuration">The configuration.</param>
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             this.Configuration = configuration;
+            Global.RootPath = env.ContentRootPath;
         }
 
         /// <summary>
@@ -46,7 +49,7 @@
         {
             services.AddControllers();
 
-            services.AddAllowAllOriginsCorsPolicy();
+            //services.AddAllowAllOriginsCorsPolicy();
 
             services.AddMvc()
                 .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new StringEnumConverter()))
