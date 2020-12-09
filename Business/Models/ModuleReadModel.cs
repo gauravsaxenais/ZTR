@@ -21,7 +21,7 @@
         /// <value>
         /// The identifier.
         /// </value>
-        public int Id { get; private set; }
+        public int Id { get; set; }
         /// <summary>
         /// Gets or sets the name.
         /// </summary>

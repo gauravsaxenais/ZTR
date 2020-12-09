@@ -86,10 +86,10 @@
             // get protoparsed messages from the proto files.
             var messages = await GetCustomMessages(protoFilePaths).ConfigureAwait(false);
 
-            foreach (var message in messages)
+            for (int temp = 0; temp < messages.Count; temp++)
             {
-                var formattedMessage = customMessageParser.Format(message.Message);
-                formattedMessage.Name = message.Name;
+                var formattedMessage = customMessageParser.Format(messages[temp].Message);
+                formattedMessage.Name = messages[temp].Name;
 
                 var jsonModel = moduleParser.GetJsonFromDefaultValueAndProtoFile(defaultValueFromTomlFile, tomlSettings, formattedMessage);
 
@@ -204,6 +204,8 @@
 
                 listOfModules = data.Module;
             }
+
+            listOfModules = listOfModules.Select((module, index) => new ModuleReadModel  { Id = index, Config = module.Config, Name = module.Name, UUID = module.UUID }).ToList();
 
             return listOfModules;
         }
