@@ -1,6 +1,7 @@
 ﻿namespace Business.Parsers
 {
     using Business.Core;
+    using Business.Parsers.Models;
     using EnsureThat;
     using Google.Protobuf;
     using Microsoft.AspNetCore.Hosting;
@@ -14,14 +15,17 @@
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Threading;
+    using System.Threading.Tasks;
     using ZTR.Framework.Business.File.FileReaders;
 
     public class InputFileLoader
     {       
         private readonly string csFileExtension = ".g.cs", dllExtension = ".dll", fileDescriptorExtension = ".desc";
-        public IMessage GenerateCodeFiles(string protoFileName, string protoFilePath, params string[] args)
+        public async Task<CustomMessage> GenerateCodeFiles(string moduleName, string protoFileName, string protoFilePath, params string[] args)
         {
+            EnsureArg.IsNotEmptyOrWhiteSpace(moduleName);
             EnsureArg.IsNotEmptyOrWhiteSpace(protoFileName);
+            EnsureArg.IsNotEmptyOrWhiteSpace(protoFilePath);
 
             try
             {
@@ -31,13 +35,13 @@
                 string outputFolder = GenerateCSharpFile(protoFileName, protoFilePath, args);
                 outputFolder = FileReaderExtensions.NormalizeFolderPath(outputFolder);
 
-                var dllPath = GenerateDllFromCsFile(protoFileName, outputFolder);
+                var dllPath = await GenerateDllFromCsFileAsync(protoFileName, outputFolder);
                 
                 if (!string.IsNullOrWhiteSpace(dllPath))
                 {
                     var message = GetIMessage(dllPath);
 
-                    return message;
+                    return new CustomMessage() { Message = message, Name = moduleName };
                 }
 
                 return null;
@@ -185,7 +189,7 @@
                 .IsAssignableFrom(objectType);
         }
 
-        private string GenerateDllFromCsFile(string fileName, string outputFolderPath)
+        private async Task<string> GenerateDllFromCsFileAsync(string fileName, string outputFolderPath)
         {
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
             string filePath = outputFolderPath + fileNameWithoutExtension;
@@ -195,7 +199,7 @@
             string localDllFolder = FileReaderExtensions.NormalizeFolderPath(CombinePathFromAppRoot(string.Empty));
 
             TextReader readFile = new StreamReader(csFilePath);
-            string content = readFile.ReadToEnd();
+            string content = await readFile.ReadToEndAsync();
 
             var dotnetCoreDirectory = RuntimeEnvironment.GetRuntimeDirectory();
 

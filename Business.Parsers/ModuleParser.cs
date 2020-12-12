@@ -8,13 +8,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    
+
     public class ModuleParser
     {
         public JsonModel GetJsonFromDefaultValueAndProtoFile(string fileContent, TomlSettings settings, ProtoParsedMessage protoParserMessage)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(fileContent, (nameof(fileContent)));
-
 
             var jsonModel = new JsonModel
             {
@@ -62,7 +61,9 @@
                 {
                     field.Id = tempIndex;
                     field.Value = GetFieldValue(configValues.ElementAt(tempIndex).Value);
-                    model.Fields.Add(field);
+
+                    var newField = (Field)field.Clone();
+                    model.Fields.Add(newField);
                 }
 
                 else if (repeatedMessage != null)
@@ -74,11 +75,11 @@
                     };
 
                     Dictionary<string, object>[] values = null;
-                    var arrayMessages = repeatedMessage.Messages.Where(x => x.IsRepeated);
+                    var arrayMessages = repeatedMessage.Messages;
 
-                    if (configValues.ElementAt(tempIndex).Value is Dictionary<string, object>[])
+                    if (configValues.ElementAt(tempIndex).Value is Dictionary<string, object>[] v)
                     {
-                        values = (Dictionary<string, object>[])configValues.ElementAt(tempIndex).Value;
+                        values = v;
                     }
 
                     // declare empty.
@@ -89,21 +90,26 @@
                         var fieldsWithData = GetFieldsData(repeatedMessage, values);
                         jsonArray.Data = fieldsWithData;
 
-                        model.Arrays = jsonArray;
+                        model.Arrays.Add(jsonArray);
                     }
 
                     else
                     {
-                        JsonModel[] jsonModels = new JsonModel[values.Length];
+                        var jsonModels = new List<JsonModel>();
 
                         for (int temp = 0; temp < values.Length; temp++)
                         {
-                            jsonModels[temp] = new JsonModel();
-                            jsonModels[temp].Id = temp;
-                            MergeTomlWithProtoMessage(values[temp], repeatedMessage, jsonModels[temp]);
+                            var tempJsonModel = new JsonModel
+                            {
+                                Id = temp,
+                                Name = repeatedMessage.Name
+                            };
+
+                            MergeTomlWithProtoMessage(values[temp], repeatedMessage, tempJsonModel);
+                            jsonModels.Add(tempJsonModel);
                         }
 
-                        model.Arrays = jsonModels;
+                        model.Arrays.Add(jsonModels);
                     }
                 }
             }
@@ -174,17 +180,17 @@
 
             foreach (var dictionary in values)
             {
-                var copyFirstList = fields.Select(x => x.DeepCopy()).ToList();
+                var copyFirstList = new List<Field>();
 
-                for (int tempIndex = 0; tempIndex < copyFirstList.Count; tempIndex++)
+                for (int tempIndex = 0; tempIndex < fields.Count; tempIndex++)
                 {
-                    object value = dictionary.ContainsKey(copyFirstList[tempIndex].Name) ? dictionary[copyFirstList[tempIndex].Name] : copyFirstList[tempIndex].Value;
-
-                    if (value != null)
+                    if (dictionary.ContainsKey(fields[tempIndex].Name))
                     {
+                        var tempField = (Field)fields[tempIndex].Clone();
+                        tempField.Value = dictionary[fields[tempIndex].Name];
+                        
                         // fix the indexes.
-                        copyFirstList[tempIndex].Id = tempIndex;
-                        copyFirstList[tempIndex].Value = value;
+                        copyFirstList.Add(tempField);
                     }
                 }
 

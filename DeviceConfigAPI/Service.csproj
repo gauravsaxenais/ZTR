@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>a41a48f3-0424-472a-a992-538117412324</UserSecretsId>
     <AssemblyName>Service</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>DeviceConfigAPI\Service.xml</DocumentationFile>
+    <DocumentationFile>Service.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
