@@ -17,7 +17,8 @@ packages
 
 # Build results
 /.vs
-
+/bin
+/obj
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
