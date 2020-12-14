@@ -46,9 +46,6 @@
         {
             services.AddControllers();
 
-#if RELEASE
-            services.AddAllowAllOriginsCorsPolicy();
-#endif
             services.AddMvc()
                 .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new StringEnumConverter()))
                 .AddXmlSerializerFormatters()
@@ -102,10 +99,7 @@
             var securityOptions = app.ApplicationServices.GetRequiredService<SecurityOptions>();
 
             // Cors needs to be before MVC and Swagger. Otherwise typescript clients throw cors related exceptions.
-            if (securityOptions.AllowAllOrigins)
-            {
-                app.UseCors(ApiConstants.ApiAllowAllOriginsPolicy);
-            }
+            app.UseCors(ApiConstants.ApiAllowAllOriginsPolicy);
 
             app.UseSwagger(new[]
             {
