@@ -551,6 +551,7 @@
             <param name="logger">The logger.</param>
             <param name="gitRepoManager">The git repo manager.</param>
             <param name="deviceGitConnectionOptions">The device git connection options.</param>
+            /// <param name="inputFileLoader">File loader which reads a proto file as input and gives out custom message.</param>
         </member>
         <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetDefaultValuesAllModulesAsync(System.String,System.String)">
             <summary>

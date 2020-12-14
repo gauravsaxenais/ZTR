@@ -8,7 +8,6 @@
     using ZTR.Framework.Service;
 
     /// <summary>Config Controller - This service is responsible for generating the config toml.</summary>
-  
     [Produces(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [Consumes(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [QueryRoute]

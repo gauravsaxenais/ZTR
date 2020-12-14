@@ -11,7 +11,6 @@
     /// <summary>
     /// This service returns the device information.
     /// </summary>
-  
     [Produces(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [Consumes(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [QueryRoute]
