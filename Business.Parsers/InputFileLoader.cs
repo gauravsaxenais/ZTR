@@ -26,14 +26,14 @@
         {
             log = logger;
         }
-        private readonly string csFileExtension = ".g.cs", dllExtension = ".dll", fileDescriptorExtension = ".desc";
+        private readonly string csFileExtension = ".cs", dllExtension = ".dll", fileDescriptorExtension = ".desc";
         public async Task<CustomMessage> GenerateCodeFiles(string moduleName, string protoFileName, string protoFilePath, params string[] args)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(moduleName);
             EnsureArg.IsNotEmptyOrWhiteSpace(protoFileName);
             EnsureArg.IsNotEmptyOrWhiteSpace(protoFilePath);
 
-            string outputFolder = null;
+            string outputFolder= string.Empty;
             try
             {
                 protoFilePath = CombinePathFromAppRoot(protoFilePath);
@@ -60,7 +60,7 @@
             finally
             {
                 if (!string.IsNullOrEmpty(outputFolder))
-                    Directory.Delete(outputFolder, true);
+                   Directory.Delete(outputFolder, true);
             }
 
 
@@ -68,62 +68,48 @@
 
         public string GenerateCSharpFile(string fileName, string protoFilePath, params string[] args)
         {
-            string tmpFolder = null, tmpOutputFolder = null;
+            string tmpFolder, tmpOutputFolder;
 
-            tmpOutputFolder = Path.Combine($"{Global.WebRoot}/tmp", Guid.NewGuid().ToString("n"));
+            tmpOutputFolder = Path.Combine($"{Global.WebRoot}tmp", Guid.NewGuid().ToString("n"));
             Directory.CreateDirectory(tmpOutputFolder);
 
             string protocPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? GetProtoCompilerPath(out tmpFolder) : "protoc";
             string tmpDescriptorFile = Path.Combine(tmpOutputFolder, fileName + fileDescriptorExtension);
-            string inputs = $" --descriptor_set_out={tmpDescriptorFile} --include_imports --proto_path={protoFilePath} --csharp_out={tmpOutputFolder} --csharp_opt=file_extension={csFileExtension} --error_format=gcc {fileName} {string.Join(" ", args)}";
-            
-                var psi = new ProcessStartInfo(
-                    protocPath,
-                    arguments: inputs
-                )
-                {
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    WorkingDirectory = Global.WebRoot,
-                    UseShellExecute = false
-                };
+            string inputs = $" --descriptor_set_out={tmpDescriptorFile} --include_imports --proto_path={protoFilePath} --csharp_out={tmpOutputFolder}  --error_format=gcc {fileName} {string.Join(" ", args)}";
 
-                psi.CreateNoWindow = true;
-                psi.WindowStyle = ProcessWindowStyle.Hidden;
-                psi.WorkingDirectory = Global.WebRoot;
-                psi.UseShellExecute = false;
-                psi.RedirectStandardOutput = psi.RedirectStandardError = true;                
+            var psi = new ProcessStartInfo(
+                protocPath,
+                arguments: inputs
+            )
+            {
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = Global.WebRoot,
+                UseShellExecute = false
+            };
 
-                Process proc = Process.Start(psi);                
-                Thread errThread = new Thread(DumpStream(proc.StandardError));
-                Thread outThread = new Thread(DumpStream(proc.StandardOutput));
-                errThread.Name = "stderr reader";
-                outThread.Name = "stdout reader";
-                errThread.Start();
-                outThread.Start();
-                proc.WaitForExit();
-                outThread.Join();
-                errThread.Join();
-                if (proc.ExitCode != 0)
+            psi.CreateNoWindow = true;
+            psi.WindowStyle = ProcessWindowStyle.Hidden;
+            psi.WorkingDirectory = Global.WebRoot;
+            psi.UseShellExecute = false;
+            psi.RedirectStandardOutput = psi.RedirectStandardError = true;
+            log.LogInformation("Starting Proto compiler");
+            log.LogInformation(inputs);
+            Process proc = Process.Start(psi);
+        
+            var result = proc.StandardOutput.ReadToEnd();
+            result += " " + proc.StandardError.ReadToEnd();
+            proc.WaitForExit();           
+            log.LogInformation(result);
+            if (proc.ExitCode != 0)
+            {
+                if (HasByteOrderMark(fileName))
                 {
-                    if (HasByteOrderMark(fileName))
-                    {
-                        //stderr.WriteLine("The input file should be UTF8 without a byte-order-mark (in Visual Studio use \"File\" -> \"Advanced Save Options...\" to rectify)");
-                    }
-                    throw new ApplicationException("Protoc in linux error" + fileName);
+                    //stderr.WriteLine("The input file should be UTF8 without a byte-order-mark (in Visual Studio use \"File\" -> \"Advanced Save Options...\" to rectify)");
                 }
-            
-            //if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            //{
-            //    log.LogInformation("proto in Linux starting..");
-            //    using Process proc = Process.Start("protoc",inputs);
-               
-            //    proc.WaitForExit();
-            //    if (proc.ExitCode != 0)
-            //    {
-            //        throw new ApplicationException("Protoc in linux error");
-            //    }
-            //}
+                throw new ApplicationException("Protoc in linux error" + fileName);
+            }
+
             return tmpOutputFolder;
 
 
@@ -155,7 +141,7 @@
         private string GetProtoCompilerPath(out string folder)
         {
             string Name = "protoc";
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Name += ".exe";
             }
@@ -181,7 +167,7 @@
                 }
             }
 
-          
+
             return path;
 
         }
@@ -199,6 +185,7 @@
 
         private async Task<string> GenerateDllFromCsFileAsync(string fileName, string outputFolderPath)
         {
+            fileName = char.ToUpper(fileName[0]) + fileName.Substring(1);
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
             string filePath = outputFolderPath + fileNameWithoutExtension;
             string csFilePath = filePath + csFileExtension;
