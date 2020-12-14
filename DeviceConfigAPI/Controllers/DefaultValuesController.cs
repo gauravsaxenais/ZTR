@@ -15,8 +15,7 @@
     /// If any module doesnt have any default values, then
     /// only the attributes are returned.
     /// </summary>
-    /// <seealso cref="Microsoft.AspNetCore.Mvc.ControllerBase" />
-   
+    /// <seealso cref="ControllerBase" />
     [Produces(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [Consumes(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [QueryRoute]

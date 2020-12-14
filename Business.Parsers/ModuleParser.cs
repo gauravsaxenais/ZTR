@@ -167,11 +167,11 @@
             return result;
         }
 
-        private List<List<Field>> GetFieldsData(ProtoParsedMessage message, Dictionary<string, object>[] values)
+        private List<List<object>> GetFieldsData(ProtoParsedMessage message, Dictionary<string, object>[] values)
         {
             var fields = message.Fields;
 
-            var arrayOfDataAsFields = new List<List<Field>>();
+            var arrayOfDataAsFields = new List<List<object>>();
 
             if (fields == null || !fields.Any() || values == null || !values.Any())
             {
@@ -180,7 +180,7 @@
 
             foreach (var dictionary in values)
             {
-                var copyFirstList = new List<Field>();
+                var copyFirstList = new List<object>();
 
                 for (int tempIndex = 0; tempIndex < fields.Count; tempIndex++)
                 {

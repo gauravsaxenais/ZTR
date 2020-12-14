@@ -58,6 +58,9 @@
             The service base URI.
             </value>
         </member>
+        <member name="T:Service.Controllers.ApiControllerBase">
+            <summary>Base controller implementing CorsPolicy.</summary>
+        </member>
         <member name="T:Service.Controllers.BlockController">
             <summary>Block Controller - This service is responsible for getting arguments in network blocks.</summary>
         </member>
