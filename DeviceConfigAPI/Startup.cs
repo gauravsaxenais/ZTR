@@ -43,15 +43,13 @@
         /// This method gets called by the runtime. Use this method to add services to the container.
         /// </summary>
         /// <param name="services">service collection.</param>
-#pragma warning disable CA1822 // Mark members as static
+
         public void ConfigureServices(IServiceCollection services)
-#pragma warning restore CA1822 // Mark members as static
         {
             services.AddControllers();
 
-#if RELEASE
             services.AddAllowAllOriginsCorsPolicy();
-#endif
+
             services.AddSingleton<InputFileLoader>();
 
             services.AddMvc()
@@ -75,9 +73,8 @@
         /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         /// </summary>
         /// <param name="app">application builder.</param>
-#pragma warning disable CA1822 // Mark members as static
+
         public void Configure(IApplicationBuilder app)
-#pragma warning restore CA1822 // Mark members as static
         {
             EnsureArg.IsNotNull(app);
             if (ApplicationConfiguration.IsDevelopment)
@@ -107,10 +104,9 @@
             var securityOptions = app.ApplicationServices.GetRequiredService<SecurityOptions>();
 
             // Cors needs to be before MVC and Swagger. Otherwise typescript clients throw cors related exceptions.
-            if (securityOptions.AllowAllOrigins)
-            {
-                app.UseCors(ApiConstants.ApiAllowAllOriginsPolicy);
-            }
+          
+            app.UseCors(ApiConstants.ApiAllowAllOriginsPolicy);
+           
 
             app.UseSwagger(new[]
             {

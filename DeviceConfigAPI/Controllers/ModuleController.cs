@@ -15,12 +15,11 @@
     /// name and uuid information.
     /// </summary>
     /// <seealso cref="Microsoft.AspNetCore.Mvc.ControllerBase" />
-    [System.ComponentModel.Description("Module Controller Service")]
-    [ApiController]
+  
     [Produces(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [Consumes(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [QueryRoute]
-    public class ModuleController : ControllerBase
+    public class ModuleController : ApiControllerBase
     {
         private readonly IModuleManager manager;
 
