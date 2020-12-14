@@ -42,17 +42,23 @@
         public static void AddAllowAllOriginsCorsPolicy(this IServiceCollection services)
         {
             // Setup CORS
-            var corsBuilder = new CorsPolicyBuilder();
+            //var corsBuilder = new CorsPolicyBuilder();
 
-            corsBuilder.AllowAnyOrigin(); // For anyone access.
-            corsBuilder.AllowAnyMethod();
-            corsBuilder.AllowAnyHeader();
-            corsBuilder.AllowCredentials();
+            //corsBuilder.AllowAnyOrigin(); // For anyone access.
+            //corsBuilder.AllowAnyMethod();
+            //corsBuilder.AllowAnyHeader();
+            //corsBuilder.AllowCredentials();            
+            //services.AddCors(options =>
+            //{
+            //   options.AddPolicy(ApiConstants.ApiAllowAllOriginsPolicy, corsBuilder.Build());
+            //});
 
-            services.AddCors(options =>
+            services.AddCors(o => o.AddPolicy(ApiConstants.ApiAllowAllOriginsPolicy, builder =>
             {
-                options.AddPolicy(ApiConstants.ApiAllowAllOriginsPolicy, corsBuilder.Build());
-            });
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            }));
         }
     }
 }
