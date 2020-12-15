@@ -42,24 +42,23 @@
             }
         }
 
-        private static async Task WriteResponse(HttpContext context, ExceptionResponse exceptionResponse, ApiResponse problemDetails)
+        private static async Task WriteResponse(HttpContext context, ApiResponse problemDetails)
         {
             context.Response.StatusCode = StatusCodes.Status200OK;
             context.Response.ContentType = "application/json";
-            await context.Response
-                .WriteAsync(exceptionResponse == null
-                    ? problemDetails.ToString()
-                    : exceptionResponse.ResponseText).ConfigureAwait(false);
+            await context.Response.WriteAsync(problemDetails.ToString());
+                   
         }
 
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            ExceptionResponse exceptionResponse = default;
-            _logger.LogCritical(exception, nameof(ExceptionMiddleware));
             var error = new ErrorMessage<ErrorType>(ErrorType.ServerError, exception);
             var response = new ApiResponse { Success = false, Error = error };
 
-            await WriteResponse(context, exceptionResponse, response);
+            var ex = new ApplicationException($"{error.ID} {exception.Message}", exception);
+            _logger.LogCritical(ex, nameof(ExceptionMiddleware));
+
+            await WriteResponse(context, response);
         }
 
        

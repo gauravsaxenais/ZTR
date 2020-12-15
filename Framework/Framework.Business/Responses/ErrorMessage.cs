@@ -25,6 +25,7 @@
             if(exception != null)
             {
                 Detail = GenerateMessageFromException(exception);
+                Exception = exception.StackTrace.ToString();
             }
 
         }
@@ -98,7 +99,7 @@
         /// <value>
         /// The message.
         /// </value>
-        public string Message { get; set; }
+        public string Message { get; private set; }
 
         /// <summary>
         /// Gets the exception detail.
@@ -106,7 +107,7 @@
         /// <value>
         /// The message.
         /// </value>
-        public string Detail { get; set; }
+        public string Detail { get; private set; }
 
         /// <summary>
         /// Gets the Unique Identifier.
@@ -122,7 +123,7 @@
         /// <value>
         /// The name of the property.
         /// </value>
-        public string PropertyName { get; set; }
+        public string PropertyName { get; private set; }
 
         /// <summary>
         /// Gets or sets the attempted value.
@@ -130,13 +131,14 @@
         /// <value>
         /// The attempted value.
         /// </value>
-        public object AttemptedValue { get; set; }
+        public object AttemptedValue { get; private set; }
 
         internal string ToFormattedString()
         {
             return $"{_errorcode.ToString()} - Property: '{PropertyName}' with value '{AttemptedValue}'. {Message}";
         }
 
+        public string Exception { get; private set; }
         private static string GenerateMessageFromException(Exception exception)
         {
             string message = null;

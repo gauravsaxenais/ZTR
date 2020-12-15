@@ -65,7 +65,7 @@
                         Directory.Delete(outputFolder, true);
                 }
                 catch (Exception ex) {
-                    _logger.LogError("Error", ex);
+                    _logger.LogError("Deletion error Tmp", ex);
                 }
             }
         }
