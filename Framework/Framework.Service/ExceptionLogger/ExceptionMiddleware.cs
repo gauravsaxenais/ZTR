@@ -44,7 +44,7 @@
 
         private static async Task WriteResponse(HttpContext context, ApiResponse problemDetails)
         {
-            context.Response.StatusCode = StatusCodes.Status200OK;
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(problemDetails.ToString());
                    

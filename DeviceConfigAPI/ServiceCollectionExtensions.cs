@@ -23,7 +23,7 @@
 
             services.AddSingleton<InputFileLoader>();
 
-            services.AddSingleton<IGitRepositoryManager, GitRepositoryManager>();
+            services.AddScoped<IGitRepositoryManager, GitRepositoryManager>();
 
             services.AddScoped<IModuleManager, ModuleManager>();
             services.AddScoped<IDeviceTypeManager, DeviceTypeManager>();
