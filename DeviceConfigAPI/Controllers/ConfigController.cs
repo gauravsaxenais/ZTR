@@ -1,6 +1,7 @@
 ﻿namespace Service.Controllers
 {
     using System.Threading.Tasks;
+    using Business.Parsers.Models;
     using Business.RequestHandlers.Interfaces;
     using EnsureThat;
     using Microsoft.AspNetCore.Http;
@@ -31,12 +32,9 @@
         ///   <br />
         /// </returns>
         [HttpPost(nameof(CreateTomlConfig))]
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateTomlConfig()
         {
-            return this.Ok();
+            return Ok();
         }
     }
 }

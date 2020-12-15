@@ -64,8 +64,8 @@
                     if (!string.IsNullOrEmpty(outputFolder))
                         Directory.Delete(outputFolder, true);
                 }
-                catch (Exception) { 
-                    // swallow.
+                catch (Exception ex) {
+                    _logger.LogError("Error", ex);
                 }
             }
         }

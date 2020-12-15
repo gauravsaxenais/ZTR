@@ -58,6 +58,9 @@
             The service base URI.
             </value>
         </member>
+        <member name="T:Service.Controllers.ApiControllerBase">
+            <summary>Base controller implementing Base shared methods.</summary>
+        </member>
         <member name="T:Service.Controllers.BlockController">
             <summary>Block Controller - This service is responsible for getting arguments in network blocks.</summary>
         </member>
@@ -196,18 +199,12 @@
             Inject services in the application here.
             </summary>
         </member>
-        <member name="M:Service.ServiceCollectionExtensions.AddServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+        <member name="M:Service.ServiceCollectionExtensions.AddCustomServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>Adds the services.</summary>
             <param name="services">The services.</param>
             <returns>
               <br />
             </returns>
-        </member>
-        <member name="M:Service.ServiceCollectionExtensions.AddAllowAllOriginsCorsPolicy(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
-            <summary>
-            Add CORS policy for the project.
-            </summary>
-            <param name="services">services collection.</param>
         </member>
         <member name="T:Service.Startup">
             <summary>

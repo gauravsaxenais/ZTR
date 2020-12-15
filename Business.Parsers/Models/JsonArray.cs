@@ -6,6 +6,6 @@
     {
         public string Name { get; set; }
         public bool IsRepeated { get; set; }
-        public List<List<object>> Data { get; set; } = new List<List<object>>();
+        public List<List<Field>> Data { get; set; } = new List<List<Field>>();
     }
 }

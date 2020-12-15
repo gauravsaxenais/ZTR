@@ -9,48 +9,60 @@
     using Newtonsoft.Json;
 
     public class ErrorMessage<TErrorCode>
-        where TErrorCode : struct, Enum
+        where TErrorCode : Enum
     {
-        public ErrorMessage(TErrorCode errorCode, string message)
+
+        private TErrorCode _errorcode ;
+        public ErrorMessage(TErrorCode errorCode, string message, Exception exception)
         {
             EnsureArg.IsNotNullOrWhiteSpace(message, nameof(message));
 
-            PropertyName = string.Empty;
+            PropertyName = null;
             AttemptedValue = null;
-            ErrorCode = errorCode;
+            _errorcode = errorCode;
+            ID = Guid.NewGuid().ToString("n");
             Message = message;
+            if(exception != null)
+            {
+                Detail = GenerateMessageFromException(exception);
+            }
+
         }
 
-        public ErrorMessage(TErrorCode errorCode, Exception exception)
+        public ErrorMessage(TErrorCode errorCode, Exception exception) :
+            this(errorCode, exception.Message, exception)
         {
-            EnsureArg.IsNotNull(exception, nameof(exception));
-
-            PropertyName = string.Empty;
-            ErrorCode = errorCode;
-            Message = GenerateMessageFromException(exception);
+           
         }
-
-        public ErrorMessage(string propertyName, TErrorCode errorCode, string message, object attemptedValue)
+        public ErrorMessage(TErrorCode errorCode, string message) :
+            this(errorCode, message, null)
         {
-            EnsureArg.IsNotNull(propertyName, nameof(propertyName));
-            EnsureArg.IsNotNullOrWhiteSpace(message, nameof(message));
-
-            PropertyName = propertyName;
-            ErrorCode = errorCode;
-            Message = message;
-            AttemptedValue = attemptedValue;
         }
+        public ErrorMessage(string propertyName, TErrorCode errorCode, string message, object attemptedValue) :
+            this(errorCode, message, null)
+        {             
+        }
+        public ErrorMessage(ValidationFailure error)           
+        {
 
+        }
         public ErrorMessage(Exception exception)
         {
-            EnsureArg.IsNotNull(exception, nameof(exception));
 
-            PropertyName = string.Empty;
-            ErrorCode = default;
-            Message = GenerateMessageFromException(exception);
         }
 
-        public ErrorMessage(ValidationFailure validationFailure)
+        //public ErrorMessage(string propertyName, TErrorCode errorCode, string message, object attemptedValue)
+        //{
+        //    EnsureArg.IsNotNull(propertyName, nameof(propertyName));
+        //    EnsureArg.IsNotNullOrWhiteSpace(message, nameof(message));
+
+        //    PropertyName = propertyName;
+        //    ErrorCode = errorCode;
+        //    Message = message;
+        //    AttemptedValue = attemptedValue;
+        //}
+
+        public ErrorMessage(ErrorType validationError, ValidationFailure validationFailure)
         {
             EnsureArg.IsNotNull(validationFailure, nameof(validationFailure));
 
@@ -58,7 +70,7 @@
 
             if (Enum.TryParse(typeof(TErrorCode), validationFailure.ErrorCode, out object errorCode))
             {
-                ErrorCode = (TErrorCode)errorCode;
+                _errorcode = (TErrorCode)errorCode;
             }
             else
             {
@@ -69,9 +81,6 @@
             Message = validationFailure.ErrorMessage;
         }
 
-        protected ErrorMessage()
-        {
-        }
 
         /// <summary>
         /// Gets the error code.
@@ -79,8 +88,10 @@
         /// <value>
         /// The error code.
         /// </value>
-        public TErrorCode ErrorCode { get; set; }
+        public string Code => _errorcode.ToString();
 
+        public TErrorCode ErrorCode => _errorcode;
+        
         /// <summary>
         /// Gets the message.
         /// </summary>
@@ -88,6 +99,22 @@
         /// The message.
         /// </value>
         public string Message { get; set; }
+
+        /// <summary>
+        /// Gets the exception detail.
+        /// </summary>
+        /// <value>
+        /// The message.
+        /// </value>
+        public string Detail { get; set; }
+
+        /// <summary>
+        /// Gets the Unique Identifier.
+        /// </summary>
+        /// <value>
+        /// The message.
+        /// </value>
+        public string ID { get; private set; }
 
         /// <summary>
         /// Gets the name of the property.
@@ -107,7 +134,7 @@
 
         internal string ToFormattedString()
         {
-            return $"{ErrorCode.ToString()} - Property: '{PropertyName}' with value '{AttemptedValue}'. {Message}";
+            return $"{_errorcode.ToString()} - Property: '{PropertyName}' with value '{AttemptedValue}'. {Message}";
         }
 
         private static string GenerateMessageFromException(Exception exception)
@@ -134,26 +161,22 @@
 
         private static string BuildErrorMessageFromException(Exception exception)
         {
-            try
-            {
-                var sb = new StringBuilder();
 
-                var resultProperty = exception.GetType().GetProperty("Result");
-                if (resultProperty != null)
+            var sb = new StringBuilder();
+
+            var resultProperty = exception.GetType().GetProperty("Result");
+            if (resultProperty != null)
+            {
+                sb.Append("Result: ");
+                var result = resultProperty.GetValue(exception);
+                if (result != null)
                 {
-                    sb.Append("Result: ");
-                    var result = resultProperty.GetValue(exception);
-                    if (result != null)
-                    {
-                        sb.Append(JsonConvert.SerializeObject(result, Formatting.Indented));
-                    }
+                    sb.Append(JsonConvert.SerializeObject(result, Formatting.Indented));
                 }
+            }
 
-                return sb.ToString();
-            }
-            finally
-            {
-            }
+            return sb.ToString();
+
         }
     }
 }
