@@ -33,20 +33,5 @@
 
             return services;
         }
-
-        /// <summary>
-        /// Add CORS policy for the project.
-        /// </summary>
-        /// <param name="services">services collection.</param>
-        public static void AddAllowAllOriginsCorsPolicy(this IServiceCollection services)
-        {
-            // Setup CORS
-            services.AddCors(o => o.AddPolicy(ApiConstants.ApiAllowAllOriginsPolicy, builder =>
-            {
-                builder.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader();
-            }));
-        }
     }
 }

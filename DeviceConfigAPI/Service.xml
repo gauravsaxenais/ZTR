@@ -228,12 +228,6 @@
               <br />
             </returns>
         </member>
-        <member name="M:Service.ServiceCollectionExtensions.AddAllowAllOriginsCorsPolicy(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
-            <summary>
-            Add CORS policy for the project.
-            </summary>
-            <param name="services">services collection.</param>
-        </member>
         <member name="T:Service.Startup">
             <summary>
               Added Startup class.
