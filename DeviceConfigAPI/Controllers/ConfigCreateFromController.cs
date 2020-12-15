@@ -19,15 +19,15 @@
     [Produces(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [Consumes(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [QueryRoute]
-    public class DefaultValuesController : ApiControllerBase
+    public class ConfigCreateFromController : ApiControllerBase
     {
         private readonly IDefaultValueManager manager;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultValuesController"/> class.
+        /// Initializes a new instance of the <see cref="ConfigCreateFromController"/> class.
         /// </summary>
         /// <param name="manager">interface of the 'backend' manager which does all the work.</param>
-        public DefaultValuesController(IDefaultValueManager manager)
+        public ConfigCreateFromController(IDefaultValueManager manager)
         {
             EnsureArg.IsNotNull(manager, nameof(manager));
 
