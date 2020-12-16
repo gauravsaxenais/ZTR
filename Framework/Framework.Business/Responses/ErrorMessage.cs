@@ -45,10 +45,6 @@
         {
         }
 
-        public ErrorMessage(Exception exception)
-        {
-        }
-
         public ErrorMessage(ErrorType validationError, ValidationFailure validationFailure)
         {
             EnsureArg.IsNotNull(validationFailure, nameof(validationFailure));

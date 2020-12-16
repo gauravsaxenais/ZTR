@@ -13,7 +13,7 @@
         /// <returns>
         ///   <br />
         /// </returns>
-        Task<string> CreateConfigAsync(ConfigModel jsonContent);
+        Task<string> CreateConfigAsync(ConfigModel model);
 
         Task<bool> UpdateTomlConfig(string properties);
     }

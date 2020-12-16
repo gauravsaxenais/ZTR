@@ -20,8 +20,6 @@
     /// </summary>
     public class ConfigGeneratorManager : IConfigGeneratorManager
     {
-
-
         private static object _syncRoot = new object();
         private string[] _properties;
         const string _skipConfigFolder = "configsetting";
