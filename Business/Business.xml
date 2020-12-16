@@ -533,6 +533,10 @@
             </summary>
             <returns>list of blocks.</returns>
         </member>
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.ConfigCreateFromManager})">
+            <summary>Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.ConfigCreateFromManager" /> class.</summary>
+            <param name="logger">The logger.</param>
+        </member>
         <member name="T:Business.RequestHandlers.Managers.ConfigGeneratorManager">
             <summary>
               <br />

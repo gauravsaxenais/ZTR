@@ -12,9 +12,16 @@
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     public class ApiControllerBase : ControllerBase
     {
+        /// <summary>
+        /// Creates an <see cref="OkObjectResult" /> object that produces an <see cref="StatusCodes.Status200OK" /> response.
+        /// </summary>
+        /// <param name="value">The content value to format in the entity body.</param>
+        /// <returns>
+        /// The created <see cref="OkObjectResult" /> for the response.
+        /// </returns>
         public override OkObjectResult Ok([ActionResultObjectValue] object value)
         {
-            return base.Ok(new ApiResponse { Success = true, Data = value } );
+            return base.Ok(new ApiResponse { Success = true, Data = value });
         }
     }
 }
