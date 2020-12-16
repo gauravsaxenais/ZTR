@@ -23,13 +23,21 @@
 
             services.AddSingleton<InputFileLoader>();
 
-            services.AddSingleton<IGitRepositoryManager, GitRepositoryManager>();
+            services.AddScoped<IGitRepositoryManager, GitRepositoryManager>();
 
             services.AddScoped<IModuleManager, ModuleManager>();
             services.AddScoped<IDeviceTypeManager, DeviceTypeManager>();
             services.AddScoped<IDefaultValueManager, DefaultValueManager>();
             services.AddScoped<IBlockManager, BlockManager>();
             services.AddScoped<IConfigGeneratorManager, ConfigGeneratorManager>();
+
+            // Add cors here.
+            services.AddCors(o => o.AddPolicy(ApiConstants.ApiAllowAllOriginsPolicy, builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            }));
 
             return services;
         }

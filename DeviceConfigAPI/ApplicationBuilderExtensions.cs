@@ -20,6 +20,8 @@
             logger.LogWarning("Caution: Use this setting in DEVELOPMENT only. In production, grant access to specific origins (websites) that you control and trust to access the API.");
 
             app.UseCors(ApiConstants.ApiAllowAllOriginsPolicy);
+
+
         }
     }
 }
