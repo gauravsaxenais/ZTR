@@ -90,7 +90,7 @@
                 setting = File.ReadAllText(_path);
             }
             var tags = setting.Split(Environment.NewLine);
-            _properties = tags.Where(o => !o.StartsWith("rule:")).ToArray();
+            _properties = tags.Where(o => !o.StartsWith("Rule:")).ToArray();
             _rules = tags.Where(o => o.StartsWith("Rule:")).Select(o =>
             {
                 var ruleConfig = o.Split(':');
