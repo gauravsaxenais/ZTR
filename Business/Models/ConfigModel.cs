@@ -9,4 +9,6 @@ namespace Business.Models
         public string Module { get; set; }
         public string Block { get; set; }
     }
+
+   
 }

@@ -115,7 +115,7 @@
         /// </returns>
         public async Task<string> CreateConfigAsync(ConfigModel model)
         {
-            EnsureArg.IsNotEmptyOrWhiteSpace(model.Module);
+            //EnsureArg.IsNotEmptyOrWhiteSpace(model.Module);
             EnsureArg.IsNotEmptyOrWhiteSpace(model.Block);
 
 
