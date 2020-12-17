@@ -596,9 +596,24 @@
             </summary>
             <returns>list of blocks.</returns>
         </member>
+        <member name="T:Business.RequestHandlers.Managers.ConfigCreateFromManager">
+            <summary>
+            This manager takes config.toml as input and returns
+            list of modules and blocks.
+            </summary>
+            <seealso cref="T:ZTR.Framework.Business.Manager" />
+            <seealso cref="T:Business.RequestHandlers.Interfaces.IConfigCreateFromManager" />
+        </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.ConfigCreateFromManager})">
             <summary>Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.ConfigCreateFromManager" /> class.</summary>
             <param name="logger">The logger.</param>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GenerateConfigTomlModelAsync(System.String)">
+            <summary>
+            Returns the list of all modules and blocks from config.toml.
+            </summary>
+            <param name="configTomlFile">config.toml as string.</param>
+            <returns></returns>
         </member>
         <member name="T:Business.RequestHandlers.Managers.ConfigGeneratorManager">
             <summary>

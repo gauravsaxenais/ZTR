@@ -57,7 +57,6 @@
         }
         private object ToDictionary(object configObject)
         {
-
             if (configObject == null)
             {
                 return null;
@@ -92,6 +91,7 @@
             {
                 setting = File.ReadAllText(_path);
             }
+
             var tags = setting.Split(Environment.NewLine);
             _properties = tags.Where(o => !o.StartsWith("Rule:")).ToArray();
             _rules = tags.Where(o => o.StartsWith("Rule:")).Select(o =>
@@ -175,7 +175,6 @@
                 {
                     RemoveProperties((T)item.Value);
                 }
-
             }
 
             if (newKey.Key != null)

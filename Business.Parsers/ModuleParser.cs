@@ -11,7 +11,7 @@
 
     public class ModuleParser
     {
-        public List<JsonModel> GetJsonFromDefaultValueAndProtoFile(string fileContent, TomlSettings settings, ProtoParsedMessage protoParserMessage)
+        public List<Dictionary<string, object>> GetListOfModulesFromTomlFile(string fileContent, TomlSettings settings)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(fileContent, (nameof(fileContent)));
 
@@ -20,18 +20,26 @@
             var fileData = Toml.ReadString(fileContent, settings);
 
             var dictionary = fileData.ToDictionary();
-            var module = (Dictionary<string, object>[])dictionary["module"];
+            var modules = (Dictionary<string, object>[])dictionary["module"];
+
+            return modules.ToList();
+        }
+
+        public List<JsonModel> GetJsonFromTomlAndProtoFile(string fileContent, TomlSettings settings, ProtoParsedMessage protoParserMessage)
+        {
+            var jsonModels = new List<JsonModel>();
+            var listOfModules = GetListOfModulesFromTomlFile(fileContent, settings);
 
             // here message.name means Power, j1939 etc.
-            var moduleDetail = module.Where(dic => dic.Values.Contains(protoParserMessage.Name.ToLower())).FirstOrDefault();
+            var module = listOfModules.Where(dic => dic.Values.Contains(protoParserMessage.Name.ToLower())).FirstOrDefault();
 
-            if (moduleDetail != null)
+            if (module != null)
             {
                 var configValues = new Dictionary<string, object>();
 
-                if (moduleDetail.ContainsKey("config"))
+                if (module.ContainsKey("config"))
                 {
-                    configValues = (Dictionary<string, object>)moduleDetail["config"];
+                    configValues = (Dictionary<string, object>)module["config"];
                 }
 
                 jsonModels = MergeTomlWithProtoMessage(configValues, protoParserMessage);

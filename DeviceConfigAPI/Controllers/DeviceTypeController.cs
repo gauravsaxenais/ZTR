@@ -13,7 +13,6 @@
     /// This service returns the device information.
     /// </summary>
     [System.ComponentModel.Description("Device Type Controller Service")]
-    [ApiController]
     [Produces(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [Consumes(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [QueryRoute]

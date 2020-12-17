@@ -95,7 +95,7 @@
 
                 var jsonModels = new List<JsonModel>();
 
-                jsonModels = moduleParser.GetJsonFromDefaultValueAndProtoFile(defaultValueFromTomlFile, tomlSettings, formattedMessage);
+                jsonModels = moduleParser.GetJsonFromTomlAndProtoFile(defaultValueFromTomlFile, tomlSettings, formattedMessage);
                 
                 var module = listOfModules.Where(p => p.Name?.IndexOf(formattedMessage.Name, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
 

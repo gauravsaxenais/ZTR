@@ -18,7 +18,6 @@
     /// </summary>
     /// <seealso cref="ControllerBase" />
     [System.ComponentModel.Description("Default Values Controller Service")]
-    [ApiController]
     [Produces(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [Consumes(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [QueryRoute]

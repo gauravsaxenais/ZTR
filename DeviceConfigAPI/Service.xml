@@ -108,19 +108,18 @@
             </summary>
             <seealso cref="T:Microsoft.AspNetCore.Mvc.ControllerBase" />
         </member>
-        <member name="M:Service.Controllers.ConfigCreateFromController.#ctor(Business.RequestHandlers.Interfaces.IDefaultValueManager)">
+        <member name="M:Service.Controllers.ConfigCreateFromController.#ctor(Business.RequestHandlers.Interfaces.IConfigCreateFromManager)">
             <summary>
             Initializes a new instance of the <see cref="T:Service.Controllers.ConfigCreateFromController"/> class.
             </summary>
             <param name="manager">interface of the 'backend' manager which does all the work.</param>
         </member>
-        <member name="M:Service.Controllers.ConfigCreateFromController.GetAllDefaultValues(System.String,System.String)">
+        <member name="M:Service.Controllers.ConfigCreateFromController.GetAllDefaultValues(System.String)">
             <summary>
             Gets default values for all the modules.
             </summary>
             <returns>A <see cref="T:System.Collections.Generic.IEnumerable`1"/> representing the result of the operation.</returns>
-            <param name="firmwareVersion">firmware version.</param>
-            <param name="deviceType">device type.</param>
+            <param name="configTomlString">configtoml as string.</param>
         </member>
         <member name="T:Service.Controllers.DefaultValuesController">
             <summary>
