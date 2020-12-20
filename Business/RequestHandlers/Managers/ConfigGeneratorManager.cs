@@ -14,32 +14,28 @@
     using System.Linq;
     using Business.Models;
     using Newtonsoft.Json.Converters;
-    using Microsoft.Extensions.Logging;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     ///   <br />
     /// </summary>
     public class ConfigGeneratorManager : IConfigGeneratorManager
     {
-        private ILogger<ConfigGeneratorManager> _logger ;
         private static object _syncRoot = new object();
         private string[] _properties;
         const string _skipConfigFolder = "configsetting";
         const string _skipConfigFile = "convertconfig.txt";
         private IEnumerable<ConfigConvertRule> _rules;
 
-        public ConfigGeneratorManager(ILogger<ConfigGeneratorManager> logger)
+        public ConfigGeneratorManager()
         {
-            _logger = logger;
             InitiateRule();
         }
-        
+
         private void RemoveProperties<T>(T input) where T : IDictionary<string, object>
         {
-            _logger.LogInformation($"Properties : {_properties.Count()}");
             foreach (var item in input)
             {
-                _logger.LogInformation($"Removing : {item.Key}");
                 if (_properties.Contains(item.Key.ToLower()))
                 {
                     input.Remove(item);
@@ -50,16 +46,16 @@
                 {
                     ((object[])item.Value).ToList().ForEach(o => RemoveProperties((T)o));
                 }
-                if (item.Value is T )
+                if (item.Value is T)
                 {
                     RemoveProperties((T)item.Value);
                 }
-               
+
             }
         }
         private object ToDictionary(object configObject)
         {
-          
+
             if (configObject == null)
             {
                 return null;
@@ -68,10 +64,10 @@
             {
                 return ((JValue)configObject).ToString();
             }
-                
+
             if (configObject is JArray)
             {
-               return ((JArray)configObject).Select(o => ToDictionary(o)).ToArray();
+                return ((JArray)configObject).Select(o => ToDictionary(o)).ToArray();
             }
 
             var dictionary = new Dictionary<string, object>();
@@ -79,10 +75,10 @@
             {
                 foreach (var o in (JObject)configObject)
                 {
-                    dictionary.Add(o.Key, ToDictionary(o.Value));
+                    dictionary.Add($"#{o.Key}#", ToDictionary(o.Value));
                 }
             }
-            
+
             return dictionary;
 
         }
@@ -95,7 +91,7 @@
                 setting = File.ReadAllText(_path);
             }
             var tags = setting.Split(Environment.NewLine);
-            _properties = tags.Where(o => !o.StartsWith("Rule:")).ToArray();
+            _properties = tags.Where(o => !o.StartsWith("Rule:")).Select(o => $"#{o}#").ToArray();
             _rules = tags.Where(o => o.StartsWith("Rule:")).Select(o =>
             {
                 var ruleConfig = o.Split(':');
@@ -104,7 +100,7 @@
                     Property = ruleConfig[1],
                     Schema = new List<ConfigConvertObject> { new ConfigConvertObject
                          {
-                              Name = ruleConfig[2],
+                              Name = $"#{ruleConfig[2]}#",
                               Value= ruleConfig[3]
                          } }
                 };
@@ -120,26 +116,30 @@
         {
             //EnsureArg.IsNotEmptyOrWhiteSpace(model.Module);
             EnsureArg.IsNotEmptyOrWhiteSpace(model.Block);
-
-
             var jsonContent = model.Block;
-                // File.ReadAllText($"{Global.WebRoot}/test/block.json");
 
-           
-            var configurationObject = JsonConvert.DeserializeObject(jsonContent);           
-            var dictionary = (Dictionary<string,object>)ToDictionary(configurationObject);
+            var configurationObject = JsonConvert.DeserializeObject(jsonContent);
+            var dictionary = (Dictionary<string, object>)ToDictionary(configurationObject);
             RemoveProperties(dictionary);
 
             changeKeys = new List<KeyValuePair<string, IDictionary<string, string>>>();
             ConvertCompatibleJson(dictionary);
-            //var json = JsonConvert.SerializeObject(dictionary);
+            var json = JsonConvert.SerializeObject(dictionary);
+            json = BlockNormalize(json);
 
+            // string contents = Toml.WriteString(dictionary);           
 
-            string contents = Toml.WriteString(dictionary);           
-
-            return contents;
+            return await Task.FromResult(json);
         }
+        private string BlockNormalize(string json)
+        {
+            json = json.Replace(":", " = ");
+            json = Regex.Replace(json, @"""#([\s\S]*?)#""", "" + @"$1" + "", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            json = json.Replace("{type=", Environment.NewLine + "{type=");
+            json = json.Substring(1, json.Length - 1);
+            return $"[network]{Environment.NewLine} {json}";
 
+        }
         private List<KeyValuePair<string, IDictionary<string, string>>> changeKeys;
         private void ConvertCompatibleJson<T>(T input) where T : IDictionary<string, object>
         {
@@ -154,18 +154,18 @@
                     {
                         var o = (IDictionary<string, object>)x;
                         rule.Schema.ToList().ForEach(u =>
-                        {                           
+                        {
                             dict.Add(o[u.Name].ToString(), o.ContainsKey(u.Value) ? o[u.Value].ToString() : string.Empty);
                         });
-                       
+
                     });
 
-                    if(dict != null)
+                    if (dict != null)
                     {
-                       newKey = new KeyValuePair<string, Dictionary<string, string>>(item.Key, dict);
+                        newKey = new KeyValuePair<string, Dictionary<string, string>>(item.Key, dict);
                     }
                     //input.Remove(item.Key);
-                   
+
                     continue;
                 }
 
@@ -175,16 +175,16 @@
                 }
                 if (item.Value is T)
                 {
-                    RemoveProperties((T)item.Value);
+                    ConvertCompatibleJson((T)item.Value);
                 }
 
             }
 
-            if(newKey.Key != null)
+            if (newKey.Key != null)
             {
                 input[newKey.Key] = newKey.Value;
             }
-           
+
         }
         private string _path => $"{Global.WebRoot}/{_skipConfigFolder}/{_skipConfigFile}";
         public async Task<bool> UpdateTomlConfig(string properties)
