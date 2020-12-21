@@ -5,16 +5,21 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Converters;
     using ZTR.Framework.Business.Models;
     using ZTR.Framework.Configuration;
+    using ZTR.Framework.Security;
     using ZTR.Framework.Service;
+    using ZTR.Framework.Service.ExceptionLogger;
 
     /// <summary>
     ///   Added Startup class.
     /// </summary>
     public class Startup
     {
+        private static ILogger logger;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class.
         /// </summary>
@@ -40,8 +45,10 @@
         public void ConfigureServices(IServiceCollection services)
 #pragma warning restore CA1822 // Mark members as static
         {
-            services.AddControllers();
+            services.AddControllers()
+                .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new StringEnumConverter()));
 
+          
             var swaggerAssemblies = new[]
             {
                 typeof(Program).Assembly,
@@ -52,14 +59,15 @@
 
             // we add our custom services here.
             services.AddCustomServices();
-
         }
 
         /// <summary>
         /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         /// </summary>
         /// <param name="app">application builder.</param>
+#pragma warning disable CA1822 // Mark members as static
         public void Configure(IApplicationBuilder app)
+#pragma warning restore CA1822 // Mark members as static
         {
             EnsureArg.IsNotNull(app);
             if (ApplicationConfiguration.IsDevelopment)

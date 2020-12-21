@@ -94,7 +94,7 @@
             </summary>
             <param name="manager">The manager.</param>
         </member>
-        <member name="M:Service.Controllers.ConfigController.CreateTomlConfig(Business.Models.ConfigModel)">
+        <member name="M:Service.Controllers.ConfigController.CreateTomlConfig(Business.Models.ConfigReadModel)">
             <summary>Creates the toml configuration.</summary>
             <returns>
               <br />
@@ -108,19 +108,18 @@
             </summary>
             <seealso cref="T:Microsoft.AspNetCore.Mvc.ControllerBase" />
         </member>
-        <member name="M:Service.Controllers.ConfigCreateFromController.#ctor(Business.RequestHandlers.Interfaces.IDefaultValueManager)">
+        <member name="M:Service.Controllers.ConfigCreateFromController.#ctor(Business.RequestHandlers.Interfaces.IConfigCreateFromManager)">
             <summary>
             Initializes a new instance of the <see cref="T:Service.Controllers.ConfigCreateFromController"/> class.
             </summary>
             <param name="manager">interface of the 'backend' manager which does all the work.</param>
         </member>
-        <member name="M:Service.Controllers.ConfigCreateFromController.GetAllDefaultValues(System.String,System.String)">
+        <member name="M:Service.Controllers.ConfigCreateFromController.GetConfigTomlValues(Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
-            Gets default values for all the modules.
+            Gets the configuration toml values.
             </summary>
-            <returns>A <see cref="T:System.Collections.Generic.IEnumerable`1"/> representing the result of the operation.</returns>
-            <param name="firmwareVersion">firmware version.</param>
-            <param name="deviceType">device type.</param>
+            <param name="configTomlFile">The configuration toml file.</param>
+            <returns></returns>
         </member>
         <member name="T:Service.Controllers.DefaultValuesController">
             <summary>
@@ -187,24 +186,6 @@
             <param name="firmwareVersion">firmware version or tag in github.</param>
             <param name="deviceType">device type e.g. M3, M7.</param>
             <returns><see cref="T:System.Collections.Generic.IEnumerable`1"/> representing the result of the operation.</returns>
-        </member>
-        <member name="M:Service.Controllers.ModuleController.GetModuleByName(System.String,System.String,System.String)">
-            <summary>
-            Get the module information by name.
-            </summary>
-            <param name="name">name of the module.</param>
-            <param name="firmwareVersion">firmware version.</param>
-            <param name="deviceType">device type.</param>
-            <returns>A <see cref="T:System.Collections.Generic.IEnumerable`1"/> representing the result of the operation.</returns>
-        </member>
-        <member name="M:Service.Controllers.ModuleController.GetModuleByNames(System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
-            <summary>
-            Gets the list of modules by names.
-            </summary>
-            <param name="firmwareVersion">firmware version.</param>
-            <param name="deviceType">evice type.</param>
-            <param name="names">names of the modules.</param>
-            <returns>A <see cref="T:System.Collections.Generic.IEnumerable`1"/> representing the result of the operation.</returns>
         </member>
         <member name="T:Service.Program">
             <summary>

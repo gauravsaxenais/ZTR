@@ -39,11 +39,11 @@
         /// <param name="gitRepoManager">The git repo manager.</param>
         /// <param name="deviceGitConnectionOptions">The device git connection options.</param>
         /// /// <param name="inputFileLoader">File loader which reads a proto file as input and gives out custom message.</param>
-        public DefaultValueManager(ILogger<ModuleManager> logger, IGitRepositoryManager gitRepoManager, DeviceGitConnectionOptions deviceGitConnectionOptions, InputFileLoader inputFileLoader) : base(logger)
+        public DefaultValueManager(ILogger<DefaultValueManager> logger, IGitRepositoryManager gitRepoManager, DeviceGitConnectionOptions deviceGitConnectionOptions, InputFileLoader inputFileLoader) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(deviceGitConnectionOptions, nameof(deviceGitConnectionOptions));
-            EnsureArg.IsNotNull(deviceGitConnectionOptions.TomlConfiguration, nameof(deviceGitConnectionOptions.TomlConfiguration));
+            EnsureArg.IsNotNull(deviceGitConnectionOptions.DefaultTomlConfiguration, nameof(deviceGitConnectionOptions.DefaultTomlConfiguration));
 
             _inputFileLoader = inputFileLoader;
             _gitRepoManager = gitRepoManager;
@@ -52,7 +52,8 @@
             var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
             _deviceGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder);
-            _deviceGitConnectionOptions.TomlConfiguration.DeviceFolder = Path.Combine(_deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.TomlConfiguration.DeviceFolder);
+            _deviceGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder = Path.Combine(_deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder);
+            _deviceGitConnectionOptions.ModulesConfig = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.ModulesConfig);
 
             _gitRepoManager.SetConnectionOptions(_deviceGitConnectionOptions);
         }
@@ -73,7 +74,7 @@
             var customMessageParser = new CustomMessageParser();
             var moduleParser = new ModuleParser();
           
-            var modulesProtoFolder = Path.Combine(_deviceGitConnectionOptions.TomlConfiguration.DeviceFolder, deviceType, _deviceGitConnectionOptions.TomlConfiguration.ModulesProtoFolder);
+            var modulesProtoFolder = Path.Combine(_deviceGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder, deviceType, _deviceGitConnectionOptions.DefaultTomlConfiguration.ModulesProtoFolder);
             var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();
 
             // get list of all modules.
@@ -93,13 +94,15 @@
                 var formattedMessage = customMessageParser.Format(messages[temp].Message);
                 formattedMessage.Name = messages[temp].Name;
 
-                var jsonModel = moduleParser.GetJsonFromDefaultValueAndProtoFile(defaultValueFromTomlFile, tomlSettings, formattedMessage);
+                var jsonModels = new List<JsonModel>();
+
+                jsonModels = moduleParser.GetJsonFromTomlAndProtoFile(defaultValueFromTomlFile, tomlSettings, formattedMessage);
                 
                 var module = listOfModules.Where(p => p.Name?.IndexOf(formattedMessage.Name, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
 
                 if (module != null)
                 {
-                    module.Config = jsonModel;
+                    module.Config = jsonModels;
                 }
             }
 
@@ -130,7 +133,6 @@
                     result.Add(taskResult.Result);
                 }
             }
-
           
             return await Task.FromResult(result);
         }
@@ -173,7 +175,7 @@
         {
             var gitConnectionOptions = (DeviceGitConnectionOptions)_gitRepoManager.GetConnectionOptions();
 
-            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.TomlConfiguration.DefaultTomlFile);
+            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.DefaultTomlConfiguration.DefaultTomlFile);
 
             // case insensitive search.
             var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
@@ -198,10 +200,10 @@
         {
             var listOfModules = new List<ModuleReadModel>();
 
-            var fileContent = await GetDeviceDataFromFirmwareVersionAsync(firmwareVersion, deviceType);
-            if (!string.IsNullOrWhiteSpace(fileContent))
+            var deviceTomlFileContent = await GetDeviceDataFromFirmwareVersionAsync(firmwareVersion, deviceType);
+            if (!string.IsNullOrWhiteSpace(deviceTomlFileContent))
             {
-                var data = GetTomlData(fileContent);
+                var data = GetTomlData(deviceTomlFileContent);
 
                 listOfModules = data.Module;
             }
@@ -235,7 +237,7 @@
         {
             var gitConnectionOptions = (DeviceGitConnectionOptions)_gitRepoManager.GetConnectionOptions();
 
-            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.TomlConfiguration.DeviceTomlFile);
+            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.DefaultTomlConfiguration.DeviceTomlFile);
 
             // case insensitive search.
             var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();

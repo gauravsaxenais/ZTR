@@ -21,6 +21,11 @@
         /// </returns>
         public override OkObjectResult Ok([ActionResultObjectValue] object value)
         {
+            if (value is ApiResponse)
+            {
+                return base.Ok((ApiResponse) value);
+            }
+
             return base.Ok(new ApiResponse { Success = true, Data = value });
         }
     }
