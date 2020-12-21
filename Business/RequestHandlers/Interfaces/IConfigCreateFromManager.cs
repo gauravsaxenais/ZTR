@@ -1,6 +1,7 @@
 ﻿namespace Business.RequestHandlers.Interfaces
 {
     using Business.Models;
+    using Microsoft.AspNetCore.Http;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -15,6 +16,6 @@
         /// </summary>
         /// <param name="configTomlFile">The firmware version.</param>
         /// <returns></returns>
-        Task<List<ModuleReadModel>> GenerateConfigTomlModelAsync(string configTomlFile);
+        Task<IEnumerable<ModuleReadModel>> GenerateConfigTomlModelAsync(IFormFile configTomlFile);
     }
 }
