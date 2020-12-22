@@ -148,19 +148,25 @@ namespace Business.Parsers.Core
         object Extractvalue<T>(T dictionary) where T : Dictionary<string, object>
         {
             object value = null;
-
+            var dict = new Dictionary<string, object>();
             if (dictionary.ContainsKey(_value))
             {
                 value = dictionary[_value];
             }
-
+            if (IsValueEmpty(value) && dictionary.ContainsKey("fields"))
+            {
+                  dict = Convert<T>((object[])dictionary["fields"]);
+                  if(dict.Count > 0)
+                      value = dict;
+            }
             if (IsValueEmpty(value) && dictionary.ContainsKey("arrays"))
             {
                 value = ((object[])dictionary["arrays"]).ToList().Select(o =>
                            {
                                if (o is object[] v)
                                {
-                                   return v.ToList().Select(u => ConvertCompatibleJson((T)u,1)).ToArray();
+                                   var res = Convert<T>(v); 
+                                   return res;
                                }
                                return null;
                            }).ToArray();
@@ -188,55 +194,83 @@ namespace Business.Parsers.Core
             });
         }
         private T Convert<T>(T input, T dictionary, int loop) where T : Dictionary<string, object>
-        {           
-            if (loop > 0)
+        {
+            dictionary.Clear();
+            var o = (T)input;
+            if (o.ContainsKey(_name))
             {
-                var o = (T)input;
-                if (o.ContainsKey(_name))
-                {
-                    dictionary.Add(o[_name].ToString(), Extractvalue(o));
-                }
-                
+                dictionary.Add(o[_name].ToString(), Extractvalue(o));
             }
             return dictionary;
         }
+        private T Convert<T>(object[] input) where T : Dictionary<string, object>
+        {
+            var dict = new Dictionary<string, object>();
+            input.ToList().ForEach(u =>
+                           {
+                               var o = (T)u;
+                               if (o.ContainsKey(_name))
+                               {
+                                   dict.Add(o[_name].ToString(), Extractvalue(o));
+                               }
+
+                           });
+            return (T)dict;
+        }
+              
+  
         #endregion private helper functions
 
         private T ConvertCompatibleJson<T>(T input,int loop) where T : Dictionary<string, object>
         {
-            KeyValuePair<string, Dictionary<string, object>> newKey = default;
-            var dict = new Dictionary<string, object>();
-            if (input is T)
+            KeyValuePair<string, object> newKey = default;
+            var dictionaryArray = new List<Dictionary<string, object>>();
+            var dictionary = new Dictionary<string, object>();
+            void AddNewObject(T obj)
             {
-                dict = Convert(input, dict, ++loop);
+                dictionary = Convert(obj, dictionary, loop);
+                if (dictionary.Count > 0)
+                    dictionaryArray.Add(dictionary);
             }
 
             foreach (var item in input)
-            {                
-                if (item.Value is Array )
+            { 
+                if (item.Value is Array)
                 {
-                   
-                   // if (CanConvert(item.Value))
+                    if (_rules.Any(o => o.Property == item.Key.ToLower()))
                     {
                         ((object[])item.Value).ToList().ForEach(x =>
                         {
-                            dict = Convert((Dictionary<string, object>)x, dict,++loop);
+                            if (x is object[] v)
+                            {
+                                v.ToList().ForEach(u =>
+                                {
+                                    AddNewObject((T)u);
+                                });
+                                return;
+                            }
+
+                            AddNewObject((T)x);
                         });
 
-                    }
-
-
-                    ConvertArray((object[])item.Value);
-
-                    if (dict.Count > 0)
-                    {
-                        newKey = new KeyValuePair<string, Dictionary<string, object>>(item.Key, dict);
                         continue;
                     }
-                   
-                }               
+
+                    ConvertArray((object[])item.Value);
+                  
+                    if (dictionaryArray.Count > 0)
+                    {
+
+                        newKey = dictionaryArray.Count == 1
+                                ? new KeyValuePair<string, object>(item.Key, dictionaryArray.First())
+                                : new KeyValuePair<string, object>(item.Key, dictionaryArray.ToArray());
+                        continue;
+                    }
+
+                }
 
             }
+
 
             if (newKey.Key != null)
             {
@@ -270,7 +304,8 @@ namespace Business.Parsers.Core
 
             ConvertCompatibleJson(dictionary,0);
 
-            string contents = Toml.WriteString(dictionary);
+            // string contents = Toml.WriteString(dictionary);
+            string contents = JsonConvert.SerializeObject(dictionary);
             return contents;
         }
         /// <summary>
