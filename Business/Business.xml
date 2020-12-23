@@ -568,7 +568,7 @@
             <param name="fileContent">Content of the file.</param>
             <returns></returns>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetValuesFromTomlFileAsync(System.String)">
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetModulesFromTomlFileAsync(System.String)">
             <summary>
             Gets the default values all modules asynchronous.
             </summary>

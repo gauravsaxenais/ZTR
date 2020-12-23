@@ -58,20 +58,25 @@
         public async Task<object> ParseTomlFilesAsync()
         {
             var gitConnectionOptions = (BlockGitConnectionOptions)_repoManager.GetConnectionOptions();
-            var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();
-
+            
             await _repoManager.CloneRepositoryAsync();
 
             var directory = new DirectoryInfo(gitConnectionOptions.BlockConfig);
-            var blocks = new List<BlockJsonModel>();
+            var blocks = GetListOfBlocks(directory);
 
-            var filesInDirectory = directory.EnumerateFiles();
+            return new { blocks };
+        }
+
+        private List<BlockJsonModel> GetListOfBlocks(DirectoryInfo blockConfigDirectory)
+        {
+            var blocks = new List<BlockJsonModel>();
+            var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();
+            var filesInDirectory = blockConfigDirectory.EnumerateFiles();
             int index = 1;
 
             for (int lIndex = 0; lIndex < filesInDirectory.Count(); lIndex++)
             {
                 string content = File.ReadAllText(filesInDirectory.ElementAt(lIndex).FullName);
-                var fileContent = Toml.ReadString(content);
 
                 var arguments = Toml.ReadString<BlockReadModel>(content, tomlSettings);
                 var name = Path.GetFileNameWithoutExtension(filesInDirectory.ElementAt(lIndex).Name);
@@ -96,7 +101,7 @@
                 }
             }
 
-            return new { blocks };
+            return blocks;
         }
 
         #endregion

@@ -1,9 +1,8 @@
 ﻿namespace Business.RequestHandlers.Interfaces
 {
-    using Business.Models;
     using Microsoft.AspNetCore.Http;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
+    using ZTR.Framework.Business;
 
     /// <summary>
     /// This module takes config.toml as input 
@@ -16,6 +15,6 @@
         /// </summary>
         /// <param name="configTomlFile">The firmware version.</param>
         /// <returns></returns>
-        Task<IEnumerable<ModuleReadModel>> GenerateConfigTomlModelAsync(IFormFile configTomlFile);
+        Task<ApiResponse> GenerateConfigTomlModelAsync(IFormFile configTomlFile);
     }
 }

@@ -1,0 +1,54 @@
+﻿namespace ZTR.Framework.Service
+{
+    using System.Collections.Generic;
+    using System.Linq;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.OpenApi.Models;
+    using Swashbuckle.AspNetCore.SwaggerGen;
+
+    public class FileUploadOperationFilter : IOperationFilter
+    {
+        public void Apply(OpenApiOperation operation, OperationFilterContext context)
+        {
+            if (context.ApiDescription.ParameterDescriptions.Any(x => x.ModelMetadata.ContainerType == typeof(IFormFile)))
+            {
+                var formFileParameterName = context
+                    .ApiDescription
+                    .ActionDescriptor
+                    .Parameters
+                    .Where(x => x.ParameterType == typeof(IFormFile))
+                    .Select(x => x.Name)
+                    .First();
+
+                var uploadFileMediaType = new OpenApiMediaType()
+                {
+                    Schema = new OpenApiSchema()
+                    {
+                        Type = "object",
+                        Properties =
+                    {
+                        ["UploadedFile"] = new OpenApiSchema()
+                        {
+                            Description = "Upload File",
+                            Type = "file",
+                            Format = "binary"
+                        }
+                    },
+                        Required = new HashSet<string>()
+                    {
+                        "UploadedFile"
+                    }
+                    }
+                };
+
+                operation.RequestBody = new OpenApiRequestBody
+                {
+                    Content =
+                {
+                    [SupportedContentTypes.MultipartFormData] = uploadFileMediaType
+                }
+                };
+            }
+        }
+    }
+}
