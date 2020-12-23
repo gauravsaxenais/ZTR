@@ -1,11 +1,13 @@
-﻿namespace Business.Parsers.Core.Converter
-{
-    using System.Collections.Generic;
-    using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
+namespace Business.Parsers.Core.Converter
+{
     internal class Extractor : IExtractor<Dictionary<string, object>>
     {
-        private readonly ConvertConfig _config;
+        private ConvertConfig _config;
         public Extractor(ConvertConfig config)
         {         
             _config = config;
@@ -26,6 +28,7 @@
         {
             if (IsValueEmpty(value) && dictionary.ContainsKey(_config.Arrays))
             {
+                Dictionary<string, object> dict;
                 value = ((object[])dictionary[_config.Arrays]).ToList().Select(o =>
                 {
                     if (o is object[] v)
@@ -41,9 +44,9 @@
         private object Extractvalue<T>(T dictionary) where T : Dictionary<string,object>
         {
             object value = null;           
-            if (dictionary.ContainsKey(_config.Value))
+            if (dictionary.ContainsKey(_config.value))
             {
-                value = dictionary[_config.Value];
+                value = dictionary[_config.value];
             }
             value = ExtractFields(value, dictionary);
             value = ExtractArray(value, dictionary);
@@ -64,9 +67,9 @@
             input.ToList().ForEach(u =>
             {
                 var o = (Dictionary<string, object>)u;
-                if (o.ContainsKey(_config.Name))
+                if (o.ContainsKey(_config.name))
                 {
-                    dict.Add(o[_config.Name].ToString(), Extractvalue(o));
+                    dict.Add(o[_config.name].ToString(), Extractvalue(o));
                 }
 
             });

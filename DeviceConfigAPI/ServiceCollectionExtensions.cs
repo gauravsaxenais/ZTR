@@ -1,11 +1,14 @@
 ﻿namespace Service
 {
     using Business.Parsers;
+    using Business.Parsers.Core;
+    using Business.Parsers.Core.Converter;
     using Business.RequestHandlers.Interfaces;
     using Business.RequestHandlers.Managers;
     using EnsureThat;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Services Collections Extensions.
@@ -25,7 +28,6 @@
             services.AddSingleton<InputFileLoader>();
 
             services.AddScoped<IGitRepositoryManager, GitRepositoryManager>();
-
             services.AddScoped<IDeviceTypeManager, DeviceTypeManager>();
             services.AddScoped<IModuleManager, ModuleManager>();
             services.AddScoped<IDefaultValueManager, DefaultValueManager>();
@@ -40,9 +42,10 @@
                         .AllowAnyHeader();
             }));
 
+
+            services.AddConverters();
+
             return services;
         }
-
-       
     }
 }

@@ -1,5 +1,6 @@
 ﻿namespace Business.RequestHandlers.Interfaces
 {
+    using Business.Models;
     using Business.Parsers.Models;
     using System.Threading.Tasks;
 
@@ -8,18 +9,13 @@
     /// </summary>
     public interface IConfigGeneratorManager
     {
-        /// <summary>
-        /// Creates the configuration asynchronous.
-        /// </summary>
-        /// <param name="model">The model.</param>
-        /// <returns></returns>
+        /// <summary>Creates the configuration asynchronous.</summary>
+        /// <param name="jsonContent">Content of the json.</param>
+        /// <returns>
+        ///   <br />
+        /// </returns>
         Task<string> CreateConfigAsync(ConfigReadModel model);
 
-        /// <summary>
-        /// Updates the toml configuration.
-        /// </summary>
-        /// <param name="properties">The properties.</param>
-        /// <returns></returns>
         Task<bool> UpdateTomlConfig(string properties);
     }
 }

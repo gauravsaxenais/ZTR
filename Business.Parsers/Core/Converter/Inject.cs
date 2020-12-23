@@ -1,10 +1,10 @@
-﻿namespace Business.Parsers.Core.Converter
-{
-    using Microsoft.Extensions.DependencyInjection;
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
+namespace Business.Parsers.Core.Converter
+{
     public static class Inject
     {
         public static void AddConverters(this IServiceCollection services)
