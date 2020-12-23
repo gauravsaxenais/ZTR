@@ -1,21 +1,21 @@
 ﻿namespace Business.RequestHandlers.Managers
 {
+    using Business.Configuration;
+    using Business.Models;
+    using Business.Parsers;
+    using Business.Parsers.Models;
     using Business.RequestHandlers.Interfaces;
+    using EnsureThat;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
-    using EnsureThat;
     using ZTR.Framework.Business.File.FileReaders;
-    using Business.Models;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.IO;
-    using Business.Parsers;
-    using Business.Configuration;
-    using Business.Parsers.Models;
-    using System;
-    using Microsoft.AspNetCore.Http;
-    using System.Text;
 
     /// <summary>
     /// This manager takes config.toml as input and returns
@@ -27,7 +27,6 @@
     {
         private readonly IGitRepositoryManager _gitRepoManager;
         private readonly DeviceGitConnectionOptions _deviceGitConnectionOptions;
-        private readonly string protoFileName = "module.proto";
         private readonly InputFileLoader _inputFileLoader;
 
         /// <summary>
@@ -46,13 +45,6 @@
             _inputFileLoader = inputFileLoader;
             _gitRepoManager = gitRepoManager;
             _deviceGitConnectionOptions = deviceGitConnectionOptions;
-
-            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            _deviceGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder);
-            _deviceGitConnectionOptions.ModulesConfig = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.ModulesConfig);
-
-            _gitRepoManager.SetConnectionOptions(_deviceGitConnectionOptions);
         }
 
         /// <summary>
@@ -60,30 +52,54 @@
         /// </summary>
         /// <param name="configTomlFile">config.toml as string.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<ModuleReadModel>> GenerateConfigTomlModelAsync(IFormFile configTomlFile)
+        public async Task<ApiResponse> GenerateConfigTomlModelAsync(IFormFile configTomlFile)
         {
             EnsureArg.IsNotNull(configTomlFile);
+            var prefix = nameof(ConfigCreateFromManager);
+            ApiResponse apiResponse = null;
 
-            var configTomlFileContent = await ReadAsStringAsync(configTomlFile);
-
-            var modules = await GetValuesFromTomlFileAsync(configTomlFileContent);
-
-            return modules;
-        }
-
-        private async Task<string> ReadAsStringAsync(
-                IFormFile file)
-        {
-            var builder = new StringBuilder();
-
-            using var reader = new StreamReader(file.OpenReadStream());
-            while (reader.Peek() >= 0)
+            try
             {
-                builder.AppendLine(await reader.ReadLineAsync());
+                Logger.LogInformation($"{prefix}: Getting list of modules and blocks from config.toml file.");
+
+                SetGitRepoConnections();
+
+                var configTomlFileContent = ReadAsString(configTomlFile);
+
+                var modules = await GetModulesFromTomlFileAsync(configTomlFileContent);
+
+                apiResponse = new ApiResponse(status: true, data: new { modules }) ;
             }
-            return builder.ToString();
+            catch (Exception exception)
+            {
+                Logger.LogCritical(exception, $"{prefix}: Error occured while getting list of modules and blocks from toml file.");
+                apiResponse = new ApiResponse(ErrorType.BusinessError, exception);
+            }
+
+            return apiResponse;
         }
 
+        private string ReadAsString(IFormFile file)
+        {
+            var result = new StringBuilder();
+            using (var reader = new StreamReader(file.OpenReadStream()))
+            {
+                while (reader.Peek() >= 0)
+                    result.AppendLine(reader.ReadLine());
+            }
+
+            return result.ToString();
+        }
+
+        private void SetGitRepoConnections()
+        {
+            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            _deviceGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder);
+            _deviceGitConnectionOptions.ModulesConfig = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.ModulesConfig);
+
+            _gitRepoManager.SetConnectionOptions(_deviceGitConnectionOptions);
+        }
 
         /// <summary>
         /// Gets the proto file path.
@@ -138,7 +154,7 @@
         /// </summary>
         /// <param name="configTomlFile">The configuration toml file.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<ModuleReadModel>> GetValuesFromTomlFileAsync(string configTomlFile)
+        public async Task<IEnumerable<ModuleReadModel>> GetModulesFromTomlFileAsync(string configTomlFile)
         {
             // 1. get list of modules based on their firmware version and device type.
             // 2. get protofile paths based on firmware version and device type.

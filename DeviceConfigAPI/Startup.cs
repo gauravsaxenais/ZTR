@@ -2,6 +2,7 @@
 {
     using EnsureThat;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -9,9 +10,7 @@
     using Newtonsoft.Json.Converters;
     using ZTR.Framework.Business.Models;
     using ZTR.Framework.Configuration;
-    using ZTR.Framework.Security;
     using ZTR.Framework.Service;
-    using ZTR.Framework.Service.ExceptionLogger;
 
     /// <summary>
     ///   Added Startup class.
@@ -48,7 +47,6 @@
             services.AddControllers()
                 .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new StringEnumConverter()));
 
-          
             var swaggerAssemblies = new[]
             {
                 typeof(Program).Assembly,
@@ -56,6 +54,11 @@
             };
 
             services.AddSwaggerWithComments(ApiConstants.ApiName, ApiConstants.ApiVersion, ApiConstants.ApiDescription, swaggerAssemblies);
+
+            services.AddSwaggerGen(c =>
+            {
+                c.OperationFilter<FileUploadOperationFilter>();
+            });
 
             // we add our custom services here.
             services.AddCustomServices();
