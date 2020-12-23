@@ -12,8 +12,6 @@
 
     public static class SwaggerServicesExtensions
     {
-        private const string SwaggerSecurityType = "Bearer";
-        private const string SwaggerSecurityScheme = "oauth2";
         private const string FileSchemaType = "file";
 
         public static IServiceCollection AddSwaggerWithComments(this IServiceCollection services, string apiName, string apiVersion, string apiDescription, IEnumerable<Assembly> assemblies)

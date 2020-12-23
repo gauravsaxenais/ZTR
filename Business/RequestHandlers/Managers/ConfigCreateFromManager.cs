@@ -1,21 +1,21 @@
 ﻿namespace Business.RequestHandlers.Managers
 {
+    using Business.Configuration;
+    using Business.Models;
+    using Business.Parsers;
+    using Business.Parsers.Models;
     using Business.RequestHandlers.Interfaces;
+    using EnsureThat;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
-    using EnsureThat;
     using ZTR.Framework.Business.File.FileReaders;
-    using Business.Models;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.IO;
-    using Business.Parsers;
-    using Business.Configuration;
-    using Business.Parsers.Models;
-    using System;
-    using Microsoft.AspNetCore.Http;
-    using System.Text;
 
     /// <summary>
     /// This manager takes config.toml as input and returns
