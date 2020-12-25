@@ -1,5 +1,6 @@
 ﻿namespace ZTR.Framework.Business.File.FileReaders
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using EnsureThat;
@@ -12,7 +13,16 @@
             EnsureArg.IsNotEmptyOrWhiteSpace(data, nameof(data));
             EnsureArg.IsNotNull(settings, nameof(settings));
 
-            T fileData = Toml.ReadString<T>(data, settings);
+            T fileData = null;
+            try
+            {
+                fileData = Toml.ReadString<T>(data, settings);
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("An error occurred while parsing Toml file.");
+            }
+
             return fileData;
         }
 
@@ -21,7 +31,16 @@
             EnsureArg.IsNotEmptyOrWhiteSpace(filePath, (nameof(filePath)));
             EnsureArg.IsNotNull(settings, nameof(settings));
 
-            T fileData = Toml.ReadFile<T>(filePath, settings);
+            T fileData = null;
+
+            try
+            {
+                fileData = Toml.ReadFile<T>(filePath, settings);
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("An error occurred while parsing Toml file.");
+            }
 
             return fileData;
         }
@@ -32,18 +51,27 @@
             EnsureArg.IsNotNull(settings, nameof(settings));
             EnsureArg.IsNotEmptyOrWhiteSpace(fieldToRead, nameof(fieldToRead));
 
-            TomlTable fileData = null;
-
-            fileData = Toml.ReadFile(filePath, settings);
-
-            var readModels = (TomlTableArray)fileData[fieldToRead];
-
             var items = new List<T>();
-            foreach (var tempItem in readModels.Items)
-            {
-                var dictionary = tempItem.Rows.ToDictionary(t => t.Key, t => (object)t.Value.ToString());
 
-                items.Add(DictionaryExtensions.ToObject<T>(dictionary));
+            try
+            {
+                TomlTable fileData = null;
+
+                fileData = Toml.ReadFile(filePath, settings);
+
+                var readModels = (TomlTableArray)fileData[fieldToRead];
+
+
+                foreach (var tempItem in readModels.Items)
+                {
+                    var dictionary = tempItem.Rows.ToDictionary(t => t.Key, t => (object)t.Value.ToString());
+
+                    items.Add(DictionaryExtensions.ToObject<T>(dictionary));
+                }
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("An error occurred while parsing Toml file.");
             }
 
             return items;
@@ -55,20 +83,27 @@
             EnsureArg.IsNotNull(settings, nameof(settings));
             EnsureArg.IsNotEmptyOrWhiteSpace(fieldToRead, nameof(fieldToRead));
 
-            TomlTable fileData = null;
-
-            fileData = Toml.ReadString(data, settings);
-
-            var readModels = (TomlTableArray)fileData[fieldToRead];
-
             var items = new List<T>();
-            foreach (var tempItem in readModels.Items)
+
+            try
             {
-                var dictionary = tempItem.Rows.ToDictionary(t => t.Key, t => (object)t.Value.ToString());
+                TomlTable fileData = null;
 
-                items.Add(DictionaryExtensions.ToObject<T>(dictionary));
+                fileData = Toml.ReadString(data, settings);
+
+                var readModels = (TomlTableArray)fileData[fieldToRead];
+
+                foreach (var tempItem in readModels.Items)
+                {
+                    var dictionary = tempItem.Rows.ToDictionary(t => t.Key, t => (object)t.Value.ToString());
+
+                    items.Add(DictionaryExtensions.ToObject<T>(dictionary));
+                }
             }
-
+            catch (Exception)
+            {
+                throw new ArgumentException("An error occurred while parsing Toml file.");
+            }
             return items;
         }
 

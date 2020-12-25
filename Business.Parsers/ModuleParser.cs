@@ -8,6 +8,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using ZTR.Framework.Business.File.FileReaders;
 
     public class ModuleParser
     {
@@ -25,10 +26,11 @@
             return modules.ToList();
         }
 
-        public List<JsonModel> GetJsonFromTomlAndProtoFile(string fileContent, TomlSettings settings, ProtoParsedMessage protoParserMessage)
+        public List<JsonModel> GetJsonFromTomlAndProtoFile(string fileContent, ProtoParsedMessage protoParserMessage)
         {
+            var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();
             var jsonModels = new List<JsonModel>();
-            var listOfModules = GetListOfModulesFromTomlFile(fileContent, settings);
+            var listOfModules = GetListOfModulesFromTomlFile(fileContent, tomlSettings);
 
             // here message.name means Power, j1939 etc.
             var module = listOfModules.Where(dic => dic.Values.Contains(protoParserMessage.Name.ToLower())).FirstOrDefault();

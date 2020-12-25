@@ -48,14 +48,6 @@
             _inputFileLoader = inputFileLoader;
             _gitRepoManager = gitRepoManager;
             _deviceGitConnectionOptions = deviceGitConnectionOptions;
-
-            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            _deviceGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder);
-            _deviceGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder = Path.Combine(_deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder);
-            _deviceGitConnectionOptions.ModulesConfig = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.ModulesConfig);
-
-            _gitRepoManager.SetConnectionOptions(_deviceGitConnectionOptions);
         }
 
         /// <summary>
@@ -66,22 +58,35 @@
         /// <returns></returns>
         public async Task<IEnumerable<ModuleReadModel>> GetDefaultValuesAllModulesAsync(string firmwareVersion, string deviceType)
         {
+            SetConnection();
+
             // 1. get list of modules based on their firmware version and device type.
             // 2. get protofile paths based on firmware version and device type.
             // 3. create custom message for each of protofiles.
             // 4. get list of modules and their custom messages.
-
-            var customMessageParser = new CustomMessageParser();
-            var moduleParser = new ModuleParser();
-          
             var modulesProtoFolder = Path.Combine(_deviceGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder, deviceType, _deviceGitConnectionOptions.DefaultTomlConfiguration.ModulesProtoFolder);
-            var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();
+
+            // read default values from toml file defaults.toml
+            var defaultValueFromTomlFile = await GetDefaultValues(firmwareVersion, deviceType);
 
             // get list of all modules.
             var listOfModules = await GetListOfModulesAsync(firmwareVersion, deviceType);
 
-            // read default values from toml file defaults.toml
-            var defaultValueFromTomlFile = await GetDefaultValues(firmwareVersion, deviceType);
+            await MergeDefaultValuesWithModules(defaultValueFromTomlFile, listOfModules, modulesProtoFolder);
+
+            return listOfModules;
+        }
+
+        /// <summary>
+        /// Merges the default values with modules.
+        /// </summary>
+        /// <param name="defaultValueFromTomlFile">The default value from toml file.</param>
+        /// <param name="listOfModules">The list of modules.</param>
+        /// <param name="modulesProtoFolder">The modules proto folder.</param>
+        public async Task MergeDefaultValuesWithModules(string defaultValueFromTomlFile, IEnumerable<ModuleReadModel> listOfModules, string modulesProtoFolder)
+        {
+            var customMessageParser = new CustomMessageParser();
+            var moduleParser = new ModuleParser();
 
             // get proto files for corresponding module and their uuid
             var protoFilePaths = GetProtoFiles(modulesProtoFolder, listOfModules);
@@ -96,8 +101,8 @@
 
                 var jsonModels = new List<JsonModel>();
 
-                jsonModels = moduleParser.GetJsonFromTomlAndProtoFile(defaultValueFromTomlFile, tomlSettings, formattedMessage);
-                
+                jsonModels = moduleParser.GetJsonFromTomlAndProtoFile(defaultValueFromTomlFile, formattedMessage);
+
                 var module = listOfModules.Where(p => p.Name?.IndexOf(formattedMessage.Name, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
 
                 if (module != null)
@@ -105,15 +110,24 @@
                     module.Config = jsonModels;
                 }
             }
+        }
 
-            return listOfModules;
+        private void SetConnection()
+        {
+            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            _deviceGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder);
+            _deviceGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder = Path.Combine(_deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder);
+            _deviceGitConnectionOptions.ModulesConfig = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.ModulesConfig);
+
+            _gitRepoManager.SetConnectionOptions(_deviceGitConnectionOptions);
         }
 
         private async Task<List<CustomMessage>> GetCustomMessages(Dictionary<string, string> protoFilePaths)
         {
             var tasks = new List<Task<CustomMessage>>();
             var result = new List<CustomMessage>();
-                       
+
             foreach (var filePath in protoFilePaths)
             {
                 var fileName = Path.GetFileName(filePath.Value);
@@ -123,7 +137,7 @@
 
                 tasks.Add(_inputFileLoader.GenerateCodeFiles(moduleName, fileName, protoDirectory));
             }
-            
+
             Task.WaitAll(tasks.ToArray());
 
             foreach (var taskResult in tasks)
@@ -133,7 +147,7 @@
                     result.Add(taskResult.Result);
                 }
             }
-          
+
             return await Task.FromResult(result);
         }
 
@@ -150,20 +164,17 @@
 
             var protoFilePath = new Dictionary<string, string>();
 
-            if (listOfModules.Any())
+            foreach (var moduleName in listOfModules)
             {
-                foreach (var moduleName in listOfModules)
+                var moduleFolder = FileReaderExtensions.GetSubDirectoryPath(moduleFilePath, moduleName.Name);
+
+                if (!string.IsNullOrWhiteSpace(moduleFolder))
                 {
-                    var moduleFolder = FileReaderExtensions.GetSubDirectoryPath(moduleFilePath, moduleName.Name);
+                    var uuidFolder = FileReaderExtensions.GetSubDirectoryPath(moduleFolder, moduleName.UUID);
 
-                    if (!string.IsNullOrWhiteSpace(moduleFolder))
+                    foreach (string file in Directory.EnumerateFiles(uuidFolder, protoFileName))
                     {
-                        var uuidFolder = FileReaderExtensions.GetSubDirectoryPath(moduleFolder, moduleName.UUID);
-
-                        foreach (string file in Directory.EnumerateFiles(uuidFolder, protoFileName))
-                        {
-                            protoFilePath.Add(moduleName.Name, file);
-                        }
+                        protoFilePath.Add(moduleName.Name, file);
                     }
                 }
             }
@@ -208,7 +219,7 @@
                 listOfModules = data.Module;
             }
 
-            listOfModules = listOfModules.Select((module, index) => new ModuleReadModel  { Id = index, Config = module.Config, Name = module.Name, UUID = module.UUID }).ToList();
+            listOfModules = listOfModules.Select((module, index) => new ModuleReadModel { Id = index, Config = module.Config, Name = module.Name, UUID = module.UUID }).ToList();
 
             return listOfModules;
         }

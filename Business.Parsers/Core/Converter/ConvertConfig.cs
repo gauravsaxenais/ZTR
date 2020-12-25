@@ -18,8 +18,8 @@
         private readonly ILogger<ConverterService> _logger;
         private static readonly object _syncRoot = new object();
         internal string[] Properties { get; set; }
-        const string _skipConfigFolder = "configsetting";
-        const string _skipConfigFile = "convertconfig.txt";
+        private const string _skipConfigFolder = "configsetting";
+        private const string _skipConfigFile = "convertconfig.txt";
         internal IEnumerable<ConfigConvertRuleReadModel> Rules { get; set; }
 
         private string Path => $"{Global.WebRoot}/{_skipConfigFolder}/{_skipConfigFile}";
@@ -37,8 +37,9 @@
             {
                 setting = File.ReadAllText(Path);
             }
-            var tags = setting.Replace("\r", string.Empty).Split(Environment.NewLine);
-            Properties = tags.Where(o => !o.StartsWith("Rule:")).ToArray();
+            var tags = setting.Split(Environment.NewLine);
+            Properties = tags.Where(o => !o.StartsWith("Rule:")).Select(o => o.Replace("\r", string.Empty)).ToArray();
+
             Rules = tags.Where(o => o.StartsWith("Rule:")).Select(o =>
             {
                 var ruleConfig = o.Split(':');
@@ -53,7 +54,6 @@
                 };
                 return rule;
             });
-          
         }
 
         internal async Task<bool> UpdateConfiguration(string properties)

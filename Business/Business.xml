@@ -440,6 +440,15 @@
             <param name="deviceType">Type of the device.</param>
             <returns></returns>
         </member>
+        <member name="M:Business.RequestHandlers.Interfaces.IDefaultValueManager.MergeDefaultValuesWithModules(System.String,System.Collections.Generic.IEnumerable{Business.Models.ModuleReadModel},System.String)">
+            <summary>
+            Merges the default values with modules.
+            </summary>
+            <param name="defaultValueFromTomlFile">The default value from toml file.</param>
+            <param name="listOfModules">The list of modules.</param>
+            <param name="modulesProtoFolder">The modules proto folder.</param>
+            <returns></returns>
+        </member>
         <member name="T:Business.RequestHandlers.Interfaces.IDeviceTypeManager">
             <summary>
             Gets all the devices e.g. M3, M7, M9 etc.
@@ -537,42 +546,20 @@
             <seealso cref="T:ZTR.Framework.Business.Manager" />
             <seealso cref="T:Business.RequestHandlers.Interfaces.IConfigCreateFromManager" />
         </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.DefaultValueManager},Business.RequestHandlers.Interfaces.IGitRepositoryManager,Business.Configuration.DeviceGitConnectionOptions,Business.Parsers.InputFileLoader)">
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.DefaultValueManager},Business.RequestHandlers.Interfaces.IGitRepositoryManager,Business.Configuration.DeviceGitConnectionOptions,Business.RequestHandlers.Interfaces.IDefaultValueManager)">
             <summary>
             Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.ConfigCreateFromManager"/> class.
             </summary>
             <param name="logger">The logger.</param>
             <param name="gitRepoManager">The git repo manager.</param>
             <param name="deviceGitConnectionOptions">The device git connection options.</param>
-            <param name="inputFileLoader">The input file loader.</param>
+            <param name="defaultValueManager">reusing the default value manager.</param>
         </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GenerateConfigTomlModelAsync(Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             Returns the list of all modules and blocks from config.toml.
             </summary>
             <param name="configTomlFile">config.toml as string.</param>
-            <returns></returns>
-        </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetProtoFiles(System.String,System.Collections.Generic.IEnumerable{Business.Models.ModuleReadModel})">
-            <summary>
-            Gets the proto file path.
-            </summary>
-            <param name="moduleFilePath">The module file path.</param>
-            <param name="listOfModules">The list of modules.</param>
-            <returns></returns>
-        </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetTomlData(System.String)">
-            <summary>
-            Gets the toml data.
-            </summary>
-            <param name="fileContent">Content of the file.</param>
-            <returns></returns>
-        </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetModulesFromTomlFileAsync(System.String)">
-            <summary>
-            Gets the default values all modules asynchronous.
-            </summary>
-            <param name="configTomlFile">The configuration toml file.</param>
             <returns></returns>
         </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetListOfModules(System.String)">
@@ -582,11 +569,11 @@
             <param name="configTomlFile">The configuration toml file.</param>
             <returns></returns>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetCustomMessages(System.Collections.Generic.Dictionary{System.String,System.String})">
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetTomlData(System.String)">
             <summary>
-            Gets the custom messages.
+            Gets the toml data.
             </summary>
-            <param name="protoFilePaths">The proto file paths.</param>
+            <param name="fileContent">Content of the file.</param>
             <returns></returns>
         </member>
         <member name="T:Business.RequestHandlers.Managers.ConfigGeneratorManager">
@@ -644,6 +631,14 @@
             <param name="firmwareVersion">The firmware version.</param>
             <param name="deviceType">Type of the device.</param>
             <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.MergeDefaultValuesWithModules(System.String,System.Collections.Generic.IEnumerable{Business.Models.ModuleReadModel},System.String)">
+            <summary>
+            Merges the default values with modules.
+            </summary>
+            <param name="defaultValueFromTomlFile">The default value from toml file.</param>
+            <param name="listOfModules">The list of modules.</param>
+            <param name="modulesProtoFolder">The modules proto folder.</param>
         </member>
         <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetProtoFiles(System.String,System.Collections.Generic.IEnumerable{Business.Models.ModuleReadModel})">
             <summary>
