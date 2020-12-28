@@ -2,11 +2,8 @@
 {
     using EnsureThat;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Converters;
     using ZTR.Framework.Business.Models;
     using ZTR.Framework.Configuration;
@@ -17,7 +14,6 @@
     /// </summary>
     public class Startup
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class.
         /// </summary>
@@ -39,9 +35,7 @@
         /// This method gets called by the runtime. Use this method to add services to the container.
         /// </summary>
         /// <param name="services">service collection.</param>
-#pragma warning disable CA1822 // Mark members as static
         public void ConfigureServices(IServiceCollection services)
-#pragma warning restore CA1822 // Mark members as static
         {
             services.AddControllers()
                 .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new StringEnumConverter()));
@@ -67,9 +61,7 @@
         /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         /// </summary>
         /// <param name="app">application builder.</param>
-#pragma warning disable CA1822 // Mark members as static
         public void Configure(IApplicationBuilder app)
-#pragma warning restore CA1822 // Mark members as static
         {
             EnsureArg.IsNotNull(app);
             if (ApplicationConfiguration.IsDevelopment)

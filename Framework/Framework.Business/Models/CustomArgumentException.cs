@@ -6,7 +6,7 @@
     {
     }
 
-    public class CustomArgumentException : ApplicationException, IApplicationException
+    public class CustomArgumentException : ArgumentException, IApplicationException
     {
         public CustomArgumentException(string message) : base(message)
         { }

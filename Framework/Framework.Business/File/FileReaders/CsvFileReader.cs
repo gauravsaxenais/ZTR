@@ -32,7 +32,7 @@
                 ? normalizedFolderPath.Substring(0, lastSlashIndex)
                 : normalizedFolderPath;
             lastSlashIndex = newFolderPath.LastIndexOf('/');
-            return lastSlashIndex == -1 ? newFolderPath : newFolderPath.Substring(lastSlashIndex + 1);
+            return lastSlashIndex == -1 ? newFolderPath : newFolderPath[(lastSlashIndex + 1)..];
         }
 
         public static string GetProviderNode(string path)
@@ -77,10 +77,8 @@
             var safeFullPath = ToSafeFullPath(remoteFolderPath, remoteFileName);
             using (var reader = new StreamReader(safeFullPath))
             {
-                using (var csv = new CsvReader(reader, csvConfiguration))
-                {
-                    rawData = csv.GetRecords<T>().ToList();
-                }
+                using var csv = new CsvReader(reader, csvConfiguration);
+                rawData = csv.GetRecords<T>().ToList();
             }
 
             return rawData;
@@ -113,10 +111,8 @@
                     TrimOptions = TrimOptions.Trim
                 };
 
-                using (var csv = new CsvReader(reader, csvConfig))
-                {
-                    rawData = csv.GetRecords<T>().ToList();
-                }
+                using var csv = new CsvReader(reader, csvConfig);
+                rawData = csv.GetRecords<T>().ToList();
             }
 
             return rawData;
@@ -148,18 +144,16 @@
                         continue;
                     }
 
-                    using (Stream zipStream = zipFile.GetInputStream(entry))
-                    using (var streamReader = new StreamReader(zipStream))
-                    using (var csvReader = new CsvReader(streamReader, csvConfiguration))
+                    using Stream zipStream = zipFile.GetInputStream(entry);
+                    using var streamReader = new StreamReader(zipStream);
+                    using var csvReader = new CsvReader(streamReader, csvConfiguration);
+                    csvReader.Read();
+                    if (csvConfiguration.HasHeaderRecord)
                     {
-                        csvReader.Read();
-                        if (csvConfiguration.HasHeaderRecord)
-                        {
-                            csvReader.ReadHeader();
-                        }
-
-                        parsedFiles.Add(new ParsedFile<TModel>(entry.Name, csvReader.GetRecords<TModel>().ToList(), folderPath));
+                        csvReader.ReadHeader();
                     }
+
+                    parsedFiles.Add(new ParsedFile<TModel>(entry.Name, csvReader.GetRecords<TModel>().ToList(), folderPath));
                 }
             }
 

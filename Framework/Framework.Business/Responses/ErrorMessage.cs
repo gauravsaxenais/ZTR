@@ -1,15 +1,15 @@
-﻿namespace ZTR.Framework.Business
-{
-    using System;
-    using System.Diagnostics;
-    using System.Text;
-    using EnsureThat;
-    using FluentValidation.Results;
-    using Newtonsoft.Json;
-    using ZTR.Framework.Business.Models;
-    using ZTR.Framework.Configuration;
-    using ZTR.Framework.Configuration.Content;
+﻿using System;
+using System.Diagnostics;
+using System.Text;
+using EnsureThat;
+using FluentValidation.Results;
+using Newtonsoft.Json;
+using ZTR.Framework.Business.Content;
+using ZTR.Framework.Business.Models;
+using ZTR.Framework.Configuration;
 
+namespace ZTR.Framework.Business
+{
     public class ErrorMessage<TErrorCode>
         where TErrorCode : Enum
     {
