@@ -121,14 +121,6 @@
             The default toml file.
             </value>
         </member>
-        <member name="P:Business.Configuration.TomlConfigurationFile.ModulesProtoFolder">
-            <summary>
-            Gets or sets the modules proto folder.
-            </summary>
-            <value>
-            The modules proto folder.
-            </value>
-        </member>
         <member name="M:Business.Configuration.TomlConfigurationFile.ToString">
             <summary>
             Converts to string.
