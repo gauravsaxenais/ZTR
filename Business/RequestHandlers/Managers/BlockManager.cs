@@ -56,7 +56,7 @@
         /// Parses the toml files asynchronous.
         /// </summary>
         /// <returns>list of blocks.</returns>
-        public async Task<object> GetBlocksAsync()
+        public async Task<object> GetBlocksAsObjectAsync()
         {
             var gitConnectionOptions = (DeviceGitConnectionOptions)_repoManager.GetConnectionOptions();
             
@@ -68,7 +68,12 @@
             return new { blocks };
         }
 
-        private List<BlockJsonModel> GetListOfBlocks(DirectoryInfo blockConfigDirectory)
+        /// <summary>
+        /// Gets the list of blocks.
+        /// </summary>
+        /// <param name="blockConfigDirectory">The block configuration directory.</param>
+        /// <returns></returns>
+        public List<BlockJsonModel> GetListOfBlocks(DirectoryInfo blockConfigDirectory)
         {
             var blocks = new List<BlockJsonModel>();
             var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();

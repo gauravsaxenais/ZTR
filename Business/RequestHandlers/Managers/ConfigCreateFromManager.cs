@@ -76,10 +76,11 @@
 
                 // get list of all modules.
                 var modules = GetListOfModules(configTomlFileContent);
-
                 await _defaultValueManager.MergeDefaultValuesWithModules(configTomlFileContent, modules, _deviceGitConnectionOptions.ModulesConfig);
 
-                var blocks = await _blockManager.GetBlocksAsync().ConfigureAwait(false);
+                var blocksDirectory = new DirectoryInfo(_deviceGitConnectionOptions.BlockConfig);
+                var blocks = _blockManager.GetListOfBlocks(blocksDirectory);
+
                 apiResponse = new ApiResponse(status: true, data: new { modules, blocks });
             }
             catch (Exception exception)

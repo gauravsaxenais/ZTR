@@ -362,10 +362,17 @@
             and responsible for parsing toml files.
             </summary>
         </member>
-        <member name="M:Business.RequestHandlers.Interfaces.IBlockManager.GetBlocksAsync">
+        <member name="M:Business.RequestHandlers.Interfaces.IBlockManager.GetBlocksAsObjectAsync">
             <summary>
             Parses the toml files asynchronous.
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Interfaces.IBlockManager.GetListOfBlocks(System.IO.DirectoryInfo)">
+            <summary>
+            Gets the list of blocks.
+            </summary>
+            <param name="blockConfigDirectory">The block configuration directory.</param>
             <returns></returns>
         </member>
         <member name="T:Business.RequestHandlers.Interfaces.IConfigCreateFromManager">
@@ -506,11 +513,18 @@
             <param name="gitRepoManager">The git repo manager.</param>
             <param name="deviceGitConnectionOptions">The device git connection options.</param>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.BlockManager.GetBlocksAsync">
+        <member name="M:Business.RequestHandlers.Managers.BlockManager.GetBlocksAsObjectAsync">
             <summary>
             Parses the toml files asynchronous.
             </summary>
             <returns>list of blocks.</returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.BlockManager.GetListOfBlocks(System.IO.DirectoryInfo)">
+            <summary>
+            Gets the list of blocks.
+            </summary>
+            <param name="blockConfigDirectory">The block configuration directory.</param>
+            <returns></returns>
         </member>
         <member name="T:Business.RequestHandlers.Managers.ConfigCreateFromManager">
             <summary>
