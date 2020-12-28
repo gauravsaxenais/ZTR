@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ZTR.Framework.Configuration.Content {
+namespace ZTR.Framework.Business.Content {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace ZTR.Framework.Configuration.Content {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ZTR.Framework.Configuration.Content.Resource", typeof(Resource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ZTR.Framework.Business.Content.Resource", typeof(Resource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,7 +61,7 @@ namespace ZTR.Framework.Configuration.Content {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An unexpected error occurred at server.
+        ///   Looks up a localized string similar to An unexpected error occurred at server..
         /// </summary>
         public static string ExceptionMessage {
             get {

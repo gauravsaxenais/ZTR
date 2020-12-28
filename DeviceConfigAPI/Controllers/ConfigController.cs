@@ -37,12 +37,5 @@
             var result = await manager.CreateConfigAsync(json).ConfigureAwait(false);
             return Ok(result);
         }
-
-        [HttpGet(nameof(ConfigRule))]
-        public async Task<IActionResult> ConfigRule(string properties)
-        {
-            var result = await manager.UpdateTomlConfig(properties).ConfigureAwait(false);
-            return Ok(result);
-        }
     }
 }
