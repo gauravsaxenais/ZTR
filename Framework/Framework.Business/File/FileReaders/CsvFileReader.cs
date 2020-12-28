@@ -137,7 +137,7 @@
             // Create the empty list of parsed files that we're going to fill.
             var parsedFiles = new List<ParsedFile<TModel>>();
 
-            using (var zipFile = new ICSharpCode.SharpZipLib.Zip.ZipFile(stream))
+            using (var zipFile = new ZipFile(stream))
             {
                 // Here we'll get each entry and add it to the parsed file models.
                 foreach (ZipEntry entry in zipFile)
