@@ -7,11 +7,11 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public class JsonConverter : IJsonConverter
+    public class DictionaryConverter : IJsonConverter
     {
-        private readonly ILogger<JsonConverter> _logger;
+        private readonly ILogger<DictionaryConverter> _logger;
         private readonly ConvertConfig _config;
-        public JsonConverter(ILogger<JsonConverter> logger, ConvertConfig config)
+        public DictionaryConverter(ILogger<DictionaryConverter> logger, ConvertConfig config)
         {
             _config = config;
             _logger = logger;

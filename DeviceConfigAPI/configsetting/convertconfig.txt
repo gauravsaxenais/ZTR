@@ -1,17 +1,19 @@
-id
-label
-description
-min
-max
-configured
-isconfigure
-d
-originalid
-datatype
-defaultvalue
-configured
-Rule:args:name:value
-Rule:config:name:value
+rm:id
+rm:label
+rm:description
+rm:min
+rm:max
+rm:configured
+rm:isconfigure
+rm:d
+rm:originalid
+rm:datatype
+rm:defaultvalue
+rm:configured
+rule:args:name:value
+rule:config:name:value
+json:config
+json:blocks
 
 
 
