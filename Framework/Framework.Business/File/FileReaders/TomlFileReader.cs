@@ -5,8 +5,8 @@
     using System.Linq;
     using EnsureThat;
     using Nett;
+    using ZTR.Framework.Business.Content;
     using ZTR.Framework.Business.Models;
-    using ZTR.Framework.Configuration.Content;
 
     public static class TomlFileReader
     {
@@ -15,14 +15,14 @@
             EnsureArg.IsNotEmptyOrWhiteSpace(data, nameof(data));
             EnsureArg.IsNotNull(settings, nameof(settings));
 
-            T fileData = null;
+            T fileData;
             try
             {
                 fileData = Toml.ReadString<T>(data, settings);
             }
-            catch (Exception)
+            catch (Exception exception)
             {
-                throw new CustomArgumentException(Resource.TomlParsingError);
+                throw new CustomArgumentException(Resource.TomlParsingError, exception);
             }
 
             return fileData;
@@ -33,15 +33,14 @@
             EnsureArg.IsNotEmptyOrWhiteSpace(filePath, (nameof(filePath)));
             EnsureArg.IsNotNull(settings, nameof(settings));
 
-            T fileData = null;
-
+            T fileData;
             try
             {
                 fileData = Toml.ReadFile<T>(filePath, settings);
             }
-            catch (Exception)
+            catch (Exception exception)
             {
-                throw new CustomArgumentException(Resource.TomlParsingError);
+                throw new CustomArgumentException(Resource.TomlParsingError, exception);
             }
 
             return fileData;
@@ -63,7 +62,6 @@
 
                 var readModels = (TomlTableArray)fileData[fieldToRead];
 
-
                 foreach (var tempItem in readModels.Items)
                 {
                     var dictionary = tempItem.Rows.ToDictionary(t => t.Key, t => (object)t.Value.ToString());
@@ -71,9 +69,9 @@
                     items.Add(DictionaryExtensions.ToObject<T>(dictionary));
                 }
             }
-            catch (Exception)
+            catch (Exception exception)
             {
-                throw new ArgumentException("An error occurred while parsing Toml file.");
+                throw new CustomArgumentException(Resource.TomlParsingError, exception);
             }
 
             return items;
@@ -102,9 +100,9 @@
                     items.Add(DictionaryExtensions.ToObject<T>(dictionary));
                 }
             }
-            catch (Exception)
+            catch (Exception exception)
             {
-                throw new ArgumentException("An error occurred while parsing Toml file.");
+                throw new CustomArgumentException(Resource.TomlParsingError, exception);
             }
             return items;
         }
