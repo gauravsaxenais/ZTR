@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <_WebToolingArtifacts Remove="Properties\PublishProfiles\ToLinux.pubxml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Ensure.That" Version="9.2.0" />
     <PackageReference Include="IdentityModel" Version="4.4.0" />
     <PackageReference Include="IdentityServer4.Storage" Version="4.1.1" />
@@ -80,6 +84,10 @@
 
   <ItemGroup>
     <Folder Include="Logs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Properties\PublishProfiles\ToLinux.pubxml.user" />
   </ItemGroup>
 
 

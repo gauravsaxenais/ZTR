@@ -1,0 +1,190 @@
+﻿namespace ZTR.Framework.Business.File.FileReaders
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+    using System.Linq;
+    using CsvHelper;
+    using CsvHelper.Configuration;
+    using ICSharpCode.SharpZipLib.Zip;
+
+    /// <summary>
+    /// A helper class for reading files
+    /// </summary>
+    public static class CsvFileReader
+    {
+        /// <summary>
+        /// Extension for CSV files.
+        /// </summary>
+        public const string CsvFileExtension = ".csv";
+
+        public static string GetLeafNode(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                return path;
+            }
+
+            var normalizedFolderPath = FileReaderExtensions.NormalizeFolderPath(path);
+            var lastSlashIndex = normalizedFolderPath.LastIndexOf('/');
+            var newFolderPath = lastSlashIndex == normalizedFolderPath.Length - 1
+                ? normalizedFolderPath.Substring(0, lastSlashIndex)
+                : normalizedFolderPath;
+            lastSlashIndex = newFolderPath.LastIndexOf('/');
+            return lastSlashIndex == -1 ? newFolderPath : newFolderPath.Substring(lastSlashIndex + 1);
+        }
+
+        public static string GetProviderNode(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                return path;
+            }
+
+            var normalizedFolderPath = FileReaderExtensions.NormalizeFolderPath(path);
+            int lastSlashIndex = normalizedFolderPath.LastIndexOf('/');
+            int secondLastSlashIndex = lastSlashIndex > 0 ? normalizedFolderPath.LastIndexOf('/', lastSlashIndex - 1) : -1;
+            return GetLeafNode(normalizedFolderPath.Substring(0, secondLastSlashIndex));
+        }
+
+        /// <summary>
+        /// Safely combines a folder path with a file name. Slashes are converted to forward slashes.
+        /// </summary>
+        /// <param name="folderPath">The folder path.</param>
+        /// <param name="fileName">The file name.</param>
+        /// <returns>The full path.</returns>
+        public static string ToSafeFullPath(string folderPath, string fileName)
+        {
+            var normalizedRemoteFolderPath = FileReaderExtensions.NormalizeFolderPath(folderPath);
+            return Path.Combine(normalizedRemoteFolderPath, fileName);
+        }
+
+        /// <summary>
+        /// Reads the file.
+        /// </summary>
+        /// <typeparam name="T">type T</typeparam>
+        /// <param name="remoteFolderPath">The remote folder path.</param>
+        /// <param name="remoteFileName">Name of the remote file.</param>
+        /// <param name="csvConfiguration">The CSV configuration.</param>
+        /// <returns>
+        /// IEnumerable of type T
+        /// </returns>
+        public static IEnumerable<T> ReadFile<T>(string remoteFolderPath, string remoteFileName, CsvConfiguration csvConfiguration)
+        {
+            ICollection<T> rawData;
+
+            var safeFullPath = ToSafeFullPath(remoteFolderPath, remoteFileName);
+            using (var reader = new StreamReader(safeFullPath))
+            {
+                using (var csv = new CsvReader(reader, csvConfiguration))
+                {
+                    rawData = csv.GetRecords<T>().ToList();
+                }
+            }
+
+            return rawData;
+        }
+
+        /// <summary>
+        /// Reads the file.
+        /// </summary>
+        /// <typeparam name="T">type T</typeparam>
+        /// <param name="remoteFolderPath">The remote folder path.</param>
+        /// <param name="remoteFileName">Name of the remote file.</param>
+        /// <param name="fileDelimiter">The file delimiter.</param>
+        /// <param name="fileDataHasHeader">if set to <c>true</c> [file data has header].</param>
+        /// <returns>
+        /// IEnumerable of type T
+        /// </returns>
+        public static IEnumerable<T> ReadFile<T>(string remoteFolderPath, string remoteFileName, string fileDelimiter, bool fileDataHasHeader)
+        {
+            ICollection<T> rawData;
+
+            var safeFullPath = ToSafeFullPath(remoteFolderPath, remoteFileName);
+            using (var reader = new StreamReader(safeFullPath))
+            {
+                var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    Delimiter = fileDelimiter,
+                    MissingFieldFound = null,
+                    HeaderValidated = null,
+                    HasHeaderRecord = fileDataHasHeader,
+                    TrimOptions = TrimOptions.Trim
+                };
+
+                using (var csv = new CsvReader(reader, csvConfig))
+                {
+                    rawData = csv.GetRecords<T>().ToList();
+                }
+            }
+
+            return rawData;
+        }
+
+        /// <summary>
+        /// This function will unzip a file and export it's parsed files of TModel.
+        /// </summary>
+        /// <typeparam name="TModel">The model you're looking for.</typeparam>
+        /// <param name="stream">Name of the ZIP.</param>
+        /// <param name="csvConfiguration">CSV Configuration.</param>
+        /// <param name="folderPath">Ftp FolderPath.</param>
+        /// <returns>IEnumarable of the Files that the ZIP contained using the TModel.</returns>
+        /// Used the example here to build.
+        /// https://stackoverflow.com/questions/8313791/sharpziplib-examine-and-select-contents-of-a-zip-file
+        public static IEnumerable<ParsedFile<TModel>> ReadZipFile<TModel>(Stream stream, CsvConfiguration csvConfiguration, string folderPath)
+        {
+            // Create the empty list of parsed files that we're going to fill.
+            var parsedFiles = new List<ParsedFile<TModel>>();
+
+            using (var zipFile = new ICSharpCode.SharpZipLib.Zip.ZipFile(stream))
+            {
+                // Here we'll get each entry and add it to the parsed file models.
+                foreach (ZipEntry entry in zipFile)
+                {
+                    // Check to make sure the file isn't a directory or none csv.
+                    if (entry.IsDirectory || !entry.Name.EndsWith(CsvFileExtension, false, CultureInfo.InvariantCulture))
+                    {
+                        continue;
+                    }
+
+                    using (Stream zipStream = zipFile.GetInputStream(entry))
+                    using (var streamReader = new StreamReader(zipStream))
+                    using (var csvReader = new CsvReader(streamReader, csvConfiguration))
+                    {
+                        csvReader.Read();
+                        if (csvConfiguration.HasHeaderRecord)
+                        {
+                            csvReader.ReadHeader();
+                        }
+
+                        parsedFiles.Add(new ParsedFile<TModel>(entry.Name, csvReader.GetRecords<TModel>().ToList(), folderPath));
+                    }
+                }
+            }
+
+            // Return the end result list.
+            return parsedFiles;
+        }
+
+
+        /// <summary>
+        /// Creates the CSV configuration.
+        /// </summary>
+        /// <param name="fileDelimiter">The file delimiter.</param>
+        /// <param name="fileDataHasHeader">if set to <c>true</c> [file data has header].</param>
+        /// <returns>CsvConfiguration</returns>
+        private static CsvConfiguration CreateCsvConfiguration(string fileDelimiter, bool fileDataHasHeader)
+        {
+            return new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                BadDataFound = context => throw new InvalidOperationException($"Could not parse this record from the CSV: {context.RawRecord}"),
+                Delimiter = fileDelimiter,
+                MissingFieldFound = null,
+                HeaderValidated = null,
+                HasHeaderRecord = fileDataHasHeader,
+                TrimOptions = TrimOptions.Trim
+            };
+        }
+    }
+}
