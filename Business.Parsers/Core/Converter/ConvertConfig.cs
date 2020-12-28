@@ -8,6 +8,7 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using ZTR.Framework.Business.Models;
 
     public class ConvertConfig
     {
@@ -17,7 +18,8 @@
         internal string Arrays => "arrays";
         private readonly ILogger<ConverterService> _logger;
         private static readonly object _syncRoot = new object();
-        internal string[] Properties { get; set; }
+        internal string[] Properties { get; private set; }
+        internal string[] JsonProperties { get; private set; }
         private const string _skipConfigFolder = "configsetting";
         private const string _skipConfigFile = "convertconfig.txt";
         internal IEnumerable<ConfigConvertRuleReadModel> Rules { get; set; }
@@ -38,9 +40,9 @@
                 setting = File.ReadAllText(Path);
             }
             var tags = setting.Split(Environment.NewLine);
-            Properties = tags.Where(o => !o.StartsWith("Rule:")).Select(o => o.Replace("\r", string.Empty)).ToArray();
-
-            Rules = tags.Where(o => o.StartsWith("Rule:")).Select(o =>
+            Properties = tags.Where(o => o.StartsWith("rm:")).Select(o => o.Replace("rm:", string.Empty).RemoveNewline()).ToArray();
+            JsonProperties = tags.Where(o => o.StartsWith("json:")).Select(o => o.Replace("json:", string.Empty).RemoveNewline()).ToArray();
+            Rules = tags.Where(o => o.StartsWith("rule:")).Select(o =>
             {
                 var ruleConfig = o.Split(':');
                 var rule = new ConfigConvertRuleReadModel
