@@ -48,5 +48,10 @@
 
             return firstChar + input.Substring(1);
         }
+
+        public static string RemoveNewline(this string input)
+        {
+            return input.Replace("\r", string.Empty);
+        }
     }
 }

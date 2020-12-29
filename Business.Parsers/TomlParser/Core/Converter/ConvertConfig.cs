@@ -7,7 +7,7 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using ZTR.Framework.Business.Models;
+    using ZTR.Framework.Business;
 
     public class ConvertConfig
     {
@@ -38,6 +38,7 @@
             {
                 setting = File.ReadAllText(Path);
             }
+
             var tags = setting.Split(Environment.NewLine);
             Properties = tags.Where(o => o.StartsWith("rm:")).Select(o => o.Replace("rm:", string.Empty).RemoveNewline()).ToArray();
             JsonProperties = tags.Where(o => o.StartsWith("json:")).Select(o => o.Replace("json:", string.Empty).RemoveNewline()).ToArray();
