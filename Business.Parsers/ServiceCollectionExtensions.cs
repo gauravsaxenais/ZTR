@@ -1,9 +1,10 @@
-﻿namespace Business.Parsers.Core.Converter
+﻿namespace Business.Parsers
 {
+    using Business.Parsers.TomlParser.Core.Converter;
     using Microsoft.Extensions.DependencyInjection;
     using System.Collections.Generic;
 
-    public static class Inject
+    public static class ServiceCollectionExtensions
     {
         public static void AddConverters(this IServiceCollection services)
         {

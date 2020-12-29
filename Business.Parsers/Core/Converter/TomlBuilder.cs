@@ -1,6 +1,5 @@
-﻿namespace Business.Parsers.Core.Converter
+﻿namespace Business.Parsers.TomlParser.Core.Converter
 {
-    using Microsoft.Extensions.Logging;
     using Nett;
     using Newtonsoft.Json;
     using System;
