@@ -161,7 +161,9 @@
                 .Replace("\"{", "{")
                 .Replace("}\"", "}")
                 .Replace("\"[", "[")
-                .Replace("]\"", "]");
+                .Replace("]\"", "]")
+                .Replace("\\r\\n", Environment.NewLine)
+                .Replace("\\n", Environment.NewLine);
         }
     }
 }
