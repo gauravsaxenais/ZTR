@@ -8,8 +8,8 @@
         public static void AddConverters(this IServiceCollection services)
         {
             services.AddScoped<ConverterService>();
-            services.AddScoped<IJsonConverter, JsonConverter>();
-            services.AddSingleton<IBuilder<IDictionary<string, object>>, TomlBuilder>();
+            services.AddScoped<IJsonConverter, DictionaryConverter>();
+            services.AddScoped<IBuilder<IDictionary<string, object>>, TomlBuilder>();
 
             services.AddScoped<ConvertConfig>();
         }
