@@ -4,6 +4,7 @@
     using System.Globalization;
     using System.Security.Cryptography;
     using System.Text;
+    using System.Text.RegularExpressions;
     using EnsureThat;
 
     public static class StringExtensions
@@ -52,10 +53,13 @@
         public static string RemoveNewline(this string input)
         {
             EnsureArg.IsNotNullOrWhiteSpace(input, nameof(input));
-
-            return input
+            input = input
                 .Replace("\n", string.Empty)
                 .Replace("\r", string.Empty);
+
+            Regex regex = new Regex("[ ]{2,}", RegexOptions.None);
+            input = regex.Replace(input, " ");
+            return input;
         }
     }
 }
