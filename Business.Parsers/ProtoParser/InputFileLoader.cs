@@ -192,7 +192,7 @@
 
         private async Task<string> GenerateDllFromCsFileAsync(string fileName, string outputFolderPath)
         {
-            fileName = char.ToUpper(fileName[0]) + fileName.Substring(1);
+            fileName = char.ToUpper(fileName[0]) + fileName[1..];
 
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
             string filePath = outputFolderPath + fileNameWithoutExtension;
@@ -256,7 +256,7 @@
             }
             if (loaderPath.StartsWith(@"file:\"))
             {
-                loaderPath = loaderPath.Substring(6);
+                loaderPath = loaderPath[6..];
             }
             return Path.Combine(Path.GetDirectoryName(loaderPath), path);
         }

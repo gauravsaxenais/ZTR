@@ -9,10 +9,11 @@
     public interface ICompatibleFirmwareVersionManager
     {
         /// <summary>
-        /// Generates the configuration toml model asynchronous.
+        /// Gets the compatible firmware versions asynchronous.
         /// </summary>
         /// <param name="firmwareVersion">The firmware version.</param>
-        /// <returns>ApiResponse - success: true/false. data: array of compatible firmware versions. </returns>
-        Task<ApiResponse> GetCompatibleFirmwareVersionsAsync(string firmwareVersion);
+        /// <param name="deviceType">Type of the device.</param>
+        /// <returns></returns>
+        Task<ApiResponse> GetCompatibleFirmwareVersionsAsync(string firmwareVersion, string deviceType);
     }
 }
