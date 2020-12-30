@@ -48,12 +48,15 @@
         /// <summary>
         /// Gets the compatible firmware versions asynchronous.
         /// </summary>
-        /// <param name="deviceType">Type of the device.</param>
-        /// <param name="firmwareVersion">The firmware version.</param>
+        /// <param name="module">The module.</param>
         /// <returns></returns>
-        public async Task<ApiResponse> GetCompatibleFirmwareVersionsAsync(string firmwareVersion, string deviceType)
+        public async Task<ApiResponse> GetCompatibleFirmwareVersionsAsync(CompatibleFirmwareVersionReadModel module)
         {
-            EnsureArg.IsNotEmptyOrWhiteSpace(firmwareVersion);
+            EnsureArg.IsNotNull(module);
+            EnsureArg.IsNotEmptyOrWhiteSpace(module.FirmwareVersion);
+            EnsureArg.IsNotEmptyOrWhiteSpace(module.DeviceType);
+            EnsureArg.HasItems(module.Modules);
+
             var prefix = nameof(CompatibleFirmwareVersionManager);
             ApiResponse apiResponse = null;
             var firmwareVersions = new List<string>();
@@ -65,15 +68,13 @@
 
                 await _gitRepoManager.CloneRepositoryAsync().ConfigureAwait(false);
 
-                var listOfTags = await _gitRepoManager.GetTagsEarlierThanThisTagAsync(firmwareVersion);
-                var moduleListFromFirmware = await _moduleManager.GetListOfModulesAsync(firmwareVersion, deviceType).ConfigureAwait(false);
+                var listOfTags = await _gitRepoManager.GetTagsEarlierThanThisTagAsync(module.FirmwareVersion);
 
                 foreach(var tag in listOfTags)
                 {
-                    var moduleList = await _moduleManager.GetListOfModulesAsync(firmwareVersion, deviceType).ConfigureAwait(false);
+                    var moduleList = await _moduleManager.GetListOfModulesAsync(tag, module.DeviceType).ConfigureAwait(false);
 
-                    HashSet<ModuleReadModel> hashSet = new HashSet<ModuleReadModel>(moduleList, new ModuleReadModelComparer());
-                    var contained = moduleListFromFirmware.Intersect(moduleList, new ModuleReadModelComparer()).Count() == moduleListFromFirmware.Count();
+                    var contained = module.Modules.Intersect(moduleList, new ModuleReadModelComparer()).Count() == module.Modules.Count();
 
                     if (contained)
                     {
