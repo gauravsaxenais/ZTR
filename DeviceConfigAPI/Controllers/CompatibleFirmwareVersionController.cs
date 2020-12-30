@@ -38,16 +38,15 @@
         /// <summary>
         /// Gets the compatible firmware versions.
         /// </summary>
-        /// <param name="deviceType">Type of the device.</param>
-        /// <param name="firmwareVersion">The firmware version.</param>
+        /// <param name="module">The module.</param>
         /// <returns></returns>
         [HttpPost(nameof(GetCompatibleFirmwareVersions))]
         [ProducesResponseType(typeof(IEnumerable<ModuleReadModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetCompatibleFirmwareVersions([Required] string firmwareVersion, [Required] string deviceType)
+        public async Task<IActionResult> GetCompatibleFirmwareVersions([Required, FromBody] CompatibleFirmwareVersionReadModel module)
         {
-            var result = await manager.GetCompatibleFirmwareVersionsAsync(firmwareVersion, deviceType).ConfigureAwait(false);
+            var result = await manager.GetCompatibleFirmwareVersionsAsync(module).ConfigureAwait(false);
 
             return Ok(result);
         }

@@ -169,6 +169,35 @@
             A <see cref="T:System.String" /> that represents this instance.
             </returns>
         </member>
+        <member name="T:Business.Models.CompatibleFirmwareVersionReadModel">
+            <summary>
+            Compatible Firmware version Information.
+            </summary>
+        </member>
+        <member name="P:Business.Models.CompatibleFirmwareVersionReadModel.FirmwareVersion">
+            <summary>
+            Gets or sets the firmware version.
+            </summary>
+            <value>
+            The firmware version.
+            </value>
+        </member>
+        <member name="P:Business.Models.CompatibleFirmwareVersionReadModel.DeviceType">
+            <summary>
+            Gets or sets the type of the device.
+            </summary>
+            <value>
+            The type of the device.
+            </value>
+        </member>
+        <member name="P:Business.Models.CompatibleFirmwareVersionReadModel.Modules">
+            <summary>
+            Gets or sets the modules.
+            </summary>
+            <value>
+            The modules.
+            </value>
+        </member>
         <member name="T:Business.Models.ConfigurationReadModel">
             <summary>
             ConfigurationReadModel - This class maps to toml file.
@@ -396,12 +425,11 @@
             This Manager returns a list of all compatible firmware versions.
             </summary>
         </member>
-        <member name="M:Business.RequestHandlers.Interfaces.ICompatibleFirmwareVersionManager.GetCompatibleFirmwareVersionsAsync(System.String,System.String)">
+        <member name="M:Business.RequestHandlers.Interfaces.ICompatibleFirmwareVersionManager.GetCompatibleFirmwareVersionsAsync(Business.Models.CompatibleFirmwareVersionReadModel)">
             <summary>
             Gets the compatible firmware versions asynchronous.
             </summary>
-            <param name="firmwareVersion">The firmware version.</param>
-            <param name="deviceType">Type of the device.</param>
+            <param name="module">The module.</param>
             <returns></returns>
         </member>
         <member name="T:Business.RequestHandlers.Interfaces.IConfigCreateFromManager">
@@ -587,12 +615,11 @@
             <param name="moduleManager">The module manager.</param>
             <param name="deviceGitConnectionOptions">The device git connection options.</param>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.CompatibleFirmwareVersionManager.GetCompatibleFirmwareVersionsAsync(System.String,System.String)">
+        <member name="M:Business.RequestHandlers.Managers.CompatibleFirmwareVersionManager.GetCompatibleFirmwareVersionsAsync(Business.Models.CompatibleFirmwareVersionReadModel)">
             <summary>
             Gets the compatible firmware versions asynchronous.
             </summary>
-            <param name="deviceType">Type of the device.</param>
-            <param name="firmwareVersion">The firmware version.</param>
+            <param name="module">The module.</param>
             <returns></returns>
         </member>
         <member name="T:Business.RequestHandlers.Managers.ConfigCreateFromManager">

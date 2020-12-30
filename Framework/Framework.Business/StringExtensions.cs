@@ -51,7 +51,9 @@
 
         public static string RemoveNewline(this string input)
         {
-            return string.IsNullOrWhiteSpace(input) ? string.Empty : input
+            EnsureArg.IsNotNullOrWhiteSpace(input, nameof(input));
+
+            return input
                 .Replace("\n", string.Empty)
                 .Replace("\r", string.Empty);
         }
