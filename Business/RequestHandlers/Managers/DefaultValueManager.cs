@@ -188,7 +188,8 @@
         {
             var gitConnectionOptions = (DeviceGitConnectionOptions)_gitRepoManager.GetConnectionOptions();
 
-            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.DefaultTomlConfiguration.DefaultTomlFile);
+            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.DefaultTomlConfiguration.DefaultTomlFile)
+                                                   .ConfigureAwait(false);
 
             // case insensitive search.
             var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
@@ -250,7 +251,8 @@
         {
             var gitConnectionOptions = (DeviceGitConnectionOptions)_gitRepoManager.GetConnectionOptions();
 
-            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.DefaultTomlConfiguration.DeviceTomlFile);
+            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.DefaultTomlConfiguration.DeviceTomlFile)
+                                                   .ConfigureAwait(false);
 
             // case insensitive search.
             var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
