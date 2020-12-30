@@ -22,8 +22,6 @@
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
-            services.AddSingleton<InputFileLoader>();
-
             services.AddScoped<IGitRepositoryManager, GitRepositoryManager>();
             services.AddScoped<IDeviceTypeManager, DeviceTypeManager>();
             services.AddScoped<IModuleManager, ModuleManager>();
