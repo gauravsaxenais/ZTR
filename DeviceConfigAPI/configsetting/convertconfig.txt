@@ -6,6 +6,7 @@ rm:max
 rm:configured
 rm:isconfigure
 rm:d
+rm:valid
 rm:originalid
 rm:datatype
 rm:defaultvalue
