@@ -133,6 +133,12 @@
                         ConvertArray((object[])item.Value);
                     }
                 }
+                if (item.Value is T v)
+                {
+                    ConvertCompatibleJson(v);
+                }
+
+
             }
 
             if (newKey.Key != null)
