@@ -7,6 +7,7 @@
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
@@ -66,8 +67,6 @@
                 Logger.LogInformation($"{prefix}: Getting list of compatible firmware versions based on a firmware version.");
                 SetGitRepoConnections();
 
-                await _gitRepoManager.CloneRepositoryAsync().ConfigureAwait(false);
-
                 var listOfTags = await _gitRepoManager.GetTagsEarlierThanThisTagAsync(module.FirmwareVersion);
 
                 foreach(var tag in listOfTags)
@@ -83,7 +82,7 @@
 
                     else break;
                 }
-
+                
                 apiResponse = new ApiResponse(status: true, data: firmwareVersions);
             }
             catch (Exception exception)
