@@ -8,10 +8,10 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
     using ZTR.Framework.Business.File;
     using ZTR.Framework.Business.File.FileReaders;
+    using ZTR.Framework.Business.Models;
     using Blob = LibGit2Sharp.Blob;
 
     /// <summary>
@@ -110,15 +110,15 @@
                 var message = ex.Message;
                 if (message.Contains("401"))
                 {
-                    throw new Exception("Unauthorised: Incorrect username/password");
+                    throw new CustomArgumentException("Unauthorised: Incorrect username/password");
                 }
                 if (message.Contains("403"))
                 {
-                    throw new Exception("Forbidden: Possbily Incorrect username/password");
+                    throw new CustomArgumentException("Forbidden: Possbily Incorrect username/password");
                 }
                 if (message.Contains("404"))
                 {
-                    throw new Exception("Not found: The repository was not found");
+                    throw new CustomArgumentException("Not found: The repository was not found");
                 }
 
                 throw;
@@ -171,7 +171,10 @@
             var tagsPerPeeledCommitId = new Dictionary<ObjectId, List<Tag>>();
             var listOfContentFiles = new List<ExportFileResultModel>();
 
-            await CloneRepositoryAsync();
+            if (!IsExistsContentRepositoryDirectory())
+            {
+                await CloneRepositoryAsync();
+            }
 
             using (var repo = new Repository(_gitConnection.GitLocalFolder))
             {
@@ -252,7 +255,7 @@
 
             if (!IsExistsContentRepositoryDirectory())
             {
-                await CloneRepositoryAsync();
+                await CloneRepositoryAsync().ConfigureAwait(false);
             }
 
             using (var repo = new Repository(_gitConnection.GitLocalFolder))
@@ -423,7 +426,6 @@
                     }
                 }
 
-                Thread.Sleep(1);
                 Directory.Delete(directory);
             }
             catch (Exception)

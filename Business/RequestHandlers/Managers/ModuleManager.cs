@@ -56,10 +56,8 @@
                 Logger.LogInformation($"{prefix}: Getting list of modules for firmware version: {firmwareVersion} and device type: {deviceType}");
 
                 SetGitRepoConnection();
-                await _gitRepoManager.CloneRepositoryAsync().ConfigureAwait(false);
-
+                
                 listOfModules = await GetListOfModulesAsync(firmwareVersion, deviceType);
-
                 // fix the indexes.
                 listOfModules.Select((item, index) => { item.Id = index; return item; }).ToList();
 

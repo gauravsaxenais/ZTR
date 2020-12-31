@@ -14,8 +14,6 @@
     {
         public List<Dictionary<string, object>> GetListOfModulesFromTomlFile(string fileContent, TomlSettings settings)
         {
-            EnsureArg.IsNotEmptyOrWhiteSpace(fileContent, (nameof(fileContent)));
-
             var fileData = Toml.ReadString(fileContent, settings);
 
             var dictionary = fileData.ToDictionary();

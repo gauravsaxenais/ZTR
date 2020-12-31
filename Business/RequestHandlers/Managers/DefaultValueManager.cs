@@ -102,16 +102,19 @@
             var moduleParser = new ModuleParser();
 
             // get proto files for corresponding module and their uuid
-            var protoFilePaths = GetProtoFiles(modulesProtoFolder, module);
+            var protoFilePath = GetProtoFiles(modulesProtoFolder, module);
 
-            // get protoparsed messages from the proto files.
-            var message = await GetCustomMessages(protoFilePaths).ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(protoFilePath))
+            {
+                // get protoparsed messages from the proto files.
+                var message = await GetCustomMessages(protoFilePath).ConfigureAwait(false);
 
-            var formattedMessage = customMessageParser.Format(message.Message);
-            formattedMessage.Name = module.Name;
+                var formattedMessage = customMessageParser.Format(message.Message);
+                formattedMessage.Name = module.Name;
 
-            var jsonModels = moduleParser.GetJsonFromTomlAndProtoFile(defaultValueFromTomlFile, formattedMessage);
-            module.Config = jsonModels;
+                var jsonModels = moduleParser.GetJsonFromTomlAndProtoFile(defaultValueFromTomlFile, formattedMessage);
+                module.Config = jsonModels;
+            }
         }
 
         private void SetConnection()
@@ -152,9 +155,12 @@
             {
                 var uuidFolder = FileReaderExtensions.GetSubDirectoryPath(moduleFolder, moduleName.UUID);
 
-                foreach (string file in Directory.EnumerateFiles(uuidFolder, protoFileName))
+                if (!string.IsNullOrWhiteSpace(uuidFolder))
                 {
-                    return file;
+                    foreach (string file in Directory.EnumerateFiles(uuidFolder, protoFileName))
+                    {
+                        return file;
+                    }
                 }
             }
 
