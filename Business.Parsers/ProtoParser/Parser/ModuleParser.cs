@@ -2,51 +2,15 @@
 {
     using Business.Parsers.ProtoParser.Models;
     using EnsureThat;
-    using Nett;
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using ZTR.Framework.Business.File.FileReaders;
 
-    public class ModuleParser
+    public class ModuleParser : IModuleParser
     {
-        public List<Dictionary<string, object>> GetListOfModulesFromTomlFile(string fileContent, TomlSettings settings)
-        {
-            var fileData = Toml.ReadString(fileContent, settings);
-
-            var dictionary = fileData.ToDictionary();
-            var modules = (Dictionary<string, object>[])dictionary["module"];
-
-            return modules.ToList();
-        }
-
-        public List<JsonField> GetJsonFromTomlAndProtoFile(string fileContent, ProtoParsedMessage protoParserMessage)
-        {
-            var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();
-            var jsonModels = new List<JsonField>();
-            var listOfModules = GetListOfModulesFromTomlFile(fileContent, tomlSettings);
-
-            // here message.name means Power, j1939 etc.
-            var module = listOfModules.Where(dic => dic.Values.Contains(protoParserMessage.Name.ToLower())).FirstOrDefault();
-
-            if (module != null)
-            {
-                var configValues = new Dictionary<string, object>();
-
-                if (module.ContainsKey("config"))
-                {
-                    configValues = (Dictionary<string, object>)module["config"];
-                }
-
-                jsonModels = MergeTomlWithProtoMessage(configValues, protoParserMessage);
-            }
-
-            return jsonModels;
-        }
-
-        public List<JsonField> MergeTomlWithProtoMessage(Dictionary<string, object> configValues, ProtoParsedMessage protoParsedMessage)
+        public List<JsonField> MergeTomlWithProtoMessage<T>(T configValues, ProtoParsedMessage protoParsedMessage) where T : Dictionary<string, object>
         {
             var listOfData = new List<JsonField>();
             listOfData.AddRange(GetFieldsFromProtoMessage(protoParsedMessage));
@@ -74,7 +38,7 @@
                         tempJsonModel.Name = repeatedMessage.Name;
                         tempJsonModel.IsVisible = true;
 
-                        if (dicItem.Kvp.Value is Dictionary<string, object>[] repeatedValues)
+                        if (dicItem.Kvp.Value is T[] repeatedValues)
                         {
                             repeatedValues.ToList().ForEach(item => tempJsonModel.Arrays.Add(MergeTomlWithProtoMessage(item, repeatedMessage)));
                         }
@@ -85,7 +49,7 @@
                         tempJsonModel.Name = nonRepeatedMessage.Name;
                         tempJsonModel.IsVisible = true;
 
-                        if (dicItem.Kvp.Value is Dictionary<string, object> nonRepeatedValues)
+                        if (dicItem.Kvp.Value is T nonRepeatedValues)
                         {
                             var subArrayData = MergeTomlWithProtoMessage(nonRepeatedValues, nonRepeatedMessage);
 
@@ -98,6 +62,7 @@
                 }
             }
 
+            // fix the indexes
             listOfData.Select((item, index) => { item.Id = index; return item; }).ToList();
 
             return listOfData;

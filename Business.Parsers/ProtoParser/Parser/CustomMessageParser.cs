@@ -6,7 +6,7 @@
     using Google.Protobuf.Reflection;
     using System.Linq;
 
-    public class CustomMessageParser
+    public class CustomMessageParser : ICustomMessageParser
     {
         /// <summary>
         /// Formats the specified message as JSON.
@@ -29,12 +29,13 @@
         /// <param name="message">The message to format.</param>
         /// <param name="protoParserMessage">The field to parse the formatted message to.</param>
         /// <returns>The formatted message.</returns>
-        public void Format(IMessage message, ProtoParsedMessage protoParserMessage)
+        public ProtoParsedMessage Format(IMessage message, ProtoParsedMessage protoParserMessage)
         {
             EnsureArg.IsNotNull(message, nameof(message));
             EnsureArg.IsNotNull(protoParserMessage, nameof(protoParserMessage));
 
             ProcessMessageFields(protoParserMessage, message);
+            return protoParserMessage;
         }
 
         private void ProcessMessageFields(ProtoParsedMessage protoParserMessage, IMessage message)

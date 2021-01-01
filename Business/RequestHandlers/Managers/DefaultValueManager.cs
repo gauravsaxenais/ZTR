@@ -2,11 +2,11 @@
 {
     using Business.Configuration;
     using Business.Models;
-    using Business.Parsers.ProtoParser.Models;
     using Business.Parsers.ProtoParser.Parser;
     using Business.RequestHandlers.Interfaces;
     using EnsureThat;
     using Microsoft.Extensions.Logging;
+    using Nett;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -32,6 +32,8 @@
         private readonly DeviceGitConnectionOptions _deviceGitConnectionOptions;
         private readonly string protoFileName = "module.proto";
         private readonly IProtoMessageParser _protoParser;
+        private readonly ICustomMessageParser _customMessageParser;
+        private readonly IModuleParser _moduleParser;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultValueManager"/> class.
@@ -39,15 +41,28 @@
         /// <param name="logger">The logger.</param>
         /// <param name="gitRepoManager">The git repo manager.</param>
         /// <param name="deviceGitConnectionOptions">The device git connection options.</param>
-        /// /// <param name="protoParser">File loader which reads a proto file as input and gives out custom message.</param>
-        public DefaultValueManager(ILogger<DefaultValueManager> logger, IGitRepositoryManager gitRepoManager, DeviceGitConnectionOptions deviceGitConnectionOptions, IProtoMessageParser protoParser) : base(logger)
+        /// <param name="protoParser">The proto parser.</param>
+        /// <param name="customMessageParser">The custom message parser.</param>
+        /// <param name="moduleParser">The module parser.</param>
+        public DefaultValueManager(ILogger<DefaultValueManager> logger, 
+                                    IGitRepositoryManager gitRepoManager,
+                                    DeviceGitConnectionOptions deviceGitConnectionOptions, 
+                                    IProtoMessageParser protoParser,
+                                    ICustomMessageParser customMessageParser,
+                                    IModuleParser moduleParser) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(gitRepoManager, nameof(gitRepoManager));
             EnsureArg.IsNotNull(deviceGitConnectionOptions, nameof(deviceGitConnectionOptions));
             EnsureArg.IsNotNull(deviceGitConnectionOptions.DefaultTomlConfiguration, nameof(deviceGitConnectionOptions.DefaultTomlConfiguration));
+            EnsureArg.IsNotNull(protoParser, nameof(protoParser));
+            EnsureArg.IsNotNull(customMessageParser, nameof(customMessageParser));
+            EnsureArg.IsNotNull(moduleParser, nameof(moduleParser));
 
-            _protoParser = protoParser;
             _gitRepoManager = gitRepoManager;
+            _protoParser = protoParser;
+            _customMessageParser = customMessageParser;
+            _moduleParser = moduleParser;
             _deviceGitConnectionOptions = deviceGitConnectionOptions;
         }
 
@@ -68,10 +83,11 @@
             var modulesProtoFolder = _deviceGitConnectionOptions.ModulesConfig;
 
             // read default values from toml file defaults.toml
-            var defaultValueFromTomlFile = await GetDefaultValues(firmwareVersion, deviceType);
+            var defaultValueFromTomlFile = await GetFileContentFromPath(firmwareVersion, deviceType, _deviceGitConnectionOptions.DefaultTomlConfiguration.DefaultTomlFile);
+            var deviceDataFromTomlFile = await GetFileContentFromPath(firmwareVersion, deviceType, _deviceGitConnectionOptions.DefaultTomlConfiguration.DeviceTomlFile);
 
             // get list of all modules.
-            var listOfModules = await GetListOfModulesAsync(firmwareVersion, deviceType);
+            var listOfModules = GetListOfModules(deviceDataFromTomlFile);
 
             await MergeValuesWithModulesAsync(defaultValueFromTomlFile, listOfModules, modulesProtoFolder);
 
@@ -86,8 +102,10 @@
         /// <param name="modulesProtoFolder">The modules proto folder.</param>
         public async Task MergeValuesWithModulesAsync(string defaultValueFromTomlFile, IEnumerable<ModuleReadModel> listOfModules, string modulesProtoFolder)
         {
+            var degreeOfParallelism = 10;
+
             await Task.WhenAll(
-                from partition in Partitioner.Create(listOfModules).GetPartitions(10)
+                from partition in Partitioner.Create(listOfModules).GetPartitions(degreeOfParallelism)
                 select Task.Run(async delegate
                 {
                     using (partition)
@@ -98,23 +116,49 @@
 
         private async Task MergeDefaultValuesWithModules(string defaultValueFromTomlFile, ModuleReadModel module, string modulesProtoFolder)
         {
-            var customMessageParser = new CustomMessageParser();
-            var moduleParser = new ModuleParser();
-
             // get proto files for corresponding module and their uuid
             var protoFilePath = GetProtoFiles(modulesProtoFolder, module);
 
             if (!string.IsNullOrWhiteSpace(protoFilePath))
             {
                 // get protoparsed messages from the proto files.
-                var message = await GetCustomMessages(protoFilePath).ConfigureAwait(false);
+                var message = await _protoParser.GetCustomMessages(protoFilePath).ConfigureAwait(false);
 
-                var formattedMessage = customMessageParser.Format(message.Message);
+                var formattedMessage = _customMessageParser.Format(message.Message);
                 formattedMessage.Name = module.Name;
 
-                var jsonModels = moduleParser.GetJsonFromTomlAndProtoFile(defaultValueFromTomlFile, formattedMessage);
-                module.Config = jsonModels;
+                var configValues = GetConfigValues(defaultValueFromTomlFile, module.Name);
+
+                if (configValues != null && configValues.Any())
+                {
+                    var jsonModels = _moduleParser.MergeTomlWithProtoMessage(configValues, formattedMessage);
+                    module.Config = jsonModels;
+                }
             }
+        }
+
+        private Dictionary<string, object> GetConfigValues(string fileContent, string moduleName)
+        {
+            var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();
+            var fileData = Toml.ReadString(fileContent, tomlSettings);
+
+            var dictionary = fileData.ToDictionary();
+            var listOfModules = (Dictionary<string, object>[])dictionary["module"];
+
+            // here message.name means Power, j1939 etc.
+            var module = listOfModules.Where(dic => dic.Values.Contains(moduleName)).FirstOrDefault();
+
+            var configValues = new Dictionary<string, object>();
+
+            if (module != null)
+            {
+                if (module.ContainsKey("config"))
+                {
+                    configValues = (Dictionary<string, object>)module["config"];
+                }
+            }
+
+            return configValues;
         }
 
         private void SetConnection()
@@ -126,17 +170,6 @@
             _deviceGitConnectionOptions.ModulesConfig = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.ModulesConfig);
 
             _gitRepoManager.SetConnectionOptions(_deviceGitConnectionOptions);
-        }
-
-        private async Task<CustomMessage> GetCustomMessages(string filePath)
-        {
-            var fileName = Path.GetFileName(filePath);
-
-            string protoDirectory = new FileInfo(filePath).Directory.FullName;
-
-            var result = await _protoParser.GetProtoParsedMessage(fileName, protoDirectory).ConfigureAwait(false);
-
-            return result;
         }
 
         /// <summary>
@@ -167,11 +200,11 @@
             return string.Empty;
         }
 
-        private async Task<string> GetDefaultValues(string firmwareVersion, string deviceType)
+        private async Task<string> GetFileContentFromPath(string firmwareVersion, string deviceType, string path)
         {
             var gitConnectionOptions = (DeviceGitConnectionOptions)_gitRepoManager.GetConnectionOptions();
 
-            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.DefaultTomlConfiguration.DefaultTomlFile)
+            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, path)
                                                    .ConfigureAwait(false);
 
             // case insensitive search.
@@ -188,16 +221,14 @@
         }
 
         /// <summary>
-        /// Gets the list of modules asynchronous.
+        /// Gets the list of modules.
         /// </summary>
-        /// <param name="firmwareVersion">The firmware version.</param>
-        /// <param name="deviceType">Type of the device.</param>
+        /// <param name="deviceTomlFileContent">Content of the device toml file.</param>
         /// <returns></returns>
-        private async Task<IEnumerable<ModuleReadModel>> GetListOfModulesAsync(string firmwareVersion, string deviceType)
+        private IEnumerable<ModuleReadModel> GetListOfModules(string deviceTomlFileContent)
         {
             var listOfModules = new List<ModuleReadModel>();
 
-            var deviceTomlFileContent = await GetDeviceDataFromFirmwareVersionAsync(firmwareVersion, deviceType);
             if (!string.IsNullOrWhiteSpace(deviceTomlFileContent))
             {
                 var data = GetTomlData(deviceTomlFileContent);
@@ -223,32 +254,6 @@
             var tomlData = TomlFileReader.ReadDataFromString<ConfigurationReadModel>(data: fileContent, settings: tomlSettings);
 
             return tomlData;
-        }
-
-        /// <summary>
-        /// Gets the device data from firmware version asynchronous.
-        /// </summary>
-        /// <param name="firmwareVersion">The firmware version.</param>
-        /// <param name="deviceType">Type of the device.</param>
-        /// <returns></returns>
-        private async Task<string> GetDeviceDataFromFirmwareVersionAsync(string firmwareVersion, string deviceType)
-        {
-            var gitConnectionOptions = (DeviceGitConnectionOptions)_gitRepoManager.GetConnectionOptions();
-
-            var listOfFiles = await _gitRepoManager.GetFileDataFromTagAsync(firmwareVersion, gitConnectionOptions.DefaultTomlConfiguration.DeviceTomlFile)
-                                                   .ConfigureAwait(false);
-
-            // case insensitive search.
-            var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
-
-            var fileContent = string.Empty;
-
-            if (deviceTypeFile != null)
-            {
-                fileContent = System.Text.Encoding.UTF8.GetString(deviceTypeFile.Data);
-            }
-
-            return fileContent;
         }
     }
 }
