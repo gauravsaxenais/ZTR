@@ -65,9 +65,9 @@
                 // get list of all modules.
                 var modules = GetListOfModules(configTomlFileContent);
 
-                await _defaultValueManager.MergeValuesWithModulesAsync(configTomlFileContent, modules);
+                await _defaultValueManager.MergeValuesWithModulesAsync(configTomlFileContent, modules).ConfigureAwait(false);
                 
-                var blocks = _blockManager.GetListOfBlocksAsync();
+                var blocks = await _blockManager.GetListOfBlocksAsync().ConfigureAwait(false);
 
                 apiResponse = new ApiResponse(status: true, data: new { modules, blocks });
             }

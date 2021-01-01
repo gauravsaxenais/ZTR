@@ -65,10 +65,10 @@
         }
 
         /// <summary>
-        /// Gets the list of blocks.
+        /// Gets the list of blocks asynchronous.
         /// </summary>
         /// <returns></returns>
-        public async Task<List<BlockJsonModel>> GetListOfBlocksAsync()
+        public async Task<IEnumerable<BlockJsonModel>> GetListOfBlocksAsync()
         {
             var blockConfigDirectory = new DirectoryInfo(_deviceGitConnectionOptions.BlockConfig);
             var filesInDirectory = blockConfigDirectory.EnumerateFiles();
