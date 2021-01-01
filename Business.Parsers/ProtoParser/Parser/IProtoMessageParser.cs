@@ -6,12 +6,10 @@
     public interface IProtoMessageParser
     {
         /// <summary>
-        /// Gets the proto parsed message.
+        /// Gets the custom messages.
         /// </summary>
-        /// <param name="protoFileName">Name of the proto file.</param>
         /// <param name="protoFilePath">The proto file path.</param>
-        /// <param name="args">The arguments.</param>
-        /// <returns></returns>
-        Task<CustomMessage> GetProtoParsedMessage(string protoFileName, string protoFilePath, params string[] args);
+        /// <returns>custom message containing the proto parsed message</returns>
+        Task<CustomMessage> GetCustomMessages(string protoFilePath);
     }
 }

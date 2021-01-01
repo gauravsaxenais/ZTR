@@ -700,14 +700,16 @@
             <seealso cref="T:ZTR.Framework.Business.Manager" />
             <seealso cref="T:Business.RequestHandlers.Interfaces.IDefaultValueManager" />
         </member>
-        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.DefaultValueManager},Business.RequestHandlers.Interfaces.IGitRepositoryManager,Business.Configuration.DeviceGitConnectionOptions,Business.Parsers.ProtoParser.Parser.IProtoMessageParser)">
+        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.DefaultValueManager},Business.RequestHandlers.Interfaces.IGitRepositoryManager,Business.Configuration.DeviceGitConnectionOptions,Business.Parsers.ProtoParser.Parser.IProtoMessageParser,Business.Parsers.ProtoParser.Parser.ICustomMessageParser,Business.Parsers.ProtoParser.Parser.IModuleParser)">
             <summary>
             Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.DefaultValueManager"/> class.
             </summary>
             <param name="logger">The logger.</param>
             <param name="gitRepoManager">The git repo manager.</param>
             <param name="deviceGitConnectionOptions">The device git connection options.</param>
-            /// <param name="protoParser">File loader which reads a proto file as input and gives out custom message.</param>
+            <param name="protoParser">The proto parser.</param>
+            <param name="customMessageParser">The custom message parser.</param>
+            <param name="moduleParser">The module parser.</param>
         </member>
         <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetDefaultValuesAllModulesAsync(System.String,System.String)">
             <summary>
@@ -733,12 +735,11 @@
             <param name="moduleName">Name of the module.</param>
             <returns></returns>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetListOfModulesAsync(System.String,System.String)">
+        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetListOfModules(System.String)">
             <summary>
-            Gets the list of modules asynchronous.
+            Gets the list of modules.
             </summary>
-            <param name="firmwareVersion">The firmware version.</param>
-            <param name="deviceType">Type of the device.</param>
+            <param name="deviceTomlFileContent">Content of the device toml file.</param>
             <returns></returns>
         </member>
         <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetTomlData(System.String)">
@@ -746,14 +747,6 @@
             Gets the toml data.
             </summary>
             <param name="fileContent">Content of the file.</param>
-            <returns></returns>
-        </member>
-        <member name="M:Business.RequestHandlers.Managers.DefaultValueManager.GetDeviceDataFromFirmwareVersionAsync(System.String,System.String)">
-            <summary>
-            Gets the device data from firmware version asynchronous.
-            </summary>
-            <param name="firmwareVersion">The firmware version.</param>
-            <param name="deviceType">Type of the device.</param>
             <returns></returns>
         </member>
         <member name="T:Business.RequestHandlers.Managers.DeviceTypeManager">

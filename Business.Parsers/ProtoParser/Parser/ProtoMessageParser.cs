@@ -25,7 +25,25 @@
             _logger = logger;
         }
 
-        public async Task<CustomMessage> GetProtoParsedMessage(string protoFileName, string protoFilePath, params string[] args)
+        /// <summary>
+        /// Gets the custom messages.
+        /// </summary>
+        /// <param name="protoFilePath">The proto file path.</param>
+        /// <returns>
+        /// custom message containing the proto parsed message
+        /// </returns>
+        public async Task<CustomMessage> GetCustomMessages(string protoFilePath)
+        {
+            var fileName = Path.GetFileName(protoFilePath);
+
+            string protoDirectory = new FileInfo(protoFilePath).Directory.FullName;
+
+            var result = await GetProtoParsedMessage(fileName, protoDirectory).ConfigureAwait(false);
+
+            return result;
+        }
+
+        private async Task<CustomMessage> GetProtoParsedMessage(string protoFileName, string protoFilePath, params string[] args)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(protoFileName);
             EnsureArg.IsNotEmptyOrWhiteSpace(protoFilePath);
@@ -46,7 +64,6 @@
                 if (!string.IsNullOrWhiteSpace(dllPath))
                 {
                     var message = GetIMessage(dllPath);
-
                     return new CustomMessage() { Message = message };
                 }
 

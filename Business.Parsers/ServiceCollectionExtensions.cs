@@ -13,6 +13,8 @@
             services.AddScoped<IJsonConverter, DictionaryConverter>();
             services.AddScoped<IBuilder<IDictionary<string, object>>, TomlBuilder>();
             services.AddScoped<IProtoMessageParser, ProtoMessageParser>();
+            services.AddScoped<ICustomMessageParser, CustomMessageParser>();
+            services.AddScoped<IModuleParser, ModuleParser>();
 
             services.AddScoped<ConvertConfig>();
         }
