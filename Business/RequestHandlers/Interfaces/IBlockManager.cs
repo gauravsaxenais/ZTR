@@ -17,9 +17,9 @@
         Task<object> GetBlocksAsObjectAsync();
 
         /// <summary>
-        /// Gets the list of blocks.
+        /// Gets the list of blocks asynchronous.
         /// </summary>
         /// <returns></returns>
-        Task<List<BlockJsonModel>> GetListOfBlocksAsync();
+        Task<IEnumerable<BlockJsonModel>> GetListOfBlocksAsync();
     }
 }

@@ -415,7 +415,7 @@
         </member>
         <member name="M:Business.RequestHandlers.Interfaces.IBlockManager.GetListOfBlocksAsync">
             <summary>
-            Gets the list of blocks.
+            Gets the list of blocks asynchronous.
             </summary>
             <returns></returns>
         </member>
