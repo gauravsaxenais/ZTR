@@ -56,7 +56,7 @@
                 Logger.LogInformation($"{prefix}: Getting list of blocks.");
                 var blocks = await GetListOfBlocksAsync().ConfigureAwait(false);
 
-                apiResponse = new ApiResponse(status: true, data: blocks);
+                apiResponse = new ApiResponse(status: true, data: new {blocks});
             }
             catch (Exception exception)
             {
