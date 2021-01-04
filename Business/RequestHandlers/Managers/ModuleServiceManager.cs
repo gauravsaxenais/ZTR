@@ -1,8 +1,8 @@
 ﻿namespace Business.RequestHandlers.Managers
 {
-    using Business.Configuration;
-    using Business.Models;
-    using Business.RequestHandlers.Interfaces;
+    using Configuration;
+    using Models;
+    using Interfaces;
     using EnsureThat;
     using Microsoft.Extensions.Logging;
     using System;
@@ -11,6 +11,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
+    using ZTR.Framework.Business.Models;
     using ZTR.Framework.Business.File.FileReaders;
 
     /// <summary>
@@ -47,9 +48,15 @@
         {
             var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
+            if (currentDirectory == null)
+            {
+                throw new CustomArgumentException("Current directory path is not valid.");
+            }
+
             _moduleGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _moduleGitConnectionOptions.GitLocalFolder);
             _moduleGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder = Path.Combine(_moduleGitConnectionOptions.GitLocalFolder, _moduleGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder);
             _moduleGitConnectionOptions.ModulesConfig = Path.Combine(currentDirectory, _moduleGitConnectionOptions.GitLocalFolder, _moduleGitConnectionOptions.ModulesConfig);
+            _moduleGitConnectionOptions.BlockConfig = Path.Combine(currentDirectory, _moduleGitConnectionOptions.GitLocalFolder, _moduleGitConnectionOptions.BlockConfig);
 
             _gitRepoManager.SetConnectionOptions(_moduleGitConnectionOptions);
         }
@@ -70,16 +77,26 @@
         }
 
         /// <summary>
+        /// Gets all block files.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<FileInfo> GetAllBlockFiles()
+        {
+            var blockConfigDirectory = new DirectoryInfo(_moduleGitConnectionOptions.BlockConfig);
+            var filesInDirectory = blockConfigDirectory.EnumerateFiles();
+
+            return filesInDirectory;
+        }
+
+        /// <summary>
         /// Gets all devices asynchronous.
         /// </summary>
         /// <returns></returns>
         public async Task<IEnumerable<string>> GetAllDevicesAsync()
         {
-            var listOfDevices = new List<string>();
-
             await _gitRepoManager.CloneRepositoryAsync().ConfigureAwait(false);
 
-            listOfDevices = FileReaderExtensions.GetDirectories(_moduleGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder);
+            var listOfDevices = FileReaderExtensions.GetDirectories(_moduleGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder);
             listOfDevices = listOfDevices.ConvertAll(item => item.ToUpper());
 
             return listOfDevices;
@@ -134,16 +151,18 @@
 
             var moduleFolder = FileReaderExtensions.GetSubDirectoryPath(moduleFilePath, module.Name);
 
-            if (!string.IsNullOrWhiteSpace(moduleFolder))
+            if (string.IsNullOrWhiteSpace(moduleFolder))
             {
-                var uuidFolder = FileReaderExtensions.GetSubDirectoryPath(moduleFolder, module.UUID);
+                return string.Empty;
+            }
 
-                if (!string.IsNullOrWhiteSpace(uuidFolder))
+            var uuidFolder = FileReaderExtensions.GetSubDirectoryPath(moduleFolder, module.UUID);
+
+            if (!string.IsNullOrWhiteSpace(uuidFolder))
+            {
+                foreach (var file in Directory.EnumerateFiles(uuidFolder, protoFileName))
                 {
-                    foreach (string file in Directory.EnumerateFiles(uuidFolder, protoFileName))
-                    {
-                        return file;
-                    }
+                    return file;
                 }
             }
 
@@ -187,7 +206,7 @@
                                                    .ConfigureAwait(false);
 
             // case insensitive search.
-            var deviceTypeFile = listOfFiles.Where(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0).FirstOrDefault();
+            var deviceTypeFile = listOfFiles.FirstOrDefault(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0);
 
             var fileContent = string.Empty;
 
