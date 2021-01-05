@@ -1,4 +1,4 @@
-﻿namespace Business.Parsers.Models
+﻿namespace Business.Parsers.Core.Models
 {
     /// <summary>
     /// Config Read Model.
@@ -20,5 +20,6 @@
         /// The block.
         /// </value>
         public string Block { get; set; }
+        public string Version { get; set; }
     }
 }
