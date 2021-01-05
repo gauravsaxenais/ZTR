@@ -1,6 +1,8 @@
-﻿namespace Business.RequestHandlers.Interfaces
+﻿using System.IO;
+
+namespace Business.RequestHandlers.Interfaces
 {
-    using Business.Models;
+    using Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -50,5 +52,11 @@
         /// </summary>
         /// <returns></returns>
         Task<IEnumerable<string>> GetAllDevicesAsync();
+
+        /// <summary>
+        /// Gets all block files.
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<FileInfo> GetAllBlockFiles();
     }
 }

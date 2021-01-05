@@ -1,7 +1,7 @@
 ﻿namespace Business.RequestHandlers.Managers
 {
-    using Business.Models;
-    using Business.RequestHandlers.Interfaces;
+    using Models;
+    using Interfaces;
     using EnsureThat;
     using Microsoft.Extensions.Logging;
     using System;
@@ -73,7 +73,7 @@
             }
             catch (Exception exception)
             {
-                Logger.LogCritical(exception, $"{prefix}: Error occured while getting list of compatible firmware versions based on a firmware version.");
+                Logger.LogCritical(exception, $"{prefix}: Error occurred while getting list of compatible firmware versions based on a firmware version.");
                 apiResponse = new ApiResponse(false, exception.Message, ErrorType.BusinessError, exception);
             }
 

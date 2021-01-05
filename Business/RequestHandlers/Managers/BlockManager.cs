@@ -1,10 +1,10 @@
 ﻿namespace Business.RequestHandlers.Managers
 {
-    using Business.Configuration;
-    using Business.Models;
-    using Business.RequestHandlers.Interfaces;
+    using System;
     using EnsureThat;
+    using Interfaces;
     using Microsoft.Extensions.Logging;
+    using Models;
     using Nett;
     using System.Collections.Generic;
     using System.IO;
@@ -22,31 +22,21 @@
     public class BlockManager : Manager, IBlockManager
     {
         #region Private Variables
-        private readonly IGitRepositoryManager _repoManager;
-        private readonly DeviceGitConnectionOptions _deviceGitConnectionOptions;
+        private readonly IModuleServiceManager _moduleServiceManager;
         #endregion
 
-        #region Constructors                        
+        #region Constructors                                
         /// <summary>
         /// Initializes a new instance of the <see cref="BlockManager"/> class.
         /// </summary>
         /// <param name="logger">The logger.</param>
-        /// <param name="gitRepoManager">The git repo manager.</param>
-        /// <param name="deviceGitConnectionOptions">The device git connection options.</param>
-        public BlockManager(ILogger<BlockManager> logger, IGitRepositoryManager gitRepoManager, DeviceGitConnectionOptions deviceGitConnectionOptions) : base(logger)
+        /// <param name="moduleServiceManager">The module service manager.</param>
+        public BlockManager(ILogger<BlockManager> logger, IModuleServiceManager moduleServiceManager) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(gitRepoManager, nameof(gitRepoManager));
-            EnsureArg.IsNotNull(deviceGitConnectionOptions, nameof(deviceGitConnectionOptions));
+            EnsureArg.IsNotNull(moduleServiceManager, nameof(moduleServiceManager));
 
-            _repoManager = gitRepoManager;
-            _deviceGitConnectionOptions = deviceGitConnectionOptions;
-
-            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            _deviceGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder);
-            _deviceGitConnectionOptions.BlockConfig = Path.Combine(currentDirectory, _deviceGitConnectionOptions.GitLocalFolder, _deviceGitConnectionOptions.BlockConfig);
-            _repoManager.SetConnectionOptions(_deviceGitConnectionOptions);
+            _moduleServiceManager = moduleServiceManager;
         }
         #endregion
 
@@ -56,12 +46,25 @@
         /// Parses the toml files asynchronous.
         /// </summary>
         /// <returns></returns>
-        public async Task<object> GetBlocksAsObjectAsync()
+        public async Task<ApiResponse> GetBlocksAsObjectAsync()
         {
-            await _repoManager.CloneRepositoryAsync().ConfigureAwait(false);
-            var blocks = await GetListOfBlocksAsync().ConfigureAwait(false);
+            var prefix = nameof(BlockManager);
+            ApiResponse apiResponse = null;
 
-            return new { blocks };
+            try
+            {
+                Logger.LogInformation($"{prefix}: Getting list of blocks.");
+                var blocks = await GetListOfBlocksAsync().ConfigureAwait(false);
+
+                apiResponse = new ApiResponse(status: true, data: new {blocks});
+            }
+            catch (Exception exception)
+            {
+                Logger.LogCritical(exception, $"{prefix}: Error occurred while getting list of blocks.");
+                apiResponse = new ApiResponse(false, exception.Message, ErrorType.BusinessError, exception);
+            }
+
+            return apiResponse;
         }
 
         /// <summary>
@@ -70,8 +73,7 @@
         /// <returns></returns>
         public async Task<IEnumerable<BlockJsonModel>> GetListOfBlocksAsync()
         {
-            var blockConfigDirectory = new DirectoryInfo(_deviceGitConnectionOptions.BlockConfig);
-            var filesInDirectory = blockConfigDirectory.EnumerateFiles();
+            var filesInDirectory = _moduleServiceManager.GetAllBlockFiles();
 
             var data = await BatchProcessBlockFiles(filesInDirectory).ConfigureAwait(false);
             
@@ -83,14 +85,15 @@
             var blocks = new List<BlockJsonModel>();
             var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();
 
-            for (int lIndex = 0; lIndex < filesInDirectory.Count(); lIndex++)
+            var inDirectory = filesInDirectory as FileInfo[] ?? filesInDirectory.ToArray();
+            for (var lIndex = 0; lIndex < inDirectory.Count(); lIndex++)
             {
-                string content = await File.ReadAllTextAsync(filesInDirectory.ElementAt(lIndex).FullName);
+                var content = await File.ReadAllTextAsync(inDirectory.ElementAt(lIndex).FullName);
 
                 var arguments = Toml.ReadString<BlockReadModel>(content, tomlSettings);
-                var name = Path.GetFileNameWithoutExtension(filesInDirectory.ElementAt(lIndex).Name);
+                var name = Path.GetFileNameWithoutExtension(inDirectory.ElementAt(lIndex).Name);
 
-                if (arguments != null && arguments.Arguments != null && arguments.Arguments.Any())
+                if (arguments?.Arguments != null && arguments.Arguments.Any())
                 {
                     var args = arguments.Arguments.Select((args, index) => new NetworkArgumentReadModel
                     {
@@ -116,9 +119,10 @@
             var batchSize = 4;
             var listOfRequests = new List<Task<List<BlockJsonModel>>>();
 
-            for (var skip = 0; skip <= models.Count(); skip += batchSize)
+            var fileModels = models.ToList();
+            for (var skip = 0; skip <= fileModels.Count(); skip += batchSize)
             {
-                var model = models.Skip(skip).Take(batchSize);
+                var model = fileModels.Skip<FileInfo>(skip).Take<FileInfo>(batchSize);
                 listOfRequests.Add(ProcessBlockFileAsync(model));
             }
 
@@ -128,9 +132,18 @@
             var data = allFinishedTasks.SelectMany(x => x);
 
             // fix the indexes
-            data.Select((item, index) => { item.Id = index; return item; }).ToList();
+            var blockFiles = data.ToList();
+            FixIndex(blockFiles);
 
-            return data;
+            return blockFiles;
+        }
+
+        private void FixIndex(IReadOnlyList<BlockJsonModel> listOfData)
+        {
+            for (var index = 0; index < listOfData.Count(); index++)
+            {
+                listOfData[index].Id = index;
+            }
         }
 
         #endregion
