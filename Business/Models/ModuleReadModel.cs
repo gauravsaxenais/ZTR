@@ -15,8 +15,6 @@
 
         /// <summary>
         /// Gets or sets the identifier.
-        /// This identifier starts from 0 and
-        /// autoincrements for every new model.
         /// </summary>
         /// <value>
         /// The identifier.

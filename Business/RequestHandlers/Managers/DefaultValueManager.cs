@@ -136,13 +136,13 @@
             var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettingsWithMappingForDefaultValues();
             var fileData = Toml.ReadString(fileContent, tomlSettings);
 
+            var configValues = new Dictionary<string, object>();
+
             var dictionary = fileData.ToDictionary();
             var listOfModules = (Dictionary<string, object>[])dictionary["module"];
 
             // here message.name means Power, j1939 etc.
             var module = listOfModules.FirstOrDefault(dic => dic.Values.Contains<object>(moduleName));
-
-            var configValues = new Dictionary<string, object>();
 
             if (module?.ContainsKey("config") == true)
             {
