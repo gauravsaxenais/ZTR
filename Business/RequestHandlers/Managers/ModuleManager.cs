@@ -38,19 +38,21 @@
         public async Task<ApiResponse> GetAllModulesAsync(string firmwareVersion, string deviceType)
         {
             var prefix = nameof(ModuleManager);
-            ApiResponse apiResponse = null;
+            ApiResponse apiResponse;
 
             try
             {
-                Logger.LogInformation($"{prefix}: Getting list of modules for firmware version: {firmwareVersion} and device type: {deviceType}");
+                Logger.LogInformation(
+                    $"{prefix}: Getting list of modules for firmware version: {firmwareVersion} and device type: {deviceType}");
 
                 var listOfModules = await _moduleServiceManager.GetAllModulesAsync(firmwareVersion, deviceType);
 
-                apiResponse = new ApiResponse(status: true, data: listOfModules);
+                apiResponse = new ApiResponse(true, listOfModules);
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
-                Logger.LogCritical(exception, $"{prefix}: Error occurred while getting list of modules for firmware version: {firmwareVersion} and device type: {deviceType}");
+                Logger.LogCritical(exception,
+                    $"{prefix}: Error occurred while getting list of modules for firmware version: {firmwareVersion} and device type: {deviceType}");
                 apiResponse = new ApiResponse(ErrorType.BusinessError, exception);
             }
 
