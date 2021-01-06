@@ -22,7 +22,6 @@
     /// <seealso cref="IConfigCreateFromManager" />
     public class ConfigCreateFromManager : Manager, IConfigCreateFromManager
     {
-        private readonly IModuleServiceManager _moduleServiceManager;
         private readonly IDefaultValueManager _defaultValueManager;
         private readonly IBlockManager _blockManager;
 
@@ -31,16 +30,13 @@
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="defaultValueManager">The default value manager.</param>
-        /// <param name="moduleServiceManager">The module service manager.</param>
         /// <param name="blockManager">The block manager.</param>
-        public ConfigCreateFromManager(ILogger<DefaultValueManager> logger, IDefaultValueManager defaultValueManager, IModuleServiceManager moduleServiceManager, IBlockManager blockManager) : base(logger)
+        public ConfigCreateFromManager(ILogger<DefaultValueManager> logger, IDefaultValueManager defaultValueManager, IBlockManager blockManager) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(defaultValueManager, nameof(defaultValueManager));
-            EnsureArg.IsNotNull(moduleServiceManager, nameof(moduleServiceManager));
             EnsureArg.IsNotNull(blockManager, nameof(blockManager));
 
-            _moduleServiceManager = moduleServiceManager;
             _blockManager = blockManager;
             _defaultValueManager = defaultValueManager;
         }
@@ -63,7 +59,7 @@
                 var configTomlFileContent = ReadAsString(configTomlFile);
 
                 // get list of all modules.
-                var modules = GetListOfModules(configTomlFileContent);
+                var modules = GetListOfModules(configTomlFileContent).ToList();
 
                 await _defaultValueManager.MergeValuesWithModulesAsync(configTomlFileContent, modules).ConfigureAwait(false);
                 
@@ -73,7 +69,7 @@
             }
             catch (Exception exception)
             {
-                Logger.LogCritical(exception, $"{prefix}: Error occured while getting list of modules and blocks from toml file.");
+                Logger.LogCritical(exception, $"{prefix}: Error occurred while getting list of modules and blocks from toml file.");
                 apiResponse = new ApiResponse(false, exception.Message, ErrorType.BusinessError, exception);
             }
 
