@@ -1,4 +1,4 @@
-﻿namespace Business.Parsers.TomlParser.Core.Converter
+﻿namespace Business.Parsers.Core.Converter
 {
     public interface IConverter<T>
     {

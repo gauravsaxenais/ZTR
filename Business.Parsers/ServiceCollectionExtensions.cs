@@ -1,7 +1,7 @@
 ﻿namespace Business.Parsers
 {
-    using Business.Parsers.ProtoParser.Parser;
-    using Business.Parsers.TomlParser.Core.Converter;
+    using Core.Converter;
+    using ProtoParser.Parser;
     using Microsoft.Extensions.DependencyInjection;
     using System.Collections.Generic;
 

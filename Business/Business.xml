@@ -683,13 +683,12 @@
             <seealso cref="T:ZTR.Framework.Business.Manager" />
             <seealso cref="T:Business.RequestHandlers.Interfaces.IConfigCreateFromManager" />
         </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.DefaultValueManager},Business.RequestHandlers.Interfaces.IDefaultValueManager,Business.RequestHandlers.Interfaces.IModuleServiceManager,Business.RequestHandlers.Interfaces.IBlockManager)">
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.DefaultValueManager},Business.RequestHandlers.Interfaces.IDefaultValueManager,Business.RequestHandlers.Interfaces.IBlockManager)">
             <summary>
             Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.ConfigCreateFromManager"/> class.
             </summary>
             <param name="logger">The logger.</param>
             <param name="defaultValueManager">The default value manager.</param>
-            <param name="moduleServiceManager">The module service manager.</param>
             <param name="blockManager">The block manager.</param>
         </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GenerateConfigTomlModelAsync(Microsoft.AspNetCore.Http.IFormFile)">

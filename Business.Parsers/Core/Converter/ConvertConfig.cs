@@ -1,12 +1,12 @@
-﻿namespace Business.Parsers.TomlParser.Core.Converter
+﻿namespace Business.Parsers.Core.Converter
 {
-    using Business.Parsers.Core.Models;
-    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using Models;
+    using Microsoft.Extensions.Logging;
     using ZTR.Framework.Business;
 
     public class ConvertConfig
@@ -16,7 +16,7 @@
         internal string Fields => "fields";
         internal string Arrays => "arrays";
         private readonly ILogger<ConverterService> _logger;
-        private static readonly object _syncRoot = new object();
+        private static readonly object SyncRoot = new object();
         internal string[] Properties { get; private set; }
         internal IEnumerable<ConfigConvertRuleReadModel> JsonProperties { get; private set; }
         private const string _skipConfigFolder = "configsetting";
@@ -59,7 +59,8 @@
 
         internal async Task<bool> UpdateConfiguration(string properties)
         {
-            var path = $"{Global.WebRoot}/{_skipConfigFolder}";
+            var path = System.IO.Path.Combine(Global.WebRoot, _skipConfigFolder);
+
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -68,7 +69,7 @@
             var values = properties.Split(',').Select(o => o.ToLower().Trim()).ToList();
 
             //Thread-safe operation .....
-            lock (_syncRoot)
+            lock (SyncRoot)
             {
                 using var file = File.AppendText(Path);
                 values.ForEach(o => file.WriteLine(o));
