@@ -1,6 +1,6 @@
 ﻿using Business.Parsers.Core.Models;
 
-namespace Business.Parsers.TomlParser.Core.Converter
+namespace Business.Parsers.Core.Converter
 {
     public interface IBuilder<T>
     {

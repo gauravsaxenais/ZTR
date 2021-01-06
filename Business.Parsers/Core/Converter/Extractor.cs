@@ -1,4 +1,4 @@
-﻿namespace Business.Parsers.TomlParser.Core.Converter
+﻿namespace Business.Parsers.Core.Converter
 {
     using Business.Parsers.Core.Converter;
     using System.Collections.Generic;
