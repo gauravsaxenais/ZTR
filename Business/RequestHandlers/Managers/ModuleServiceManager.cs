@@ -3,7 +3,6 @@
     using Configuration;
     using EnsureThat;
     using Interfaces;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Logging;
     using Models;
     using Nett;
@@ -27,7 +26,6 @@
     {
         private readonly string protoFileName = "module.proto";
         private readonly IGitRepositoryManager _gitRepoManager;
-        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly DeviceGitConnectionOptions _moduleGitConnectionOptions;
 
         /// <summary>
@@ -36,17 +34,15 @@
         /// <param name="logger">The logger.</param>
         /// <param name="gitRepoManager">The git repo manager.</param>
         /// <param name="moduleGitConnectionOptions">The module git connection options.</param>
-        public ModuleServiceManager(ILogger<ModuleServiceManager> logger, IGitRepositoryManager gitRepoManager, IWebHostEnvironment webHostEnvironment, DeviceGitConnectionOptions moduleGitConnectionOptions) : base(logger)
+        public ModuleServiceManager(ILogger<ModuleServiceManager> logger, IGitRepositoryManager gitRepoManager, DeviceGitConnectionOptions moduleGitConnectionOptions) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(gitRepoManager, nameof(gitRepoManager));
-            EnsureArg.IsNotNull(webHostEnvironment, nameof(webHostEnvironment));
             EnsureArg.IsNotNull(moduleGitConnectionOptions, nameof(moduleGitConnectionOptions));
 
             _gitRepoManager = gitRepoManager;
             _moduleGitConnectionOptions = moduleGitConnectionOptions;
-            _webHostEnvironment = webHostEnvironment;
-
+            
             SetGitRepoConnection();
         }
 

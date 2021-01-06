@@ -223,7 +223,7 @@
             Creates the host builder.
             </summary>
             <param name="args">The arguments.</param>
-            <returns>hostbuilder.</returns>
+            <returns></returns>
         </member>
         <member name="T:Service.ServiceCollectionExtensions">
             <summary>
@@ -263,12 +263,11 @@
             </summary>
             <param name="services">service collection.</param>
         </member>
-        <member name="M:Service.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IWebHostEnvironment)">
+        <member name="M:Service.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
             <summary>
             Configures the specified application.
             </summary>
             <param name="app">The application.</param>
-            <param name="webHostEnvironment">The web host environment.</param>
         </member>
         <member name="T:ZTR.Framework.Service.ApplicationBuilderExtensions">
             <summary>ApplicationBuilder.</summary>

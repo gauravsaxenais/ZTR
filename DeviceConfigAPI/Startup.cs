@@ -1,8 +1,8 @@
 ﻿namespace Service
 {
-    using Microsoft.AspNetCore.Hosting;
     using EnsureThat;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Newtonsoft.Json.Converters;
@@ -75,7 +75,19 @@
                 app.UseMiddleware<ForceHttpsMiddleware>();
                 app.UseHttpsRedirection();
             }
-            
+
+            const string cacheMaxAge = "604800";
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                OnPrepareResponse = ctx =>
+                {
+                    // using Microsoft.AspNetCore.Http;
+                    ctx.Context.Response.Headers.Append(
+                        "Cache-Control", $"public, max-age={cacheMaxAge}");
+                }
+            });
+
+
             // Use routing first, then Cors second.
             app.UseRouting();
             app.AddAppCustomBuild();

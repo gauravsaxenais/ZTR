@@ -938,7 +938,7 @@
             <seealso cref="T:ZTR.Framework.Business.Manager" />
             <seealso cref="T:Business.RequestHandlers.Interfaces.IModuleServiceManager" />
         </member>
-        <member name="M:Business.RequestHandlers.Managers.ModuleServiceManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.ModuleServiceManager},Business.RequestHandlers.Interfaces.IGitRepositoryManager,Microsoft.AspNetCore.Hosting.IWebHostEnvironment,Business.Configuration.DeviceGitConnectionOptions)">
+        <member name="M:Business.RequestHandlers.Managers.ModuleServiceManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.ModuleServiceManager},Business.RequestHandlers.Interfaces.IGitRepositoryManager,Business.Configuration.DeviceGitConnectionOptions)">
             <summary>
             Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.ModuleManager"/> class.
             </summary>
