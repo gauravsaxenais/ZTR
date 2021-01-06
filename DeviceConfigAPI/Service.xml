@@ -96,7 +96,7 @@
             <summary>
             Initializes a new instance of the <see cref="T:Service.Controllers.CompatibleFirmwareVersionController"/> class.
             </summary>
-            <param name="manager">interface of the 'backend' manager which does all the work.</param>
+            <param name="manager">interface of the 'backend' _manager which does all the work.</param>
         </member>
         <member name="M:Service.Controllers.CompatibleFirmwareVersionController.GetCompatibleFirmwareVersions(Business.Models.CompatibleFirmwareVersionReadModel)">
             <summary>
@@ -112,7 +112,7 @@
             <summary>
             Initializes a new instance of the <see cref="T:Service.Controllers.ConfigController"/> class.
             </summary>
-            <param name="manager">The manager.</param>
+            <param name="manager">The _manager.</param>
         </member>
         <member name="M:Service.Controllers.ConfigController.CreateTomlConfig(Business.Parsers.Core.Models.ConfigReadModel)">
             <summary>Creates the toml configuration.</summary>
@@ -132,7 +132,7 @@
             <summary>
             Initializes a new instance of the <see cref="T:Service.Controllers.ConfigCreateFromController"/> class.
             </summary>
-            <param name="manager">interface of the 'backend' manager which does all the work.</param>
+            <param name="manager">interface of the 'backend' _manager which does all the work.</param>
         </member>
         <member name="M:Service.Controllers.ConfigCreateFromController.GetConfigTomlValues(Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
@@ -172,7 +172,7 @@
             <summary>
             Initializes a new instance of the <see cref="T:Service.Controllers.DeviceTypeController"/> class.
             </summary>
-            <param name="manager">The manager.</param>
+            <param name="manager">The _manager.</param>
         </member>
         <member name="M:Service.Controllers.DeviceTypeController.GetAllDevices">
             <summary>
@@ -197,7 +197,7 @@
             <summary>
             Initializes a new instance of the <see cref="T:Service.Controllers.ModuleController"/> class.
             </summary>
-            <param name="manager">The manager.</param>
+            <param name="manager">The _manager.</param>
         </member>
         <member name="M:Service.Controllers.ModuleController.GetAllModules(System.String,System.String)">
             <summary>
