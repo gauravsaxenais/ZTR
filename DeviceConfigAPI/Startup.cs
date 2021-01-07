@@ -75,8 +75,6 @@
                 app.UseHttpsRedirection();
             }
 
-            app.UseStaticFiles();
-            
             // Use routing first, then Cors second.
             app.UseRouting();
             app.AddAppCustomBuild();
