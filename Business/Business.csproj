@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Business.GitRepository\Business.GitRepository.csproj" />
     <ProjectReference Include="..\Business.Parsers\Business.Parsers.csproj" />
   </ItemGroup>
 

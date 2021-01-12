@@ -1,7 +1,8 @@
-﻿namespace Business.RequestHandlers.Interfaces
+﻿namespace Business.GitRepository.Interfaces
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using ZTR.Framework.Business;
     using ZTR.Framework.Business.File;
 
     /// <summary>

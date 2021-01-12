@@ -1,4 +1,4 @@
-﻿namespace Business.RequestHandlers.Managers
+﻿namespace Business.GitRepository.Managers
 {
     using EnsureThat;
     using Interfaces;
@@ -9,6 +9,7 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using ZTR.Framework.Business;
     using ZTR.Framework.Business.File;
     using ZTR.Framework.Business.File.FileReaders;
     using ZTR.Framework.Business.Models;
@@ -28,16 +29,15 @@
         private const string GitFolder = ".git";
         private const string TextMimeType = "text/plain";
         private Repository _repository;
+
         #endregion
 
-        #region Constructors        
+        #region Constructors
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GitRepositoryManager"/> class.
-        /// </summary>
         public GitRepositoryManager()
         {
         }
+
         #endregion
 
         #region Public methods
@@ -50,7 +50,7 @@
         {
             EnsureArg.IsNotNull(gitConnection);
             EnsureArg.IsNotEmptyOrWhiteSpace(gitConnection.GitLocalFolder);
-            EnsureArg.IsNotEmptyOrWhiteSpace(gitConnection.GitRepositoryUrl);
+            EnsureArg.IsNotEmptyOrWhiteSpace(gitConnection.GitRemoteLocation);
 
             _gitConnection = gitConnection;
 
@@ -61,6 +61,8 @@
             _cloneOptions = new CloneOptions() { CredentialsProvider = credentialsProvider };
             _cloneOptions.CertificateCheck += (certificate, valid, host) => true;
         }
+
+        public bool IsValidRepo => Repository.IsValid(_gitConnection.GitLocalFolder);
 
         /// <summary>
         /// Clones the repository asynchronous.
@@ -76,6 +78,7 @@
         {
             try
             {
+                var name = GetProjectNameFromDirectory(_gitConnection.GitRemoteLocation);
                 if (IsExistsContentRepositoryDirectory())
                 {
                     DeleteReadOnlyDirectory(_gitConnection.GitLocalFolder);
@@ -85,7 +88,7 @@
 
                 await Task.Run(() =>
                 {
-                    Repository.Clone(_gitConnection.GitRepositoryUrl, _gitConnection.GitLocalFolder, _cloneOptions);
+                    Repository.Clone(_gitConnection.GitRemoteLocation, _gitConnection.GitLocalFolder, _cloneOptions);
                 });
 
                 _repository = new Repository(_gitConnection.GitLocalFolder);
@@ -135,7 +138,7 @@
                 throw new CustomArgumentException($"Unable to get tags earlier than {tagName} from git repo.", ex);
             }
         }
-
+        
         /// <summary>
         /// This method returns a file data as string from a particular tag.
         /// If a tag is "1.0.7", then the method returns data from all the files
@@ -159,27 +162,28 @@
                 }
 
                 _repository = new Repository(_gitConnection.GitLocalFolder);
-                var tagsPerPeeledCommitId = TagsPerPeeledCommitId(_repository.Tags);
+
+                var repoTag = _repository.Tags.FirstOrDefault(item => item.FriendlyName == tag);
+
+                var commitForTag = GetAllCommitsForTag(repoTag);
 
                 // Let's enumerate all the reachable commits (similarly to `git log --all`)
                 foreach (var commit in _repository.Commits.QueryBy(new CommitFilter
-                    {IncludeReachableFrom = _repository.Refs}))
+                { IncludeReachableFrom = _repository.Refs }))
                 {
-                    foreach (var tags in AssignedTags(commit, tagsPerPeeledCommitId))
+                    if (commit.Id == commitForTag)
                     {
-                        if (tags.FriendlyName == tag)
-                        {
-                            GetContentOfFiles(_repository, commit.Tree, listOfContentFiles);
+                        GetContentOfFiles(_repository, commit.Tree, listOfContentFiles);
 
-                            // case insensitive search.
-                            listOfContentFiles = listOfContentFiles.Where(p =>
-                                p.FileName?.IndexOf(fileName, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
-                        }
+                        // case insensitive search.
+                        listOfContentFiles = listOfContentFiles.Where(p =>
+                            p.FileName?.IndexOf(fileName, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
                     }
                 }
 
                 return listOfContentFiles;
             }
+
             catch (LibGit2SharpException exception)
             {
                 throw new CustomArgumentException($"Unable to get file for a particular {tag} from git repo.", exception);
@@ -198,7 +202,14 @@
 
         #region Private methods
 
-        private void GetContentOfFiles(IRepository repo, Tree tree, ICollection<ExportFileResultModel> contentFromFiles)
+        private string GetProjectNameFromDirectory(string directory)
+        {
+            var separators = new[] { '/', '\\', '.' };
+            return directory.Split(separators, StringSplitOptions.RemoveEmptyEntries)
+                .LastOrDefault(c => c != "git");
+        }
+
+        private void GetContentOfFiles(LibGit2Sharp.IRepository repo, Tree tree, ICollection<ExportFileResultModel> contentFromFiles)
         {
             foreach (var treeEntry in tree)
             {
@@ -279,40 +290,20 @@
             return content;
         }
 
-        private static IEnumerable<Tag> AssignedTags(Commit commit, Dictionary<ObjectId, List<Tag>> tags)
+        private ObjectId GetAllCommitsForTag(Tag tag)
         {
-            return !tags.ContainsKey(commit.Id) ? Enumerable.Empty<Tag>() : tags[commit.Id];
-        }
+            EnsureArg.IsNotNull(tag);
+            var peeledTarget = tag.PeeledTarget;
 
-        private Dictionary<ObjectId, List<Tag>> TagsPerPeeledCommitId(IEnumerable<Tag> listOfTags)
-        {
-            var tagsPerPeeledCommitId = new Dictionary<ObjectId, List<Tag>>();
-
-            if (listOfTags != null)
+            if (peeledTarget is Commit)
             {
-                foreach (var tag in listOfTags)
-                {
-                    var peeledTarget = tag.PeeledTarget;
+                // We're not interested by Tags pointing at Blobs or Trees
+                var commitId = peeledTarget.Id;
 
-                    if (!(peeledTarget is Commit))
-                    {
-                        // We're not interested by Tags pointing at Blobs or Trees
-                        continue;
-                    }
-
-                    ObjectId commitId = peeledTarget.Id;
-
-                    if (!tagsPerPeeledCommitId.ContainsKey(commitId))
-                    {
-                        // A Commit may be pointed at by more than one Tag
-                        tagsPerPeeledCommitId.Add(commitId, new List<Tag>());
-                    }
-
-                    tagsPerPeeledCommitId[commitId].Add(tag);
-                }
+                return commitId;
             }
 
-            return tagsPerPeeledCommitId;
+            return null;
         }
 
         /// <summary>
