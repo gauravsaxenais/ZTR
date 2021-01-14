@@ -36,11 +36,10 @@
         /// Gets the custom messages.
         /// </summary>
         /// <param name="protoFilePath">The proto file path.</param>
-        /// <param name="moduleName"></param>
         /// <returns>
         /// custom message containing the proto parsed message
         /// </returns>
-        public async Task<CustomMessage> GetCustomMessage(string protoFilePath, string moduleName)
+        public async Task<CustomMessage> GetCustomMessage(string protoFilePath)
         {
             var fileName = Path.GetFileName(protoFilePath);
 
@@ -52,11 +51,7 @@
 
                 var result = await GetProtoParsedMessage(fileName, protoDirectory).ConfigureAwait(false);
 
-                if (result != null)
-                {
-                    result.Name = moduleName;
-                    return result;
-                }
+                return result;
             }
 
             return null;
@@ -72,8 +67,11 @@
 
             try
             {
+                protoFilePath = FileReaderExtensions.CombinePathFromAppRoot(protoFilePath);
+
                 // try to use protoc
-                outputFolder = await GenerateCSharpFileAsync(protoFileName, protoFilePath, args).ConfigureAwait(false);
+                outputFolder = GenerateCSharpFile(protoFileName, protoFilePath, args);
+                
                 outputFolder = FileReaderExtensions.NormalizeFolderPath(outputFolder);
 
                 var dllPath = await GenerateDllFromCsFileAsync(protoFileName, outputFolder);
@@ -102,13 +100,16 @@
             }
         }
 
-        public async Task<string> GenerateCSharpFileAsync(string fileName, string protoFilePath, params string[] args)
+        public string GenerateCSharpFile(string fileName, string protoFilePath, params string[] args)
         {
-            var tmpOutputFolder = Path.Combine($"{Global.WebRoot}tmp", Guid.NewGuid().ToString("n"));
+            string tmpOutputFolder;
+
+            tmpOutputFolder = Path.Combine($"{Global.WebRoot}tmp", Guid.NewGuid().ToString("n"));
             Directory.CreateDirectory(tmpOutputFolder);
 
-            var protocPath = GetProtoCompilerPath();
-            var inputs = $" --proto_path={protoFilePath} --csharp_out={tmpOutputFolder}  --error_format=gcc {fileName} {string.Join(" ", args)}";
+            string protocPath = GetProtoCompilerPath();
+            string tmpDescriptorFile = Path.Combine(tmpOutputFolder, fileName + ".desc");
+            string inputs = $" --descriptor_set_out={tmpDescriptorFile} --include_imports --proto_path={protoFilePath} --csharp_out={tmpOutputFolder}  --error_format=gcc {fileName} {string.Join(" ", args)}";
 
             var psi = new ProcessStartInfo(
                 protocPath,
@@ -121,30 +122,30 @@
                 UseShellExecute = false
             };
 
+            psi.CreateNoWindow = true;
+            psi.WindowStyle = ProcessWindowStyle.Hidden;
+            psi.WorkingDirectory = Global.WebRoot;
+            psi.UseShellExecute = false;
             psi.RedirectStandardOutput = psi.RedirectStandardError = true;
 
             _logger.LogInformation("Starting Proto compiler");
             _logger.LogInformation(inputs);
+            var proc = Process.Start(psi);
 
-            using Process proc = Process.Start(psi);
-            Thread errThread = new Thread(DumpStream(proc.StandardError));
-            Thread outThread = new Thread(DumpStream(proc.StandardOutput));
-            errThread.Name = "stderr reader";
-            outThread.Name = "stdout reader";
-            errThread.Start();
-            outThread.Start();
+            var result = proc.StandardOutput.ReadToEnd();
+            result += " " + proc.StandardError.ReadToEnd();
             proc.WaitForExit();
-            outThread.Join();
-            errThread.Join();
+
+            _logger.LogInformation(result);
 
             if (proc.ExitCode != 0)
             {
                 if (HasByteOrderMark(fileName))
                 {
-                    _logger.LogCritical("The input file should be UTF8 without a byte-order-mark (in Visual Studio use \"File\" -> \"Advanced Save Options...\" to rectify)");
+                    //stderr.WriteLine("The input file should be UTF8 without a byte-order-mark (in Visual Studio use \"File\" -> \"Advanced Save Options...\" to rectify)");
                 }
 
-                throw new ApplicationException("There is an issue in parsing proto file." + fileName);
+                throw new ApplicationException("Protoc in linux error" + fileName);
             }
 
             return tmpOutputFolder;
