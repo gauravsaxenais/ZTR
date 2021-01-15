@@ -12,6 +12,7 @@
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
     using ZTR.Framework.Business.File.FileReaders;
+    using System.Diagnostics;
 
     /// <summary>
     /// This class returns all the modules, their name and uuid information.
@@ -89,35 +90,23 @@
         /// </summary>
         /// <param name="defaultValueFromTomlFile">The default value from toml file.</param>
         /// <param name="listOfModules">The list of modules.</param>
-        //public async Task MergeValuesWithModulesAsync(string defaultValueFromTomlFile, IEnumerable<ModuleReadModel> listOfModules)
-        //{
-        //    var degreeOfParallelism = 10;
-        //    _logger.LogInformation($"{Prefix}: method name: {nameof(MergeValuesWithModulesAsync)} Merging default values with list of modules in parallel...");
-
-        //    await Task.WhenAll(
-        //        from partition in Partitioner.Create(listOfModules).GetPartitions(degreeOfParallelism)
-        //        select Task.Run(async delegate
-        //        {
-        //            using (partition)
-        //                while (partition.MoveNext())
-        //                    await MergeDefaultValuesWithModuleAsync(defaultValueFromTomlFile, partition.Current);
-        //        }));
-        //}
-
         public async Task MergeValuesWithModulesAsync(string defaultValueFromTomlFile, IEnumerable<ModuleReadModel> listOfModules)
         {
             _logger.LogInformation($"{Prefix}: method name: {nameof(MergeValuesWithModulesAsync)} Merging default values with list of modules in parallel...");
 
-            var listOfRequests = new List<Task>();
-
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             var moduleReadModels = listOfModules.ToList();
             for (var index = 0; index < moduleReadModels.Count(); index ++)
             {
-                listOfRequests.Add(MergeDefaultValuesWithModuleAsync(defaultValueFromTomlFile, moduleReadModels.ElementAt(index)));
+                await MergeDefaultValuesWithModuleAsync(defaultValueFromTomlFile, moduleReadModels.ElementAt(index));
             }
 
-            // This will run all the calls in parallel to gain some performance
-            await Task.WhenAll(listOfRequests).ConfigureAwait(false);
+            stopWatch.Stop();
+
+            var elapsed = stopWatch.Elapsed;
+            _logger.LogInformation(
+                $"{Prefix}: method name: {nameof(MergeValuesWithModulesAsync)} Total time taken for all modules: {elapsed:m\\:ss\\.ff}");
         }
 
         private async Task MergeDefaultValuesWithModuleAsync(string defaultValueFromTomlFile, ModuleReadModel module)
@@ -131,7 +120,7 @@
             _logger.LogInformation($"{Prefix}: method name: {nameof(MergeDefaultValuesWithModuleAsync)} Retrieved proto file for {module.Name}");
             if (!string.IsNullOrWhiteSpace(protoFilePath))
             {
-                // get protoparsed messages from the proto files.
+                // get proto parsed messages from the proto files.
                 var message = await _protoParser.GetCustomMessage(protoFilePath).ConfigureAwait(false);
 
                 var formattedMessage = _customMessageParser.Format(message.Message);
