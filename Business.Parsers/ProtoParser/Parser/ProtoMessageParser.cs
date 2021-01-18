@@ -58,7 +58,7 @@
                 protoFilePath = FileReaderExtensions.CombinePathFromAppRoot(protoFilePath);
 
                 _logger.LogInformation($"Inside method: {nameof(GetProtoParsedMessage)}. Creating temp directory for protofilePath = {protoFilePath}.");
-                outputFolder = Path.Combine($"{Global.WebRoot}tmp", Guid.NewGuid().ToString("n"));
+                outputFolder = Path.Combine($"{Global.WebRoot}Temp", Guid.NewGuid().ToString("n"));
                 outputFolder = FileReaderExtensions.NormalizeFolderPath(outputFolder);
 
                 Directory.CreateDirectory(outputFolder);

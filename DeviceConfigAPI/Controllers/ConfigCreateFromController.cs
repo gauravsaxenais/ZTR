@@ -15,7 +15,7 @@
 
     /// <summary>
     /// This service returns all the modules and their default values.
-    /// If any module doesnt have any default values, then
+    /// If any module doesn't have any default values, then
     /// only the attributes are returned.
     /// </summary>
     /// <seealso cref="ControllerBase" />

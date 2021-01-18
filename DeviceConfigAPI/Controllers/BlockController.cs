@@ -2,6 +2,7 @@
 {
     using Business.RequestHandlers.Interfaces;
     using EnsureThat;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using System;
@@ -38,6 +39,9 @@
         ///   list of blocks.
         /// </returns>
         [HttpGet(nameof(GetAllBlocks))]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllBlocks()
         {
             ApiResponse apiResponse;

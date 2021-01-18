@@ -20,6 +20,6 @@
         /// Gets the list of blocks asynchronous.
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<BlockJsonModel>> GetListOfBlocksAsync();
+        Task<List<BlockJsonModel>> GetListOfBlocksAsync();
     }
 }

@@ -71,6 +71,7 @@
             await _defaultValueManager.MergeValuesWithModulesAsync(configTomlFileContent, modules).ConfigureAwait(false);
 
             var blocks = await _blockManager.GetListOfBlocksAsync().ConfigureAwait(false);
+            
             return (modules, blocks);
         }
 
