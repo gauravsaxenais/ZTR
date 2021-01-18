@@ -32,7 +32,7 @@
         /// </returns>
         public override string ToString()
         {
-            return $"BlockReadModel(Arguments: {string.Join(",", this.Arguments.Select(p => p.ToString()))})";
+            return $"BlockReadModel(Arguments: {string.Join(",", Arguments.Select(p => p.ToString()))})";
         }
     }
 }

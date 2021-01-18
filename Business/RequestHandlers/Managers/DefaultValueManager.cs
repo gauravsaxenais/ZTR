@@ -102,7 +102,8 @@
 
             for (var index = 0; index < moduleReadModels.Count(); index++)
             {
-                modulesTasks.Add(MergeDefaultValuesWithModuleAsync(defaultValueFromTomlFile, moduleReadModels.ElementAt(index)));
+                if(moduleReadModels.ElementAt(index).Name == "io")
+                    modulesTasks.Add(MergeDefaultValuesWithModuleAsync(defaultValueFromTomlFile, moduleReadModels.ElementAt(index)));
             }
 
             await Task.WhenAll(modulesTasks);

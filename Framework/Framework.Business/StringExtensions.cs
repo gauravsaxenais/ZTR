@@ -9,14 +9,14 @@
 
     public static class StringExtensions
     {
-        private static readonly object _balanceLock = new object();
+        private static readonly object BalanceLock = new();
 
         public static string ToGuidValue(this string source)
         {
             byte[] hashedBytes;
             EnsureArg.IsNotNullOrWhiteSpace(source, nameof(source));
 
-            lock (_balanceLock)
+            lock (BalanceLock)
             {
                 using var hasher = new MD5CryptoServiceProvider();
                 var inputBytes = Encoding.ASCII.GetBytes(source);
@@ -90,6 +90,13 @@
             {
                 return false;
             }
+        }
+
+        public static string GetFirstFromSplit(this string input, char delimiter)
+        {
+            var index = input.IndexOf(delimiter);
+
+            return index == -1 ? input : input.Substring(0, index);
         }
     }
 }

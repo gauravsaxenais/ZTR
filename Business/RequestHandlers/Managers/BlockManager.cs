@@ -28,7 +28,7 @@
         #endregion
 
         #region Constructors     
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BlockManager"/> class.
         /// </summary>
@@ -53,27 +53,27 @@
         public async Task<object> GetBlocksAsObjectAsync()
         {
             _logger.LogInformation($"{Prefix}: methodName: {nameof(GetBlocksAsObjectAsync)} Getting list of blocks.");
-            var blocks = await GetListOfBlocksAsync().ConfigureAwait(false);
+            var (blocks, modules) = await BatchProcessBlockFilesAsync().ConfigureAwait(false);
 
-            return new {blocks};
+            return new { blocks, modules };
         }
 
         /// <summary>
         /// Gets the list of blocks asynchronous.
         /// </summary>
         /// <returns></returns>
-        public async Task<IEnumerable<BlockJsonModel>> GetListOfBlocksAsync()
+        public async Task<List<BlockJsonModel>> GetListOfBlocksAsync()
         {
-            var filesInDirectory = await _blockServiceManager.GetAllBlockFilesAsync().ConfigureAwait(false);
+            // using discard _ for modules.
+            var (blocks, _) = await BatchProcessBlockFilesAsync().ConfigureAwait(false);
 
-            var data = await BatchProcessBlockFilesAsync(filesInDirectory).ConfigureAwait(false);
-            
-            return data.ToList();
+            return blocks;
         }
 
-        private async Task<List<BlockJsonModel>> ProcessBlockFileAsync(IEnumerable<FileInfo> filesInDirectory)
+        private async Task<(List<BlockJsonModel> blocks, List<string> modules)> ProcessBlockFileAsync(IEnumerable<FileInfo> filesInDirectory)
         {
             var blocks = new List<BlockJsonModel>();
+            var modules = new List<string>();
             var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettings();
 
             var inDirectory = filesInDirectory as FileInfo[] ?? filesInDirectory.ToArray();
@@ -81,34 +81,28 @@
             {
                 var content = await File.ReadAllTextAsync(inDirectory.ElementAt(lIndex).FullName);
 
-                var arguments = Toml.ReadString<BlockReadModel>(content, tomlSettings);
+                var blockReadModel = Toml.ReadString<BlockReadModel>(content, tomlSettings);
                 var name = Path.GetFileNameWithoutExtension(inDirectory.ElementAt(lIndex).Name);
 
-                if (arguments?.Arguments != null && arguments.Arguments.Any())
-                {
-                    var args = arguments.Arguments.Select((data, index) => new NetworkArgumentReadModel
-                    {
-                        Id = index + 1,
-                        Name = data.Name,
-                        Label = data.Label,
-                        Description = data.Description,
-                        DataType = data.DataType,
-                        Min = data.Min,
-                        Max = data.Max
-                    }).ToList();
+                var blocksTask = GetBlocksAsync(blockReadModel, name);
+                var modulesTask = GetModulesAsync(blockReadModel);
 
-                    var jsonModel = new BlockJsonModel() { Type = name, Tag = string.Empty, Args = args };
-                    blocks.Add(jsonModel);
-                }
+                await Task.WhenAll(blocksTask, modulesTask);
+
+                blocks.AddRange(blocksTask.Result);
+                modules.AddRange(modulesTask.Result);
             }
 
-            return blocks;
+            return (blocks, modules);
         }
 
-        private async Task<IEnumerable<BlockJsonModel>> BatchProcessBlockFilesAsync(IEnumerable<FileInfo> models)
+        private async Task<(List<BlockJsonModel> blocks, List<string> modules)> BatchProcessBlockFilesAsync()
         {
             var batchSize = 4;
-            var listOfRequests = new List<Task<List<BlockJsonModel>>>();
+
+            var models
+                = await _blockServiceManager.GetAllBlockFilesAsync().ConfigureAwait(false);
+            var listOfRequests = new List<Task<(List<BlockJsonModel> blocks, List<string> modules)>>();
 
             var fileModels = models.ToList();
             for (var skip = 0; skip <= fileModels.Count(); skip += batchSize)
@@ -120,17 +114,62 @@
             // This will run all the calls in parallel to gain some performance
             var allFinishedTasks = await Task.WhenAll(listOfRequests).ConfigureAwait(false);
 
-            var data = allFinishedTasks.SelectMany(x => x);
+            var blocks = allFinishedTasks.SelectMany(x => x.blocks).ToList();
 
-            // fix the indexes
-            var blockFiles = data.ToList();
-            
-            FixIndex(blockFiles);
+            // remove duplicates.
+            var modules = new HashSet<string>(allFinishedTasks.SelectMany(x => x.modules)).ToList();
 
-            return blockFiles;
+            FixIndex(blocks);
+
+            return (blocks, modules);
         }
 
-        private void FixIndex(IReadOnlyList<BlockJsonModel> listOfData)
+        /// <summary>
+        /// Gets the modules for blocks async.
+        /// </summary>
+        /// <returns>list of modules</returns>
+        private async Task<IEnumerable<string>> GetModulesAsync(BlockReadModel blockReadModel)
+        {
+            var modules = new List<string>();
+            const char delimiter = '.';
+
+            if (blockReadModel?.Lines != null && blockReadModel.Lines.Any())
+            {
+                var data = blockReadModel.Lines.SelectMany(x => x).Where(x => !string.IsNullOrWhiteSpace(x));
+
+                modules.AddRange(data.Select(item => item.GetFirstFromSplit(delimiter))
+                    .Select(firstItem => firstItem.Any(char.IsWhiteSpace)
+                        ? firstItem.Substring(firstItem.IndexOf(' ') + 1)
+                        : firstItem));
+            }
+
+            return await Task.FromResult(modules);
+        }
+
+        private async Task<IEnumerable<BlockJsonModel>> GetBlocksAsync(BlockReadModel blockReadModel, string name)
+        {
+            var blocks = new List<BlockJsonModel>();
+            if (blockReadModel?.Arguments != null && blockReadModel.Arguments.Any())
+            {
+                var args = blockReadModel.Arguments.Select((data, index) => new NetworkArgumentReadModel
+                {
+                    Id = index,
+                    Name = data.Name,
+                    Label = data.Label,
+                    Description = data.Description,
+                    DataType = data.DataType,
+                    Min = data.Min,
+                    Max = data.Max
+                }).ToList();
+
+                var jsonModel = new BlockJsonModel() { Type = name, Tag = string.Empty, Args = args };
+                blocks.Add(jsonModel);
+            }
+
+            return await Task.FromResult(blocks);
+        }
+
+        private static void FixIndex(IReadOnlyList<BlockJsonModel> listOfData)
         {
             for (var index = 0; index < listOfData.Count(); index++)
             {

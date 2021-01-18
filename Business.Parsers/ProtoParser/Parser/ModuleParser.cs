@@ -99,7 +99,7 @@
                 var tempJsonModel = new JsonField
                 {
                     Name = message.Name,
-                    IsVisible = false,
+                    IsVisible = true,
                     DataType = "array"
                 };
 

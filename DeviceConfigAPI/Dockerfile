@@ -1,8 +1,6 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS base
-
-
 RUN apt-get update && apt-get install -y git make autoconf automake libtool unzip
 
 # Update and install required dependencies
@@ -22,7 +20,7 @@ RUN git clone https://github.com/google/protobuf.git && \
     rm -r protobuf
 
 WORKDIR /app
-EXPOSE 80
+EXPOSE 1001
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
@@ -45,4 +43,5 @@ RUN dotnet publish "Service.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
 ENTRYPOINT ["dotnet", "Service.dll"]

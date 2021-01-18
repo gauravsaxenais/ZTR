@@ -12,6 +12,7 @@ rm:datatype
 rm:defaultvalue
 rm:configured
 rm:iconurl
+rm:duplicate
 rule:args:object
 rule:config:object
 rule:isvisible:omit:false

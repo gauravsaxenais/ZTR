@@ -874,6 +874,12 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:Business.RequestHandlers.Managers.BlockManager.GetModulesAsync(Business.Models.BlockReadModel)">
+            <summary>
+            Gets the modules for blocks async.
+            </summary>
+            <returns>list of modules</returns>
+        </member>
         <member name="T:Business.RequestHandlers.Managers.CompatibleFirmwareVersionManager">
             <summary>
             This manager takes input of firmware version
