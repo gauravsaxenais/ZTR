@@ -1,9 +1,13 @@
 ﻿namespace ZTR.Framework.Business.File
 {
+    /// <summary>
+    /// ExportFileResultModel
+    /// </summary>
     public class ExportFileResultModel
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ExportFileResultModel"/> class.
+        /// Empty constructor for serialization.
         /// </summary>
         public ExportFileResultModel()
         {

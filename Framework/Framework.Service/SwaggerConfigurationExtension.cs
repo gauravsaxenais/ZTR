@@ -10,6 +10,9 @@
     using Security;
     using Swashbuckle.AspNetCore.SwaggerUI;
 
+    /// <summary>
+    /// SwaggerConfigurationExtension
+    /// </summary>
     public static class SwaggerConfigurationExtension
     {
         /// <summary>

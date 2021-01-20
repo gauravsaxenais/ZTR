@@ -6,6 +6,10 @@
     using Microsoft.OpenApi.Models;
     using Swashbuckle.AspNetCore.SwaggerGen;
 
+    /// <summary>
+    /// FileUploadOperationFilter
+    /// </summary>
+    /// <seealso cref="Swashbuckle.AspNetCore.SwaggerGen.IOperationFilter" />
     public class FileUploadOperationFilter : IOperationFilter
     {
         /// <summary>

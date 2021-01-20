@@ -1,5 +1,8 @@
 ﻿namespace ZTR.Framework.Service
 {
+    /// <summary>
+    /// SwaggerConfigurationModel
+    /// </summary>
     public class SwaggerConfigurationModel
     {
         /// <summary>

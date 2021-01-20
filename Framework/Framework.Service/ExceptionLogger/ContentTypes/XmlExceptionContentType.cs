@@ -5,6 +5,10 @@
     using Microsoft.AspNetCore.Mvc;
     using Service;
 
+    /// <summary>
+    /// XmlExceptionContentType
+    /// </summary>
+    /// <seealso cref="ZTR.Framework.Service.ExceptionLogger.ContentTypes.AbstractExceptionContentType" />
     public class XmlExceptionContentType : AbstractExceptionContentType
     {
         /// <summary>

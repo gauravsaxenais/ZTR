@@ -3,6 +3,9 @@
     using System;
     using System.Net.Http;
 
+    /// <summary>
+    /// HttpClientExtension
+    /// </summary>
     public static class HttpClientExtension
     {
         /// <summary>

@@ -2,6 +2,10 @@
 {
     using Microsoft.AspNetCore.Mvc;
 
+    /// <summary>
+    /// QueryRouteAttribute
+    /// </summary>
+    /// <seealso cref="Microsoft.AspNetCore.Mvc.RouteAttribute" />
     public sealed class QueryRouteAttribute : RouteAttribute
     {
         private const string TemplateBase = "api/query/";

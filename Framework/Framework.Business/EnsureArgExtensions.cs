@@ -4,6 +4,9 @@
     using System.Linq;
     using EnsureThat;
 
+    /// <summary>
+    /// Extension class for EnsureArg.
+    /// </summary>
     public static class EnsureArgExtensions
     {
         /// <summary>

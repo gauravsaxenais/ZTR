@@ -8,9 +8,21 @@
     /// </summary>
     public enum TrimInputMode
     {
+        /// <summary>
+        /// The no trim
+        /// </summary>
         NoTrim,
+        /// <summary>
+        /// The trim
+        /// </summary>
         Trim,
+        /// <summary>
+        /// The trim start
+        /// </summary>
         TrimStart,
+        /// <summary>
+        /// The trim end
+        /// </summary>
         TrimEnd
     }
 
@@ -58,8 +70,7 @@
                 {
                     foreach (Attribute attribute in property.GetCustomAttributes(true))
                     {
-                        var stringLayoutAttribute = attribute as StringLayoutAttribute;
-                        if (stringLayoutAttribute != null)
+                        if (attribute is StringLayoutAttribute stringLayoutAttribute)
                         {
                             string tmp = string.Empty;
                             if (stringLayoutAttribute.StartPosition <= input.Length - 1)
@@ -102,8 +113,7 @@
             {
                 foreach (Attribute attribute in property.GetCustomAttributes(false))
                 {
-                    StringLayoutAttribute stringLayoutAttribute = attribute as StringLayoutAttribute;
-                    if (stringLayoutAttribute != null)
+                    if (attribute is StringLayoutAttribute stringLayoutAttribute)
                     {
                         string propertyValue = (string)property.GetValue(this, null);
                         if (stringLayoutAttribute.StartPosition > 0 && result.Length < stringLayoutAttribute.StartPosition)
@@ -121,7 +131,7 @@
 
                         if (result.Length > stringLayoutAttribute.EndPosition + 1)
                         {
-                            right = result.Substring(stringLayoutAttribute.EndPosition + 1);
+                            right = result[(stringLayoutAttribute.EndPosition + 1)..];
                         }
 
                         if (propertyValue.Length < stringLayoutAttribute.EndPosition - stringLayoutAttribute.StartPosition + 1)

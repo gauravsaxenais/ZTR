@@ -1,5 +1,8 @@
 ﻿namespace ZTR.Framework.Service.ExceptionLogger
 {
+    /// <summary>
+    /// ExceptionResponse
+    /// </summary>
     public class ExceptionResponse
     {
         /// <summary>

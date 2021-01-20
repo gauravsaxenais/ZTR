@@ -2,6 +2,11 @@
 {
     using System.Collections.Generic;
 
+    /// <summary>
+    /// GroupedItem
+    /// </summary>
+    /// <typeparam name="TItem">The type of the item.</typeparam>
+    /// <typeparam name="TKey">The type of the key.</typeparam>
     public sealed class GroupedItem<TItem, TKey>
     {
         /// <summary>

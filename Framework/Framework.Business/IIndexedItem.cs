@@ -1,5 +1,9 @@
 ﻿namespace ZTR.Framework.Business
 {
+    /// <summary>
+    /// IIndexedItem
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface IIndexedItem<out T>
     {
         /// <summary>

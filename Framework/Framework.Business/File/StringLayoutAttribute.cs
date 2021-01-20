@@ -2,6 +2,10 @@
 {
     using System;
 
+    /// <summary>
+    /// StringLayoutAttribute
+    /// </summary>
+    /// <seealso cref="System.Attribute" />
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
     public sealed class StringLayoutAttribute : Attribute
     {

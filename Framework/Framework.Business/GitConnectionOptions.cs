@@ -8,7 +8,9 @@
     /// <seealso cref="ZTR.Framework.Configuration.ConfigurationOptions" />
     public class GitConnectionOptions : ConfigurationOptions
     {
-        // for serialization
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GitConnectionOptions"/> class.
+        /// </summary>
         public GitConnectionOptions()
         {
         }

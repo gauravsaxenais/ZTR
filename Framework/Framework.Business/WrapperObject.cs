@@ -3,6 +3,11 @@
     using System.Collections;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// WrapperObject
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <seealso cref="System.Collections.Generic.IEnumerable{T}" />
     public class WrapperObject<T> : IEnumerable<T>
         where T : class
     {

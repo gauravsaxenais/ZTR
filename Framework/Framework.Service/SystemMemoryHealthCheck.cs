@@ -6,6 +6,10 @@
     using HealthCheckup;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
 
+    /// <summary>
+    /// SystemMemoryHealthCheck
+    /// </summary>
+    /// <seealso cref="IHealthCheck" />
     public class SystemMemoryHealthCheck : IHealthCheck
     {
         /// <summary>

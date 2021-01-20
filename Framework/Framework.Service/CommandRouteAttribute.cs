@@ -2,6 +2,10 @@
 {
     using Microsoft.AspNetCore.Mvc;
 
+    /// <summary>
+    /// CommandRouteAttribute
+    /// </summary>
+    /// <seealso cref="Microsoft.AspNetCore.Mvc.RouteAttribute" />
     public class CommandRouteAttribute : RouteAttribute
     {
         private const string TemplateBase = "api/command/";

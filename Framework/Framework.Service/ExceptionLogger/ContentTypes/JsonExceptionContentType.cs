@@ -4,6 +4,10 @@
     using Newtonsoft.Json;
     using Service;
 
+    /// <summary>
+    /// JsonExceptionContentType
+    /// </summary>
+    /// <seealso cref="ZTR.Framework.Service.ExceptionLogger.ContentTypes.AbstractExceptionContentType" />
     public class JsonExceptionContentType : AbstractExceptionContentType
     {
         /// <summary>

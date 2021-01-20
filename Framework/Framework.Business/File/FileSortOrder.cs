@@ -5,7 +5,14 @@
     /// </summary>
     public enum FileSortOrder
     {
+        /// <summary>
+        /// The filename ascending
+        /// </summary>
         FilenameAscending,
+
+        /// <summary>
+        /// The filename descending
+        /// </summary>
         FilenameDescending
     }
 }

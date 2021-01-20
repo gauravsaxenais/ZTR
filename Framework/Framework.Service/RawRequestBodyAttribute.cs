@@ -4,6 +4,10 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
 
+    /// <summary>
+    /// RawRequestBodyAttribute
+    /// </summary>
+    /// <seealso cref="Microsoft.AspNetCore.Mvc.ModelBinderAttribute" />
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class RawRequestBodyAttribute : ModelBinderAttribute
     {

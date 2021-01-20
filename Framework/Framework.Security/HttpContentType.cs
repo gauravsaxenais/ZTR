@@ -1,5 +1,8 @@
 ﻿namespace ZTR.Framework.Security
 {
+    /// <summary>
+    /// HttpContentType
+    /// </summary>
     public static class HttpContentType
     {
         /// <summary>

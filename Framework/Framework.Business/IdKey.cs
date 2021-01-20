@@ -1,5 +1,9 @@
 ﻿namespace ZTR.Framework.Business
 {
+    /// <summary>
+    /// IdKey
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public sealed class IdKey<T>
     {
         /// <summary>

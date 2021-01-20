@@ -1,5 +1,10 @@
 ﻿namespace ZTR.Framework.Business
 {
+    /// <summary>
+    /// IndexedItem
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <seealso cref="ZTR.Framework.Business.IIndexedItem{T}" />
     public sealed class IndexedItem<T> : IIndexedItem<T>
     {
         /// <summary>

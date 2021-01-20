@@ -2,6 +2,9 @@ namespace ZTR.Framework.Security
 {
     using System;
 
+    /// <summary>
+    /// SecurityExtensions
+    /// </summary>
     public static class SecurityExtensions
     {
         /// <summary>

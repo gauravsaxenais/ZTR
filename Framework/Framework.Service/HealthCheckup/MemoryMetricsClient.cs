@@ -4,6 +4,9 @@
     using System.Diagnostics;
     using System.Runtime.InteropServices;
 
+    /// <summary>
+    /// MemoryMetricsClient
+    /// </summary>
     public class MemoryMetricsClient
     {
         /// <summary>

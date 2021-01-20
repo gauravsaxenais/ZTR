@@ -1,6 +1,8 @@
 ﻿namespace ZTR.Framework.Business.Models
 {
-    // base class for all models.
+    /// <summary>
+    /// // base class for all models.
+    /// </summary>
     public abstract class Model : IModel
     {
     }

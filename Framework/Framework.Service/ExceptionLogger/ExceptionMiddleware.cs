@@ -7,6 +7,9 @@
     using Microsoft.Extensions.Logging;
     using ZTR.Framework.Business;
 
+    /// <summary>
+    /// ExceptionMiddleware
+    /// </summary>
     public class ExceptionMiddleware
     {
         private readonly RequestDelegate _requestDelegate;

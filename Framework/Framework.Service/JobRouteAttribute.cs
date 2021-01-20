@@ -2,6 +2,10 @@
 {
     using Microsoft.AspNetCore.Mvc;
 
+    /// <summary>
+    /// JobRouteAttribute
+    /// </summary>
+    /// <seealso cref="Microsoft.AspNetCore.Mvc.RouteAttribute" />
     public class JobRouteAttribute : RouteAttribute
     {
         private const string TemplateBase = "api/job/";

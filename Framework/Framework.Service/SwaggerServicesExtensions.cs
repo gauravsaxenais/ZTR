@@ -10,6 +10,9 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.OpenApi.Models;
 
+    /// <summary>
+    /// SwaggerServicesExtensions
+    /// </summary>
     public static class SwaggerServicesExtensions
     {
         private const string FileSchemaType = "file";

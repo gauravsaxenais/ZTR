@@ -8,6 +8,9 @@
     using System.Threading.Tasks;
     using EnsureThat;
 
+    /// <summary>
+    /// FileReaderExtensions class.
+    /// </summary>
     public static class FileReaderExtensions
     {
         private static readonly HashSet<char> InvalidCharacters = new HashSet<char>(Path.GetInvalidPathChars());
@@ -55,8 +58,8 @@
 
             if (!string.IsNullOrEmpty(loaderPath)
 
-                && loaderPath[loaderPath.Length - 1] != Path.DirectorySeparatorChar
-                && loaderPath[loaderPath.Length - 1] != Path.AltDirectorySeparatorChar)
+                && loaderPath[^1] != Path.DirectorySeparatorChar
+                && loaderPath[^1] != Path.AltDirectorySeparatorChar)
             {
                 loaderPath += Path.DirectorySeparatorChar;
             }
@@ -98,6 +101,13 @@
             return await reader.ReadToEndAsync().ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Reads all text asynchronous.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="folderPath">The folder path.</param>
+        /// <param name="encoding">The encoding.</param>
+        /// <returns></returns>
         public static async Task<string> ReadAllTextAsync(string fileName, string folderPath, Encoding encoding)
         {
             EnsureCorrectFileSystemPath(Path.Combine(folderPath + fileName));
@@ -106,6 +116,12 @@
             return await ReadAllTextAsync(safeFullPath, encoding);
         }
 
+        /// <summary>
+        /// Reads all text asynchronous.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="folderPath">The folder path.</param>
+        /// <returns></returns>
         public static async Task<string> ReadAllTextAsync(string fileName, string folderPath)
         {
             var safeFullPath = ToSafeFullPath(folderPath, fileName);
@@ -126,6 +142,14 @@
             return directoryNames;
         }
 
+        /// <summary>
+        /// Gets the sub directory path.
+        /// </summary>
+        /// <param name="parentFolder">The parent folder.</param>
+        /// <param name="folderNameToSearch">The folder name to search.</param>
+        /// <param name="searchPattern">The search pattern.</param>
+        /// <param name="searchOption">The search option.</param>
+        /// <returns></returns>
         public static string GetSubDirectoryPath(string parentFolder, string folderNameToSearch, string searchPattern = "*",
         SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
@@ -143,6 +167,11 @@
             return string.Empty;
         }
 
+        /// <summary>
+        /// Reads the contents asynchronous.
+        /// </summary>
+        /// <param name="fileInfo">The file information.</param>
+        /// <returns></returns>
         public static async Task<KeyValuePair<string, string>> ReadContentsAsync(FileInfo fileInfo)
         {
             var content = await File.ReadAllTextAsync(fileInfo.FullName);
@@ -151,6 +180,11 @@
             return new KeyValuePair<string, string>(name, content);
         }
 
+        /// <summary>
+        /// Reads the contents asynchronous.
+        /// </summary>
+        /// <param name="fileInfos">The file infos.</param>
+        /// <returns></returns>
         public static async Task<IDictionary<string, string>> ReadContentsAsync(IEnumerable<FileInfo> fileInfos)
         {
             IDictionary<string, string> listOfData = new Dictionary<string, string>();

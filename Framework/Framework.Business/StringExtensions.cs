@@ -7,6 +7,9 @@
     using System.Text.RegularExpressions;
     using EnsureThat;
 
+    /// <summary>
+    /// StringExtensions
+    /// </summary>
     public static class StringExtensions
     {
         private static readonly object BalanceLock = new object();

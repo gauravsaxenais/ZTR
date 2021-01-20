@@ -8,6 +8,9 @@
     using FluentValidation;
     using Microsoft.Extensions.DependencyInjection;
 
+    /// <summary>
+    /// ServiceCollectionExtensions
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>

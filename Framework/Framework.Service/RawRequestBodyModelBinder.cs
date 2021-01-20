@@ -4,6 +4,10 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
 
+    /// <summary>
+    /// RawRequestBodyModelBinder
+    /// </summary>
+    /// <seealso cref="Microsoft.AspNetCore.Mvc.ModelBinding.IModelBinder" />
     public class RawRequestBodyModelBinder : IModelBinder
     {
         /// <summary>

@@ -3,6 +3,9 @@
     using System;
     using System.Net.Http;
 
+    /// <summary>
+    /// HttpRequestMessageExtension
+    /// </summary>
     public static class HttpRequestMessageExtension
     {
         /// <summary>

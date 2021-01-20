@@ -3,6 +3,9 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
 
+    /// <summary>
+    /// ForceHttpsMiddleware
+    /// </summary>
     public class ForceHttpsMiddleware
     {
         private readonly RequestDelegate _next;

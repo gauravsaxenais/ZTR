@@ -2,6 +2,9 @@
 {
     using Microsoft.AspNetCore.Mvc;
 
+    /// <summary>
+    /// AbstractExceptionContentType
+    /// </summary>
     public abstract class AbstractExceptionContentType
     {
         /// <summary>
