@@ -167,7 +167,7 @@
                     Name = data.Name,
                     Label = data.Label,
                     Description = data.Description,
-                    DataType = data.DataType,
+                    Type = data.Type,
                     Min = data.Min,
                     Max = data.Max
                 }).ToList();
