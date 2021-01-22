@@ -1,7 +1,8 @@
 ﻿namespace Business.Models
 {
     using Newtonsoft.Json;
-    // name = "A_low", label = "12V Low", description = "12V min value.", datatype = "integer", min = "0", max = "200" },
+
+    // name = "A_low", label = "12V Low", description = "12V min value.", type = "integer", min = "0", max = "200" },
     /// <summary>
     ///   <br />
     /// </summary>
