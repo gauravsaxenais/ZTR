@@ -130,5 +130,15 @@
 
             return index == -1 ? input : input.Substring(0, index);
         }
+
+        public static int ToInt(this string input)
+        {
+            int val;
+            return int.TryParse(input, out val) ? val : 0; 
+        }
+        public static string CleanHTML(this string input)
+        {
+            return input.RemoveNewline().Replace("&nbsp;", "");
+        }
     }
 }

@@ -25,6 +25,7 @@
         private const string _skipConfigFile = "convertconfig.txt";
         private const string _htmlfile = "config.html";
         internal IEnumerable<ConfigConvertRuleReadModel> Rules { get; set; }
+        internal ConfigTag HTMLTags { get; set; }
 
         private string Path => $"{Global.WebRoot}/{_skipConfigFolder}/{_skipConfigFile}";
         private string HTMLPath => $"{Global.WebRoot}/{_skipConfigFolder}/{_htmlfile}";
@@ -52,8 +53,8 @@
             var tags = setting.Split(Environment.NewLine);
             Properties = tags.Where(o => o.StartsWith("rm:")).Select(o => o.Replace("rm:", string.Empty).RemoveNewline()).ToArray();
             JsonProperties = tags.Where(o => o.StartsWith("json:")).Select(o => MapConfig(o));
-            Rules = tags.Where(o => o.StartsWith("rule:")).Select(o => MapConfig(o));            
-
+            Rules = tags.Where(o => o.StartsWith("rule:")).Select(o => MapConfig(o));
+            HTMLTags = tags.Where(o => o.StartsWith("html:")).Select(o => new ConfigTag(o)).First();
             static ConfigConvertRuleReadModel MapConfig(string o)
             {
                 var ruleConfig = o.RemoveNewline().Split(':');

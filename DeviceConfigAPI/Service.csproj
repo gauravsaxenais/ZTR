@@ -76,6 +76,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="configsetting\config34.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="configsetting\config.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

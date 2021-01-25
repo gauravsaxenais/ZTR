@@ -1,16 +1,21 @@
-﻿using Newtonsoft.Json;
+﻿using Business.Parsers.Core.Models;
+using HtmlAgilityPack;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using ZTR.Framework.Business;
 
 namespace Business.Parsers.Core.Converter
 {
     public class HTMLConverter : IHTMLConverter
     {
         private readonly ConvertConfig _config;
-        private XDocument _document;
+        private const string _defaultKey = "root";
+        private HtmlDocument _document;
         private Tree _tree;
         public HTMLConverter(ConvertConfig config)
         {
@@ -19,49 +24,89 @@ namespace Business.Parsers.Core.Converter
         }
         public ITree ToConverted(string html)
         {
+            CleanToCompatible(ref html);
             ToDictionary(html);
             return _tree;
         }
+        
+        public string ToJson(string json)
+        {
+            return JsonConvert.SerializeObject(ToConverted(json));
+        }
+
+        #region Private members
         private void ToDictionary(string html)
         {
-            _document = XDocument.Parse(html);
-            foreach(var table in _document.Descendants("table"))
+            _document = new HtmlDocument();
+            _document.LoadHtml(html);
+            foreach (var h1 in _document.DocumentNode.Descendants("h1"))
             {
-                ToRoot(table);
+                ToRoot(h1);
             }
         }
-        private void ToRoot(XElement table)
-        {            
-            _tree.Add(GetValue(table, "h1"), ToObject(table));
-        }
-        private string GetValue(XElement table,string tag)
+        private void ToRoot(HtmlNode h1)
         {
-            var parent = table.Parent;
-            var key = "root";
-            while (parent != null)
+            var root = h1.InnerText;
+            var obj = ToObject(h1.NextSibling);
+            if (obj != null)
             {
-                var name = parent.Descendants(tag).FirstOrDefault();
-                if (name != null)
+                _tree.Add(root, obj);
+            }
+        }
+        private ConverterNode GetValue(HtmlNode node, string tag)
+        {
+            var result = new ConverterNode();
+            var sibling = node;
+            result.Key = string.Empty;
+            while (sibling != null && sibling.Name.ToLower() != "h1")
+            {
+                var name = sibling.Descendants(tag).FirstOrDefault();
+                if (sibling.Name.ToLower() == tag)
                 {
-                    if (name.Name.LocalName.ToLower() == tag)
-                    {
-                        key = name.Value;
-                        break;
-                    }
+                    result.Key = sibling.InnerText;
+                    result.SerialNode = sibling;
+                    result.TagNode = sibling;
+                    break;
                 }
-                parent = parent.Parent;
+                if (name != null && name.Name.ToLower() == tag)
+                {
+                    result.Key = name.InnerText;
+                    result.SerialNode = sibling;
+                    result.TagNode = name;
+                    break;
+                }
+
+                sibling = sibling.NextSibling;
             }
-            return key;
+            return result;
         }
-        private Tree ToObject(XElement table)
+        private Tree ToObject(HtmlNode node)
         {
+            ConverterNode pickerNode;
             Tree t = new Tree();
-            t.Add(GetValue(table, "h2"), ToData(table));
+            while (node != null && node.Name.ToLower() != "h1")
+            {
+                pickerNode = GetValue(node, "h2");
+                string key = pickerNode.Key;
+                if (string.IsNullOrEmpty(key))
+                {
+                    return null;
+                }
+                pickerNode = GetValue(pickerNode.SerialNode, "table");
+                var obj = ToData(pickerNode.TagNode);
+                if (obj != null)
+                {
+                    AddKeyValue(t, key, obj);
+                }
+
+                node = pickerNode.SerialNode.NextSibling;
+            }
             return t;
         }
-        private Tree ToData(XElement table)
+        private Tree[] ToData(HtmlNode table)
         {
-            Tree t = new Tree();
+            Tree t;
+            List<Tree> trees = new List<Tree>();
             Dictionary<int, string> keys = new Dictionary<int, string>();
             int start = 0;
             foreach (var tr in table.Descendants("tr"))
@@ -71,25 +116,64 @@ namespace Business.Parsers.Core.Converter
                     int key = 1;
                     foreach (var td in tr.Descendants("td"))
                     {
-                        keys.Add(key++, td.Value);
+                        if (td.Attributes.Any(o => o.Name.ToLower() == "colspan" && o.Value.ToInt() > 1))
+                        {
+                            start = 0;
+                            break;
+                        }
+                        keys.Add(key++, td.InnerText);
                     }
                 }
                 else
                 {
                     int key = 1;
+                    t = new Tree();
                     foreach (var td in tr.Descendants("td"))
                     {
-                        t.Add(keys[key++], td.Value);
+                        AddKeyValue(t, keys[key], td.InnerText.CleanHTML());
+                        key++;
                     }
-
+                    if (t.Count > 0)
+                    {
+                        trees.Add(t);
+                    }
                 }
             }
-            return t.Count > 0 ? t: null;
+            return trees.ToArray();
         }
-
-        public string ToJson(string json)
+        private void AddKeyValue(Tree dictionary, string key, object value)
         {
-            return JsonConvert.SerializeObject(ToConverted(json));
+            key = key.CleanHTML();
+            if (string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+            if (dictionary.Keys.Contains(key))
+            {
+                return;
+            }
+
+            dictionary.Add(key, value);
+
         }
+        private void CleanToCompatible(ref string html)
+        {
+            foreach (var o in _config.HTMLTags.Tags)
+            {
+                html = Regex.Replace(html, @$"(<{o}[^>]*>.*?</{o}>)", m =>
+                 string.Empty,
+                 RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            }
+
+            foreach (var o in _config.HTMLTags.Inline)
+            {
+                html = Regex.Replace(html, @$"(<{o}[^>]*>[^>]*>)", m =>
+                string.Empty,
+                RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+                html = html.Replace($"</{o}>", string.Empty);
+            }
+        }
+        #endregion private members
     }
 }
