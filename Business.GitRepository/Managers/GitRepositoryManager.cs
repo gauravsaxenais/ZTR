@@ -118,9 +118,7 @@
             try
             {
                 var tags = await GetAllTagsAsync().ConfigureAwait(false);
-
                 var tag = tags.FirstOrDefault(x => x.Item1 == tagName);
-
                 var tagNames = tags.Where(x => x.Item2 < tag.Item2).Select(x => x.Item1).ToList();
 
                 return tagNames;
@@ -190,11 +188,26 @@
             _repository?.Dispose();
         }
 
+        /// <summary>
+        /// This method checks whether a folder 
+        /// exists in a local directory
+        /// and if there is ".git" sub folder
+        /// within the same.
+        /// </summary>
+        /// <returns>
+        /// true: if a folder and ".git" folder is present.
+        /// false: if a folder and ".git" folder isn't present.
+        /// </returns>
+        public bool IsExistsContentRepositoryDirectory()
+        {
+            return Directory.Exists(_gitConnection.GitLocalFolder) && IsGitSubDirPresent(_gitConnection.GitLocalFolder);
+        }
+
         #endregion
 
         #region Private methods
 
-        private void GetContentOfFiles(LibGit2Sharp.IRepository repo, Tree tree, ICollection<ExportFileResultModel> contentFromFiles)
+        private void GetContentOfFiles(IRepository repo, Tree tree, ICollection<ExportFileResultModel> contentFromFiles)
         {
             foreach (var treeEntry in tree)
             {
@@ -217,14 +230,9 @@
         private async Task<List<(string, DateTimeOffset)>> GetAllTagsAsync()
         {
             var tags = new List<Tag>();
-            var tagNames = new List<(string, DateTimeOffset)>();
-
-            if (!IsExistsContentRepositoryDirectory())
-            {
-                await CloneRepositoryAsync().ConfigureAwait(false);
-            }
 
             _repository = new Repository(_gitConnection.GitLocalFolder);
+
             // Add new tags.
             foreach (var tag in _repository.Tags)
             {
@@ -236,27 +244,14 @@
                     // only interested in tags for a commit.
                     tags.Add(tag);
                 }
-
-                tagNames = SortTags(tags: tags, order: t => ((Commit)t.PeeledTarget).Author.When,
-                                        selector: t => (t.FriendlyName, ((Commit)t.PeeledTarget).Author.When));
             }
 
-            return tagNames;
-        }
+            var tagNames = tags.OrderByDescending(t => ((Commit)t.PeeledTarget).Author.When)
+                                                  .ThenByDescending(t => t.FriendlyName)
+                                                  .Select(t => (t.FriendlyName, ((Commit)t.PeeledTarget).Author.When))
+                                                  .ToList();
 
-        /// <summary>
-        /// Sorts the tags.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="tags">The tags.</param>
-        /// <param name="order">The order.</param>
-        /// <param name="selector">The selector.</param>
-        /// <param name="where">The where.</param>
-        /// <returns></returns>
-        private static List<T> SortTags<T>(IEnumerable<Tag> tags, Func<Tag, object> order, Func<Tag, T> selector, Func<Tag, bool> where = null)
-        {
-            return where == null ? tags.OrderByDescending(order).Select(selector).ToList() :
-                tags.Where(where).OrderByDescending(order).Select(selector).ToList();
+            return await Task.FromResult(tagNames);
         }
 
         private string GetBlobFromFile(TreeEntry treeEntry)
@@ -292,21 +287,6 @@
         }
 
         /// <summary>
-        /// This method checks whether a folder 
-        /// exists in a local directory
-        /// and if there is ".git" sub folder
-        /// within the same.
-        /// </summary>
-        /// <returns>
-        /// true: if a folder and ".git" folder is present.
-        /// false: if a folder and ".git" folder isn't present.
-        /// </returns>
-        private bool IsExistsContentRepositoryDirectory()
-        {
-            return Directory.Exists(_gitConnection.GitLocalFolder) && IsGitSubDirPresent(_gitConnection.GitLocalFolder);
-        }
-
-        /// <summary>
         /// Helper function to check whether the ".git" 
         /// folder exists in a repository folder.
         /// </summary>
@@ -326,17 +306,17 @@
             var directoryInfos = new Stack<DirectoryInfo>();
             var root = new DirectoryInfo(directory);
             directoryInfos.Push(root);
-            
+
             while (directoryInfos.Count > 0)
             {
                 var fol = directoryInfos.Pop();
                 fol.Attributes &= ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
-                
+
                 foreach (var d in fol.GetDirectories())
                 {
                     directoryInfos.Push(d);
                 }
-                
+
                 foreach (var f in fol.GetFiles())
                 {
                     f.Attributes &= ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
@@ -358,10 +338,10 @@
                 }
                 catch (DirectoryNotFoundException)
                 {
-                    return;  
+                    return;
                 }
                 catch (IOException)
-                { 
+                {
                     Thread.Sleep(10);
                     continue;
                 }
@@ -370,7 +350,7 @@
 
             throw new CustomArgumentException($"There is an issue accessing the git repository.");
         }
-        
+
         #endregion
     }
 }

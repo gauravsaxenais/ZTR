@@ -1,6 +1,7 @@
 ﻿namespace Business.RequestHandlers.Managers
 {
     using Business.Common.Models;
+    using Business.GitRepository.Interfaces;
     using EnsureThat;
     using Interfaces;
     using Microsoft.AspNetCore.Http;
@@ -25,22 +26,27 @@
         private readonly IDefaultValueManager _defaultValueManager;
         private readonly IBlockManager _blockManager;
         private readonly ILogger _logger;
+        private readonly IModuleServiceManager _moduleServiceManager;
+        private const string Prefix = nameof(ConfigCreateFromManager);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConfigCreateFromManager"/> class.
         /// </summary>
         /// <param name="logger">The logger.</param>
+        /// <param name="moduleServiceManager">The module service manager.</param>
         /// <param name="defaultValueManager">The default value manager.</param>
         /// <param name="blockManager">The block manager.</param>
-        public ConfigCreateFromManager(ILogger<DefaultValueManager> logger, IDefaultValueManager defaultValueManager, IBlockManager blockManager) : base(logger)
+        public ConfigCreateFromManager(ILogger<ConfigCreateFromManager> logger, IModuleServiceManager moduleServiceManager, IDefaultValueManager defaultValueManager, IBlockManager blockManager) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(defaultValueManager, nameof(defaultValueManager));
             EnsureArg.IsNotNull(blockManager, nameof(blockManager));
+            EnsureArg.IsNotNull(moduleServiceManager, nameof(moduleServiceManager));
 
             _blockManager = blockManager;
             _defaultValueManager = defaultValueManager;
             _logger = logger;
+            _moduleServiceManager = moduleServiceManager;
         }
 
         /// <summary>
@@ -54,28 +60,48 @@
             var prefix = nameof(ConfigCreateFromManager);
 
             _logger.LogInformation($"{prefix}: methodName: {nameof(GenerateConfigTomlModelAsync)} Getting list of modules and blocks from config.toml file.");
-
             var configTomlFileContent = ReadAsString(configTomlFile);
 
-            var (modules, blocks) = await GetModulesAndBlocksAsync(configTomlFileContent);
-
+            var modules = await GetModulesAsync(configTomlFileContent).ConfigureAwait(false);
+            var blocks = await GetBlocksAsync(configTomlFileContent).ConfigureAwait(false);
             return new { modules, blocks };
         }
 
-        private async Task<(IEnumerable<ModuleReadModel>, IEnumerable<BlockJsonModel>)> GetModulesAndBlocksAsync(string configTomlFileContent)
+        /// <summary>
+        /// Gets the modules asynchronous.
+        /// </summary>
+        /// <param name="configTomlFileContent">Content of the configuration toml file.</param>
+        /// <returns></returns>
+        private async Task<IEnumerable<ModuleReadModel>> GetModulesAsync(string configTomlFileContent)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(configTomlFileContent);
 
+            // Clone repo here.
+            await _moduleServiceManager.CloneGitHubRepoAsync().ConfigureAwait(false);
+
             // get list of all modules.
             var modules = GetListOfModules(configTomlFileContent).ToList();
-
             await _defaultValueManager.MergeValuesWithModulesAsync(configTomlFileContent, modules).ConfigureAwait(false);
 
-            var blocks = await _blockManager.GetListOfBlocksAsync().ConfigureAwait(false);
-            
-            return (modules, blocks);
+            return modules;
         }
 
+        /// <summary>
+        /// Gets the blocks asynchronous.
+        /// </summary>
+        /// <param name="configTomlFileContent">Content of the configuration toml file.</param>
+        /// <returns></returns>
+        private async Task<IEnumerable<BlockJsonModel>> GetBlocksAsync(string configTomlFileContent)
+        {
+            var blocks = await _blockManager.GetBlocksFromFileAsync(configTomlFileContent).ConfigureAwait(false);
+            return blocks;
+        }
+
+        /// <summary>
+        /// Reads as string.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns></returns>
         private string ReadAsString(IFormFile file)
         {
             var result = new StringBuilder();

@@ -1,15 +1,13 @@
-﻿using System;
-using System.Diagnostics;
-using System.Text;
-using EnsureThat;
-using FluentValidation.Results;
-using Newtonsoft.Json;
-using ZTR.Framework.Business.Content;
-using ZTR.Framework.Business.Models;
-using ZTR.Framework.Configuration;
-
-namespace ZTR.Framework.Business
+﻿namespace ZTR.Framework.Business
 {
+    using System;
+    using System.Diagnostics;
+    using System.Text;
+    using Configuration;
+    using EnsureThat;
+    using FluentValidation.Results;
+    using Newtonsoft.Json;
+
     /// <summary>
     /// ErrorMessage
     /// </summary>
@@ -38,10 +36,9 @@ namespace ZTR.Framework.Business
             ID = Guid.NewGuid().ToString("n");
             Message = message;
 
-            if (exception != null)
+            if (exception != null && !string.IsNullOrWhiteSpace(exception.StackTrace))
             {
                 Detail = GenerateMessageFromException(exception);
-                Exception = exception.StackTrace.ToString();
             }
         }
 
@@ -61,7 +58,7 @@ namespace ZTR.Framework.Business
         /// <param name="errorCode">The error code.</param>
         /// <param name="exception">The exception.</param>
         public ErrorMessage(TErrorCode errorCode, Exception exception) :
-            this(errorCode, exception is IApplicationException ? exception.Message : Resource.ExceptionMessage, exception)
+            this(errorCode, exception.Message, exception)
         {         
         }
 

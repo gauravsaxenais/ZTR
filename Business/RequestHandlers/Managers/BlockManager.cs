@@ -1,8 +1,6 @@
-﻿using Business.Configuration;
-using ZTR.Framework.Business.Models;
-
-namespace Business.RequestHandlers.Managers
+﻿namespace Business.RequestHandlers.Managers
 {
+    using Business.Common.Models;
     using Business.GitRepository.Interfaces;
     using EnsureThat;
     using Interfaces;
@@ -28,7 +26,6 @@ namespace Business.RequestHandlers.Managers
         private readonly IBlockServiceManager _blockServiceManager;
         private readonly ILogger<BlockManager> _logger;
         private const string Prefix = nameof(BlockManager);
-        private readonly ModuleBlockGitConnectionOptions _moduleGitConnectionOptions;
         #endregion
 
         #region Constructors     
@@ -37,19 +34,14 @@ namespace Business.RequestHandlers.Managers
         /// Initializes a new instance of the <see cref="BlockManager"/> class.
         /// </summary>
         /// <param name="logger">The logger.</param>
-        /// <param name="moduleGitConnectionOptions">The module git connection options.</param>
         /// <param name="blockServiceManager">The block service manager.</param>
-        public BlockManager(ILogger<BlockManager> logger, ModuleBlockGitConnectionOptions moduleGitConnectionOptions, IBlockServiceManager blockServiceManager) : base(logger)
+        public BlockManager(ILogger<BlockManager> logger, IBlockServiceManager blockServiceManager) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(blockServiceManager, nameof(blockServiceManager));
-            EnsureArg.IsNotNull(moduleGitConnectionOptions, nameof(moduleGitConnectionOptions));
 
             _blockServiceManager = blockServiceManager;
-            _moduleGitConnectionOptions = moduleGitConnectionOptions;
             _logger = logger;
-
-            SetGitRepoConnection();
         }
         #endregion
 
@@ -73,32 +65,53 @@ namespace Business.RequestHandlers.Managers
         /// <summary>
         /// Gets the list of blocks asynchronous.
         /// </summary>
+        /// <param name="configTomlFileContent">Content of the configuration toml file.</param>
         /// <returns></returns>
-        public async Task<List<BlockJsonModel>> GetListOfBlocksAsync()
+        public async Task<List<BlockJsonModel>> GetBlocksFromFileAsync(string configTomlFileContent)
         {
             // clone repo here.
             await _blockServiceManager.CloneGitRepoAsync().ConfigureAwait(false);
-            var blocks = await BatchProcessBlockFilesAsync().ConfigureAwait(false);
+            var blocksFromGitRepository = await BatchProcessBlockFilesAsync().ConfigureAwait(false);
 
-            return blocks;
-        }
+            var dataFromFile = TomlFileReader.ReadDataFromString<ConfigurationReadModel>(configTomlFileContent);
+            dataFromFile.Network.TryGetValue("blocks", out var blocksContent);
+            var blocksFromFile = new List<BlockJsonModel>();
 
-        /// <summary>
-        /// Sets the git repo connection.
-        /// </summary>
-        /// <exception cref="CustomArgumentException">Current directory path is not valid.</exception>
-        public void SetGitRepoConnection()
-        {
-            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            if (currentDirectory == null)
+            if (blocksContent is Dictionary<string, object>[] dictionaries)
             {
-                throw new CustomArgumentException("Current directory path is not valid.");
+                foreach (var dictionary in dictionaries)
+                {
+                    dictionary.TryGetValue("type", out var type);
+                    dictionary.TryGetValue("tag", out var tag);
+                    dictionary.TryGetValue("args", out var argument);
+
+                    var tempBlock = blocksFromGitRepository.FirstOrDefault(x => x.Type == (string)type);
+
+                    if (tempBlock != null)
+                    {
+                        var block = (BlockJsonModel)tempBlock.Clone();
+
+                        var arguments = block.Args;
+                        if (argument is Dictionary<string, object> args)
+                        {
+                            foreach (var elem in args)
+                            {
+                                var updatedArgument = arguments.FirstOrDefault(x => x.Name == elem.Key);
+
+                                if (updatedArgument != null)
+                                {
+                                    updatedArgument.Value = (string)elem.Value;
+                                }
+                            }
+                        }
+
+                        blocksFromFile.Add(block);
+                    }
+                }
             }
-
-            _moduleGitConnectionOptions.BlockConfig = Path.Combine(currentDirectory, _moduleGitConnectionOptions.GitLocalFolder, _moduleGitConnectionOptions.BlockConfig);
-
-            _blockServiceManager.SetGitRepoConnection(_moduleGitConnectionOptions);
+            
+            FixIndex(blocksFromFile);
+            return blocksFromFile;
         }
 
         private async Task<List<BlockJsonModel>> ProcessBlockFileAsync(IDictionary<string, string> filesData)
@@ -109,9 +122,9 @@ namespace Business.RequestHandlers.Managers
             foreach (var data in filesData)
             {
                 var blockReadModel = Toml.ReadString<BlockReadModel>(data.Value, tomlSettings);
-                var name = Path.GetFileNameWithoutExtension(data.Key);
+                var blockFileName = Path.GetFileNameWithoutExtension(data.Key);
 
-                var blockTask = GetBlockAsync(blockReadModel, name);
+                var blockTask = GetBlockAsync(blockReadModel, tag: string.Empty, blockFileName);
                 var modulesTask = GetModulesAsync(blockReadModel);
 
                 await Task.WhenAll(blockTask, modulesTask);
@@ -130,7 +143,7 @@ namespace Business.RequestHandlers.Managers
             var batchSize = 4;
 
             var blockFiles
-                = await _blockServiceManager.GetAllBlockFilesAsync(_moduleGitConnectionOptions.BlockConfig).ConfigureAwait(false);
+                = await _blockServiceManager.GetAllBlockFilesAsync().ConfigureAwait(false);
 
             var listOfRequests = new List<Task<List<BlockJsonModel>>>();
 
@@ -187,9 +200,9 @@ namespace Business.RequestHandlers.Managers
             return await Task.FromResult(modules);
         }
 
-        private async Task<BlockJsonModel> GetBlockAsync(BlockReadModel blockReadModel, string name)
+        private async Task<BlockJsonModel> GetBlockAsync(BlockReadModel blockReadModel, string tag, string blockName)
         {
-            var jsonModel = new BlockJsonModel() { Type = name, Tag = string.Empty };
+            var jsonModel = new BlockJsonModel() { Type = blockName, Tag = string.IsNullOrWhiteSpace(tag) ? string.Empty : tag };
 
             if (blockReadModel?.Arguments != null && blockReadModel.Arguments.Any())
             {
@@ -201,7 +214,8 @@ namespace Business.RequestHandlers.Managers
                     Description = data.Description,
                     DataType = data.Type,
                     Min = data.Min,
-                    Max = data.Max
+                    Max = data.Max,
+                    Value = string.IsNullOrWhiteSpace(data.Value) ? string.Empty : data.Value
                 }).ToList();
 
                 jsonModel.Args.AddRange(args);

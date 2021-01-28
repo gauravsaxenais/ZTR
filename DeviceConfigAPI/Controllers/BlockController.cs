@@ -5,12 +5,11 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
-    using System;
     using System.Threading.Tasks;
-    using ZTR.Framework.Business;
     using ZTR.Framework.Service;
 
     /// <summary>Block Controller - This service is responsible for getting arguments in network blocks.</summary>
+    [System.ComponentModel.Description("Block Controller Service")]
     [Produces(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [Consumes(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
     [QueryRoute]
@@ -18,8 +17,7 @@
     {
         private readonly IBlockManager _manager;
         private readonly ILogger<BlockController> _logger;
-        private const string Prefix = nameof(BlockController);
-
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="BlockController"/> class.
         /// </summary>
@@ -44,22 +42,11 @@
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllBlocks()
         {
-            ApiResponse apiResponse;
+            var prefix = nameof(BlockController);
+            _logger.LogInformation($"{prefix}: Getting list of blocks.");
+            var result = await _manager.GetBlocksAsync().ConfigureAwait(false);
 
-            try
-            {
-                _logger.LogInformation($"{Prefix}: Getting list of blocks.");
-                var result = await _manager.GetBlocksAsync().ConfigureAwait(false);
-
-                apiResponse = new ApiResponse(status: true, data: result);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogCritical(exception, $"{Prefix}: Error occurred while getting list of blocks.");
-                apiResponse = new ApiResponse(false, exception.Message, ErrorType.BusinessError, exception);
-            }
-
-            return Ok(apiResponse);
+            return Ok(result);
         }
     }
 }

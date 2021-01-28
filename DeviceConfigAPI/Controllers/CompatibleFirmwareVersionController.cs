@@ -7,11 +7,9 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
-    using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
-    using ZTR.Framework.Business;
     using ZTR.Framework.Service;
 
     /// <summary>
@@ -52,24 +50,12 @@
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCompatibleFirmwareVersions([Required, FromBody] CompatibleFirmwareVersionReadModel module)
         {
-            ApiResponse apiResponse;
             var prefix = nameof(CompatibleFirmwareVersionController);
+            _logger.LogInformation($"{prefix}: Getting list of compatible firmware versions based on a firmware version.");
 
-            try
-            {
-                _logger.LogInformation($"{prefix}: Getting list of compatible firmware versions based on a firmware version.");
-
-                var result = await _manager.GetCompatibleFirmwareVersionsAsync(module).ConfigureAwait(false);
-
-                apiResponse = new ApiResponse(status: true, data: result);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogCritical(exception, $"{prefix}: Error occurred while getting list of compatible firmware versions based on a firmware version.");
-                apiResponse = new ApiResponse(false, exception.Message, ErrorType.BusinessError, exception);
-            }
-
-            return Ok(apiResponse);
+            var result = await _manager.GetCompatibleFirmwareVersionsAsync(module).ConfigureAwait(false);
+            
+            return Ok(result);
         }
     }
 }
