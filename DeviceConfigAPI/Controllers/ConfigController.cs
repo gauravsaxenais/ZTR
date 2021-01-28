@@ -20,19 +20,21 @@
     {
         private readonly IConfigManager _manager;
         private readonly ILogger<ConfigController> _logger;
+        private readonly IConfigCreateFromManager _creator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConfigController"/> class.
         /// </summary>
         /// <param name="manager">The manager.</param>
         /// <param name="logger">The logger.</param>
-        public ConfigController(IConfigManager manager, ILogger<ConfigController> logger)
+        public ConfigController(IConfigCreateFromManager creator, IConfigManager manager, ILogger<ConfigController> logger)
         {
             EnsureArg.IsNotNull(manager, nameof(manager));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _manager = manager;
             _logger = logger;
+            _creator = creator;
         }
 
         /// <summary>Creates the toml configuration.</summary>
@@ -45,11 +47,12 @@
             var result = await _manager.CreateConfigAsync(json);
             return Ok(result);
         }
-        //string device, string firmware, IFormFile htmlfile
+        //
         [HttpPost(nameof(CreateFromHtml))]
-        public async Task<IActionResult> CreateFromHtml()
+        public async Task<IActionResult> CreateFromHtml(string device, string firmware, IFormFile htmlfile)
         {
-            var result = await _manager.CreateFromHtmlAsync();
+            var toml = await _manager.CreateFromHtmlAsync(device, firmware, htmlfile);
+            var result = await _creator.GenerateConfigTomlModelAsync(toml);
             return Ok(result);
         }
     }

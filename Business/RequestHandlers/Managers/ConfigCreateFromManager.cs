@@ -42,7 +42,6 @@
             _defaultValueManager = defaultValueManager;
             _logger = logger;
         }
-
         /// <summary>
         /// Returns the list of all modules and blocks from config.toml.
         /// </summary>
@@ -56,9 +55,17 @@
             _logger.LogInformation($"{prefix}: methodName: {nameof(GenerateConfigTomlModelAsync)} Getting list of modules and blocks from config.toml file.");
 
             var configTomlFileContent = ReadAsString(configTomlFile);
+            return await GenerateConfigTomlModelAsync(configTomlFileContent);
+        }
 
+        /// <summary>
+        /// Returns the list of all modules and blocks from config.toml.
+        /// </summary>
+        /// <param name="configTomlFileContent">config.toml as string.</param>
+        /// <returns></returns>
+        public async Task<object> GenerateConfigTomlModelAsync(string configTomlFileContent)
+        { 
             var (modules, blocks) = await GetModulesAndBlocksAsync(configTomlFileContent);
-
             return new { modules, blocks };
         }
 
@@ -76,19 +83,7 @@
             return (modules, blocks);
         }
 
-        private string ReadAsString(IFormFile file)
-        {
-            var result = new StringBuilder();
-            using (var reader = new StreamReader(file.OpenReadStream()))
-            {
-                while (reader.Peek() >= 0)
-                {
-                    result.AppendLine(reader.ReadLine());
-                }
-            }
-
-            return result.ToString();
-        }
+        
 
         /// <summary>
         /// Gets the list of modules.

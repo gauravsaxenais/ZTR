@@ -342,6 +342,13 @@
             <param name="configTomlFile">The firmware version.</param>
             <returns></returns>
         </member>
+        <member name="M:Business.RequestHandlers.Interfaces.IConfigCreateFromManager.GenerateConfigTomlModelAsync(System.String)">
+            <summary>
+            Gets the default values all modules asynchronous.
+            </summary>
+            <param name="configTomlFileContent">The firmware version.</param>
+            <returns></returns>
+        </member>
         <member name="T:Business.RequestHandlers.Interfaces.IConfigManager">
             <summary>
             Config Generator interface methods.
@@ -361,7 +368,7 @@
             <param name="properties">The properties.</param>
             <returns></returns>
         </member>
-        <member name="M:Business.RequestHandlers.Interfaces.IConfigManager.CreateFromHtmlAsync">
+        <member name="M:Business.RequestHandlers.Interfaces.IConfigManager.CreateFromHtmlAsync(System.String,System.String,Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             Read configuration.
             </summary>
@@ -523,6 +530,13 @@
             <param name="configTomlFile">config.toml as string.</param>
             <returns></returns>
         </member>
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GenerateConfigTomlModelAsync(System.String)">
+            <summary>
+            Returns the list of all modules and blocks from config.toml.
+            </summary>
+            <param name="configTomlFileContent">config.toml as string.</param>
+            <returns></returns>
+        </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetListOfModules(System.String)">
             <summary>
             Gets the list of modules.
@@ -535,7 +549,7 @@
               <br />
             </summary>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigManager.#ctor(Business.Parsers.Core.Converter.ConverterService)">
+        <member name="M:Business.RequestHandlers.Managers.ConfigManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.DefaultValueManager},Business.Parsers.Core.Converter.ConverterService)">
             <summary>
             Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.ConfigManager"/> class.
             </summary>
@@ -550,7 +564,7 @@
               <br />
             </returns>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigManager.CreateFromHtmlAsync">
+        <member name="M:Business.RequestHandlers.Managers.ConfigManager.CreateFromHtmlAsync(System.String,System.String,Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             Read from url asynchronous.
             </summary>      
