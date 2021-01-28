@@ -46,7 +46,7 @@
         /// </summary>      
         public async Task<string> CreateFromHtmlAsync(string device, string firmware, IFormFile htmlfile)
         {
-            var html = ReadAsString(htmlfile);
+            var html = string.Empty;//ReadAsString(htmlfile);
             return await _service.CreateFromHtmlAsync(device, firmware, html);
         }
 

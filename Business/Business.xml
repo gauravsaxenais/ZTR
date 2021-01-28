@@ -264,6 +264,13 @@
             <param name="configTomlFile">The firmware version.</param>
             <returns></returns>
         </member>
+        <member name="M:Business.RequestHandlers.Interfaces.IConfigCreateFromManager.GenerateConfigTomlModelAsync(System.String)">
+            <summary>
+            Gets the default values all modules asynchronous.
+            </summary>
+            <param name="configTomlFileContent">The firmware version.</param>
+            <returns></returns>
+        </member>
         <member name="T:Business.RequestHandlers.Interfaces.IConfigManager">
             <summary>
             Config Generator interface methods.
@@ -428,6 +435,13 @@
             <param name="configTomlFile">config.toml as string.</param>
             <returns></returns>
         </member>
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GenerateConfigTomlModelAsync(System.String)">
+            <summary>
+            Returns the list of all modules and blocks from config.toml.
+            </summary>
+            <param name="configTomlFileContent">config.toml as string.</param>
+            <returns></returns>
+        </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetModulesAsync(System.String)">
             <summary>
             Gets the modules asynchronous.
@@ -440,13 +454,6 @@
             Gets the blocks asynchronous.
             </summary>
             <param name="configTomlFileContent">Content of the configuration toml file.</param>
-            <returns></returns>
-        </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.ReadAsString(Microsoft.AspNetCore.Http.IFormFile)">
-            <summary>
-            Reads as string.
-            </summary>
-            <param name="file">The file.</param>
             <returns></returns>
         </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetListOfModules(System.String)">

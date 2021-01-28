@@ -7,6 +7,7 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
     using ZTR.Framework.Service;
@@ -52,7 +53,8 @@
         public async Task<IActionResult> CreateFromHtml(string device, string firmware, IFormFile htmlfile)
         {
             var toml = await _manager.CreateFromHtmlAsync(device, firmware, htmlfile);
-           // var result = await _creator.GenerateConfigTomlModelAsync(toml);
+
+            var result = await _creator.GenerateConfigTomlModelAsync(toml);
             return Ok(toml);
         }
     }
