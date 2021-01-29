@@ -6,8 +6,10 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
+    using System;
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
+    using ZTR.Framework.Business;
     using ZTR.Framework.Service;
 
     /// <summary>Config Controller - This service is responsible for generating the config toml.</summary>
@@ -37,29 +39,22 @@
             _creator = creator;
         }
 
-        /// <summary>
-        /// Creates the toml configuration.
-        /// </summary>
-        /// <param name="json">The json.</param>
-        /// <returns></returns>
+        /// <summary>Creates the toml configuration.</summary>
+        /// <returns>
+        ///   <br />
+        /// </returns>
         [HttpPost(nameof(CreateTomlConfig))]
         public async Task<IActionResult> CreateTomlConfig([FromBody] ConfigReadModel json)
         {
             var result = await _manager.CreateConfigAsync(json);
             return Ok(result);
         }
-
-        /// <summary>
-        /// Creates from HTML.
-        /// </summary>
-        /// <param name="device">The device.</param>
-        /// <param name="firmware">The firmware.</param>
-        /// <param name="htmlfile">The htmlfile.</param>
-        /// <returns></returns>
+        //
         [HttpPost(nameof(CreateFromHtml))]
-        public async Task<IActionResult> CreateFromHtml([Required] string device, [Required] string firmware, IFormFile htmlfile)
+        [Consumes(SupportedContentTypes.MultipartFormData)]
+        public async Task<IActionResult> CreateFromHtml(IFormFile htmlfile)
         {
-            var toml = await _manager.CreateFromHtmlAsync(device, firmware, htmlfile);
+            var toml = await _manager.CreateFromHtmlAsync("", "", htmlfile);
             var result = await _creator.GenerateConfigTomlModelAsync(toml);
             return Ok(result);
         }
