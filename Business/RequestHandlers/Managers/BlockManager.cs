@@ -48,16 +48,23 @@
         #region Public Methods
 
         /// <summary>
-        /// Parses the toml files asynchronous.
+        /// Gets the blocks asynchronous.
         /// </summary>
+        /// <param name="firmwareVersion">The firmware version.</param>
+        /// <param name="deviceType">Type of the device.</param>
         /// <returns></returns>
-        public async Task<object> GetBlocksAsync()
+        public async Task<object> GetBlocksAsync(string firmwareVersion, string deviceType)
         {
-            _logger.LogInformation($"{Prefix}: methodName: {nameof(GetBlocksAsync)} Getting list of blocks.");
+            _logger.LogInformation($"{Prefix}: methodName: {nameof(GetBlocksAsync)} Getting list of blocks for {firmwareVersion} and {deviceType}.");
 
             // clone repo here.
             await _blockServiceManager.CloneGitRepoAsync().ConfigureAwait(false);
-            var blocks = await BatchProcessBlockFilesAsync().ConfigureAwait(false);
+
+            // read default values from toml file defaults.toml
+            var defaultValueFromTomlFile =
+                await _blockServiceManager.GetDefaultTomlFileContentAsync(firmwareVersion, deviceType).ConfigureAwait(false);
+
+            var blocks = await GetBlocksAsync(defaultValueFromTomlFile).ConfigureAwait(false);
 
             return new { blocks };
         }
@@ -71,6 +78,14 @@
         {
             // clone repo here.
             await _blockServiceManager.CloneGitRepoAsync().ConfigureAwait(false);
+
+            var blocks = await GetBlocksAsync(configTomlFileContent);
+
+            return blocks;
+        }
+
+        private async Task<List<BlockJsonModel>> GetBlocksAsync(string configTomlFileContent)
+        {
             var blocksFromGitRepository = await BatchProcessBlockFilesAsync().ConfigureAwait(false);
 
             var dataFromFile = TomlFileReader.ReadDataFromString<ConfigurationReadModel>(configTomlFileContent);
@@ -94,13 +109,13 @@
                         var arguments = block.Args;
                         if (argument is Dictionary<string, object> args)
                         {
-                            foreach (var elem in args)
+                            foreach (var (key, value) in args)
                             {
-                                var updatedArgument = arguments.FirstOrDefault(x => x.Name == elem.Key);
+                                var updatedArgument = arguments.FirstOrDefault(x => x.Name == key);
 
                                 if (updatedArgument != null)
                                 {
-                                    updatedArgument.Value = (string)elem.Value;
+                                    updatedArgument.Value = (string)value;
                                 }
                             }
                         }
@@ -109,11 +124,16 @@
                     }
                 }
             }
-            
+
             FixIndex(blocksFromFile);
             return blocksFromFile;
         }
 
+        /// <summary>
+        /// Processes the block file asynchronous.
+        /// </summary>
+        /// <param name="filesData">The files data.</param>
+        /// <returns></returns>
         private async Task<List<BlockJsonModel>> ProcessBlockFileAsync(IDictionary<string, string> filesData)
         {
             var blocks = new List<BlockJsonModel>();
@@ -138,6 +158,10 @@
             return blocks;
         }
 
+        /// <summary>
+        /// Batches the process block files asynchronous.
+        /// </summary>
+        /// <returns></returns>
         private async Task<List<BlockJsonModel>> BatchProcessBlockFilesAsync()
         {
             var batchSize = 4;
@@ -200,6 +224,13 @@
             return await Task.FromResult(modules);
         }
 
+        /// <summary>
+        /// Gets the block asynchronous.
+        /// </summary>
+        /// <param name="blockReadModel">The block read model.</param>
+        /// <param name="tag">The tag.</param>
+        /// <param name="blockName">Name of the block.</param>
+        /// <returns></returns>
         private async Task<BlockJsonModel> GetBlockAsync(BlockReadModel blockReadModel, string tag, string blockName)
         {
             var jsonModel = new BlockJsonModel() { Type = blockName, Tag = string.IsNullOrWhiteSpace(tag) ? string.Empty : tag };
@@ -224,6 +255,10 @@
             return await Task.FromResult(jsonModel);
         }
 
+        /// <summary>
+        /// Fixes the index.
+        /// </summary>
+        /// <param name="listOfData">The list of data.</param>
         private static void FixIndex(IReadOnlyList<BlockJsonModel> listOfData)
         {
             for (var index = 0; index < listOfData.Count(); index++)

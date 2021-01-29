@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using ZTR.Framework.Business;
-
-namespace Business.Parsers.Core.Models
+﻿namespace Business.Parsers.Core.Models
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using ZTR.Framework.Business;
+
     /// <summary>
     /// Config Read Model.
     /// </summary>
     internal class ConfigTag
     {
-        IEnumerable<string> _tags;
-        IEnumerable<string> _inline;
+        private readonly IEnumerable<string> _tags;
+        private readonly IEnumerable<string> _inline;
+
         public ConfigTag(string tags)
         {
             var t = tags.Replace("html:", string.Empty).RemoveNewline().Split(',');
@@ -24,7 +25,6 @@ namespace Business.Parsers.Core.Models
         /// The module.
         /// </value>
         public IEnumerable<string> Tags => _tags;
-
 
         /// <summary>
         /// Gets or sets the block.

@@ -1,8 +1,6 @@
 ﻿namespace ZTR.Framework.Business.File.FileReaders
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using Content;
     using EnsureThat;
     using Models;
@@ -38,69 +36,6 @@
             }
 
             return fileData;
-        }
-
-        /// <summary>
-        /// Reads the data from file.
-        /// </summary>
-        /// <param name="filePath">The file path.</param>
-        /// <param name="fieldToRead">The field to read.</param>
-        /// <param name="settings">The settings.</param>
-        /// <returns></returns>
-        /// <exception cref="CustomArgumentException"></exception>
-        public static object ReadDataFromFile(string filePath, string fieldToRead, TomlSettings settings)
-        {
-            EnsureArg.IsNotEmptyOrWhiteSpace(filePath, (nameof(filePath)));
-            EnsureArg.IsNotNull(settings, nameof(settings));
-
-            try
-            {
-                var data = Toml.ReadFile(filePath, settings);
-                return data.Get<object>(fieldToRead);
-            }
-            catch (Exception exception)
-            {
-                throw new CustomArgumentException(Resource.TomlParsingError, exception);
-            }
-        }
-
-        /// <summary>
-        /// Reads the data from file.
-        /// </summary>
-        /// <param name="filePath">The file path.</param>
-        /// <param name="settings">The settings.</param>
-        /// <param name="fieldToRead">The field to read.</param>
-        /// <returns></returns>
-        /// <exception cref="CustomArgumentException"></exception>
-        public static List<Dictionary<string, object>> ReadDataFromFile(string filePath, TomlSettings settings, string fieldToRead)
-        {
-            EnsureArg.IsNotEmptyOrWhiteSpace(filePath, (nameof(filePath)));
-            EnsureArg.IsNotNull(settings, nameof(settings));
-            EnsureArg.IsNotEmptyOrWhiteSpace(fieldToRead, nameof(fieldToRead));
-
-            var items = new List<Dictionary<string, object>>();
-
-            try
-            {
-                TomlTable fileData = null;
-
-                fileData = Toml.ReadFile(filePath, settings);
-
-                var readModels = (TomlTableArray)fileData[fieldToRead];
-
-                foreach (var tempItem in readModels.Items)
-                {
-                    var dictionary = tempItem.Rows.ToDictionary(t => t.Key, t => (object)t.Value.ToString());
-
-                    items.Add(dictionary);
-                }
-            }
-            catch (Exception exception)
-            {
-                throw new CustomArgumentException(Resource.TomlParsingError, exception);
-            }
-
-            return items;
         }
 
         /// <summary>

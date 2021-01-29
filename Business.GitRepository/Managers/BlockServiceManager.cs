@@ -1,15 +1,16 @@
-﻿using Business.Common.Configuration;
-using ZTR.Framework.Business.Models;
-
-namespace Business.GitRepository.Managers
+﻿namespace Business.GitRepository.Managers
 {
+    using Common.Configuration;
     using EnsureThat;
     using Interfaces;
     using Microsoft.Extensions.Logging;
+    using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
+    using ZTR.Framework.Business.Models;
 
     /// <summary>
     /// BlockServiceManager
@@ -44,26 +45,6 @@ namespace Business.GitRepository.Managers
         }
 
         /// <summary>
-        /// Sets the git repo connection.
-        /// </summary>
-        /// <param name="moduleGitConnectionOptions">The module git connection options.</param>
-        /// <exception cref="CustomArgumentException">Current directory path is not valid.</exception>
-        public void SetGitRepoConnection(ModuleBlockGitConnectionOptions moduleGitConnectionOptions)
-        {
-            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            if (currentDirectory == null)
-            {
-                throw new CustomArgumentException("Current directory path is not valid.");
-            }
-
-            _moduleGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, moduleGitConnectionOptions.GitLocalFolder);
-            _moduleGitConnectionOptions.BlockConfig = Path.Combine(currentDirectory, moduleGitConnectionOptions.GitLocalFolder, moduleGitConnectionOptions.BlockConfig);
-
-            _gitRepoManager.SetConnectionOptions(_moduleGitConnectionOptions);
-        }
-
-        /// <summary>
         /// Gets all block files.
         /// </summary>
         /// <returns></returns>
@@ -86,6 +67,60 @@ namespace Business.GitRepository.Managers
             _logger.LogInformation($"{Prefix}: Cloning github repository.");
             await _gitRepoManager.CloneRepositoryAsync().ConfigureAwait(false);
             _logger.LogInformation($"{Prefix}: Github repository cloning is successful.");
+        }
+
+        /// <summary>
+        /// Gets the default toml file content asynchronous.
+        /// </summary>
+        /// <param name="firmwareVersion">The firmware version.</param>
+        /// <param name="deviceType">Type of the device.</param>
+        /// <returns></returns>
+        public async Task<string> GetDefaultTomlFileContentAsync(string firmwareVersion, string deviceType)
+        {
+            _logger.LogInformation($"{Prefix} method name: {nameof(GetDefaultTomlFileContentAsync)}: Getting default value from toml file for {firmwareVersion}, {deviceType}.");
+            var defaultPath = _moduleGitConnectionOptions.DefaultTomlConfiguration.DefaultTomlFile;
+            var defaultValueFromTomlFile = await GetFileContentFromPath(firmwareVersion, deviceType, defaultPath).ConfigureAwait(false);
+
+            return defaultValueFromTomlFile;
+        }
+
+        private async Task<string> GetFileContentFromPath(string firmwareVersion, string deviceType, string path)
+        {
+            var listOfFiles = await _gitRepoManager
+                .GetFileDataFromTagAsync(firmwareVersion, path)
+                .ConfigureAwait(false);
+
+            // case insensitive search.
+            var deviceTypeFile = listOfFiles.FirstOrDefault(p => p.FileName?.IndexOf(deviceType, StringComparison.OrdinalIgnoreCase) >= 0);
+
+            var fileContent = string.Empty;
+
+            if (deviceTypeFile != null)
+            {
+                fileContent = System.Text.Encoding.UTF8.GetString(deviceTypeFile.Data);
+            }
+
+            return fileContent;
+        }
+
+        /// <summary>
+        /// Sets the git repo connection.
+        /// </summary>
+        /// <param name="moduleGitConnectionOptions">The module git connection options.</param>
+        /// <exception cref="CustomArgumentException">Current directory path is not valid.</exception>
+        private void SetGitRepoConnection(ModuleBlockGitConnectionOptions moduleGitConnectionOptions)
+        {
+            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            if (currentDirectory == null)
+            {
+                throw new CustomArgumentException("Current directory path is not valid.");
+            }
+
+            _moduleGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, moduleGitConnectionOptions.GitLocalFolder);
+            _moduleGitConnectionOptions.BlockConfig = Path.Combine(currentDirectory, moduleGitConnectionOptions.GitLocalFolder, moduleGitConnectionOptions.BlockConfig);
+
+            _gitRepoManager.SetConnectionOptions(_moduleGitConnectionOptions);
         }
     }
 }

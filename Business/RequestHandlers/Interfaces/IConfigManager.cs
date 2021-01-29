@@ -23,6 +23,13 @@
         /// <returns></returns>
         Task<bool> UpdateTomlConfig(string properties);
 
+        /// <summary>
+        /// Creates from HTML asynchronous.
+        /// </summary>
+        /// <param name="device">The device.</param>
+        /// <param name="firmware">The firmware.</param>
+        /// <param name="htmlfile">The htmlfile.</param>
+        /// <returns></returns>
         Task<string> CreateFromHtmlAsync(string device, string firmware, IFormFile htmlfile);
     }
 }
