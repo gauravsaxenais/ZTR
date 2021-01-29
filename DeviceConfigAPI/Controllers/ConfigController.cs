@@ -51,9 +51,10 @@
         }
         //
         [HttpPost(nameof(CreateFromHtml))]
-        public async Task<IActionResult> CreateFromHtml(string device, string firmware, IFormFile htmlfile)
+        [Consumes(SupportedContentTypes.MultipartFormData)]
+        public async Task<IActionResult> CreateFromHtml(IFormFile htmlfile)
         {
-            var toml = await _manager.CreateFromHtmlAsync(device, firmware, htmlfile);
+            var toml = await _manager.CreateFromHtmlAsync("", "", htmlfile);
             var result = await _creator.GenerateConfigTomlModelAsync(toml);
             return Ok(result);
         }
