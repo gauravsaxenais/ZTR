@@ -11,8 +11,10 @@
     using ZTR.Framework.Business.File.FileReaders;
 
     /// <summary>
-    ///   <br />
+    /// ConfigManager service.
     /// </summary>
+    /// <seealso cref="Manager" />
+    /// <seealso cref="IConfigManager" />
     public class ConfigManager : Manager, IConfigManager
     {
         private readonly ConverterService _service;
@@ -22,7 +24,7 @@
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="service">The service.</param>
-        public ConfigManager(ILogger<DefaultValueManager> logger,ConverterService service) :base(logger)
+        public ConfigManager(ILogger<DefaultValueManager> logger, ConverterService service) : base(logger)
         {
             _service = service;
         }
@@ -30,10 +32,8 @@
         /// <summary>
         /// Creates the configuration asynchronous.
         /// </summary>
-        /// <param name="model"></param>
-        /// <returns>
-        ///   <br />
-        /// </returns>
+        /// <param name="model">The model.</param>
+        /// <returns></returns>
         public async Task<string> CreateConfigAsync(ConfigReadModel model)
         {
             EnsureArg.IsNotNull(model);
@@ -44,11 +44,15 @@
         }
 
         /// <summary>
-        /// Read from url asynchronous.
-        /// </summary>      
-        public async Task<string> CreateFromHtmlAsync(string device, string firmware, IFormFile htmlfile)
+        /// Creates from HTML asynchronous.
+        /// </summary>
+        /// <param name="device">The device.</param>
+        /// <param name="firmware">The firmware.</param>
+        /// <param name="htmlFile">The htmlFile.</param>
+        /// <returns></returns>
+        public async Task<string> CreateFromHtmlAsync(string device, string firmware, IFormFile htmlFile)
         {
-            var html = FileReaderExtensions.ReadAsString(htmlfile);
+            var html = FileReaderExtensions.ReadAsString(htmlFile);
             return await _service.CreateFromHtmlAsync(device, firmware, html);
         }
 

@@ -234,7 +234,7 @@
             </summary>
             <param name="device">The device.</param>
             <param name="firmware">The firmware.</param>
-            <param name="htmlfile">The htmlfile.</param>
+            <param name="htmlFile">The htmlFile.</param>
             <returns></returns>
         </member>
         <member name="T:Business.RequestHandlers.Interfaces.IDefaultValueManager">
@@ -442,8 +442,10 @@
         </member>
         <member name="T:Business.RequestHandlers.Managers.ConfigManager">
             <summary>
-              <br />
+            Creates a
             </summary>
+            <seealso cref="T:ZTR.Framework.Business.Manager" />
+            <seealso cref="T:Business.RequestHandlers.Interfaces.IConfigManager" />
         </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.DefaultValueManager},Business.Parsers.Core.Converter.ConverterService)">
             <summary>
@@ -456,15 +458,17 @@
             <summary>
             Creates the configuration asynchronous.
             </summary>
-            <param name="model"></param>
-            <returns>
-              <br />
-            </returns>
+            <param name="model">The model.</param>
+            <returns></returns>
         </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigManager.CreateFromHtmlAsync(System.String,System.String,Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
-            Read from url asynchronous.
-            </summary>      
+            Creates from HTML asynchronous.
+            </summary>
+            <param name="device">The device.</param>
+            <param name="firmware">The firmware.</param>
+            <param name="htmlFile">The htmlFile.</param>
+            <returns></returns>
         </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigManager.UpdateTomlConfig(System.String)">
             <summary>

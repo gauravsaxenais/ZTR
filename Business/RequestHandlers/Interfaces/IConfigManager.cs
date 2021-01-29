@@ -28,8 +28,8 @@
         /// </summary>
         /// <param name="device">The device.</param>
         /// <param name="firmware">The firmware.</param>
-        /// <param name="htmlfile">The htmlfile.</param>
+        /// <param name="htmlFile">The htmlFile.</param>
         /// <returns></returns>
-        Task<string> CreateFromHtmlAsync(string device, string firmware, IFormFile htmlfile);
+        Task<string> CreateFromHtmlAsync(string device, string firmware, IFormFile htmlFile);
     }
 }
