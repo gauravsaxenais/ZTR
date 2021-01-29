@@ -42,7 +42,7 @@
 
         public async Task<string> CreateFromHtmlAsync(string device, string firmware, string html)
         {
-            var dictionary = _htmlparser.ToConverted(_config.GetHtml());
+            var dictionary = _htmlparser.ToConverted(html);
             var contents = _builder.ToTOML(dictionary, ValueScheme.Quoted);
           
             return await Task.FromResult(contents);
