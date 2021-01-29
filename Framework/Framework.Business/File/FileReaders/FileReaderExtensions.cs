@@ -7,6 +7,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using EnsureThat;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// FileReaderExtensions class.
@@ -129,19 +130,6 @@
             return await ReadAllTextAsync(safeFullPath, Encoding.UTF8);
         }
 
-        private static List<string> GetDirectories(string path, string searchPattern = "*")
-        {
-            var directoryNames = new List<string>();
-
-            foreach (var directory in Directory.GetDirectories(path, searchPattern))
-            {
-                var directoryInfo = new DirectoryInfo(directory);
-                directoryNames.Add(directoryInfo.Name);
-            }
-
-            return directoryNames;
-        }
-
         /// <summary>
         /// Gets the sub directory path.
         /// </summary>
@@ -195,6 +183,25 @@
             }
 
             return listOfData;
+        }
+
+        /// <summary>
+        /// Reads as string.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns></returns>
+        public static string ReadAsString(IFormFile file)
+        {
+            var result = new StringBuilder();
+            using (var reader = new StreamReader(file.OpenReadStream()))
+            {
+                while (reader.Peek() >= 0)
+                {
+                    result.AppendLine(reader.ReadLine());
+                }
+            }
+
+            return result.ToString();
         }
     }
 }

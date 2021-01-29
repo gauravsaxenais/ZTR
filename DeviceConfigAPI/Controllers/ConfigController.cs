@@ -26,6 +26,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="ConfigController"/> class.
         /// </summary>
+        /// <param name="creator">The creator.</param>
         /// <param name="manager">The manager.</param>
         /// <param name="logger">The logger.</param>
         public ConfigController(IConfigCreateFromManager creator, IConfigManager manager, ILogger<ConfigController> logger)

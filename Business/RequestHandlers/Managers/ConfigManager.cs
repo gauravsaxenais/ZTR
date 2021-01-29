@@ -19,6 +19,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="ConfigManager"/> class.
         /// </summary>
+        /// <param name="logger">The logger.</param>
         /// <param name="service">The service.</param>
         public ConfigManager(ILogger<DefaultValueManager> logger,ConverterService service) :base(logger)
         {
