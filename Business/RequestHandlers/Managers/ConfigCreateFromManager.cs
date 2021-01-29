@@ -7,11 +7,8 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
     using Models;
-    using Nett;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
     using ZTR.Framework.Business.File.FileReaders;
@@ -58,7 +55,7 @@
         public async Task<object> GenerateConfigTomlModelAsync(IFormFile configTomlFile)
         {
             EnsureArg.IsNotNull(configTomlFile);           
-            var configTomlFileContent = ReadAsString(configTomlFile);
+            var configTomlFileContent = FileReaderExtensions.ReadAsString(configTomlFile);
             return await GenerateConfigTomlModelAsync(configTomlFileContent);
         }
 
@@ -106,7 +103,6 @@
             var blocks = await _blockManager.GetBlocksFromFileAsync(configTomlFileContent).ConfigureAwait(false);
             return blocks;
         }
-
         
         /// <summary>
         /// Gets the list of modules.

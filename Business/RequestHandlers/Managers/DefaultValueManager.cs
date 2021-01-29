@@ -67,8 +67,9 @@
         /// <returns></returns>
         public async Task<IEnumerable<ModuleReadModel>> GetDefaultValuesAllModulesAsync(string firmwareVersion, string deviceType)
         {
-            _logger.LogInformation($"{Prefix}: Getting default values for {firmwareVersion} and {deviceType}.");
+            _logger.LogInformation($"{Prefix}: methodName: {nameof(GetDefaultValuesAllModulesAsync)} Getting default values for {firmwareVersion} and {deviceType}.");
 
+            _logger.LogInformation($"{Prefix}: methodName: {nameof(GetDefaultValuesAllModulesAsync)} Cloning git repository for {firmwareVersion} and {deviceType}.");
             // Clone repository here.
             await _moduleServiceManager.CloneGitHubRepoAsync().ConfigureAwait(false);
 
@@ -76,12 +77,12 @@
             var defaultValueFromTomlFile =
                 await _moduleServiceManager.GetDefaultTomlFileContentAsync(firmwareVersion, deviceType).ConfigureAwait(false);
 
-            _logger.LogInformation($"{Prefix}: Getting list of modules {firmwareVersion} and {deviceType}.");
+            _logger.LogInformation($"{Prefix}: methodName: {nameof(GetDefaultValuesAllModulesAsync)} Getting list of modules {firmwareVersion} and {deviceType}.");
 
             // get list of all modules.
             var listOfModules = await _moduleServiceManager.GetAllModulesAsync(firmwareVersion, deviceType).ConfigureAwait(false);
 
-            _logger.LogInformation($"{Prefix}: Merging default values with module information. {firmwareVersion} and {deviceType}.");
+            _logger.LogInformation($"{Prefix}: methodName: {nameof(GetDefaultValuesAllModulesAsync)} Merging default values with module information. {firmwareVersion} and {deviceType}.");
             await MergeValuesWithModulesAsync(defaultValueFromTomlFile, listOfModules);
 
             return listOfModules;

@@ -44,7 +44,7 @@
         [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetAllFirmwareVersions([Required] string deviceType)
+        public async Task<IActionResult> GetAllFirmwareVersions([Required, FromQuery] string deviceType)
         {
             var prefix = nameof(FirmwareVersionController);
 

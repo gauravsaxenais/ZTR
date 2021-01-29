@@ -118,7 +118,7 @@
         public async Task<string> GetDefaultTomlFileContentAsync(string firmwareVersion, string deviceType)
         {
             _logger.LogInformation($"{Prefix} method name: {nameof(GetDefaultTomlFileContentAsync)}: Getting default value from toml file for {firmwareVersion}, {deviceType}.");
-            string defaultPath = _moduleGitConnectionOptions.DefaultTomlConfiguration.DefaultTomlFile;
+            var defaultPath = _moduleGitConnectionOptions.DefaultTomlConfiguration.DefaultTomlFile;
             var defaultValueFromTomlFile = await GetFileContentFromPath(firmwareVersion, deviceType, defaultPath).ConfigureAwait(false);
 
             return defaultValueFromTomlFile;

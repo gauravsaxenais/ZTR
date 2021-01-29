@@ -1,16 +1,18 @@
-﻿using HtmlAgilityPack;
-using System.Collections.Generic;
-using System.Linq;
-using ZTR.Framework.Business;
-
-namespace Business.Parsers.Core.Models
+﻿namespace Business.Parsers.Core.Models
 {
+    using HtmlAgilityPack;
+
     /// <summary>
     /// Config Read Model.
     /// </summary>
     internal class ConverterNode
     {
-       
+        /// <summary>
+        /// Gets or sets the key.
+        /// </summary>
+        /// <value>
+        /// The key.
+        /// </value>
         public string Key { get; set; }
 
         /// <summary>
