@@ -1,28 +1,29 @@
 ﻿namespace Business.Parsers.Core.Converter
 {
+    using Models;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Models;
-    
+
     public class ConverterService
     {
         private readonly ConvertConfig _config;
         private readonly IJsonConverter _parser;
-        private readonly IHTMLConverter _htmlparser;
+        private readonly IHTMLConverter _htmlParser;
         private readonly IBuilder<IDictionary<string, object>> _builder;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConverterService"/> class.
         /// </summary>
         /// <param name="parser">The parser.</param>
+        /// <param name="htmlParser">The HTML parser.</param>
         /// <param name="builder">The builder.</param>
         /// <param name="config">The configuration.</param>
-        public ConverterService(IJsonConverter parser, IHTMLConverter htmlparser, IBuilder<IDictionary<string, object>> builder, ConvertConfig config)
+        public ConverterService(IJsonConverter parser, IHTMLConverter htmlParser, IBuilder<IDictionary<string, object>> builder, ConvertConfig config)
         {
             _config = config;
             _parser = parser;
-            _htmlparser = htmlparser;
+            _htmlParser = htmlParser;
             _builder = builder;
         }
 
@@ -34,17 +35,24 @@
         public async Task<string> CreateConfigTomlAsync(ConfigReadModel model)
         {
             string contents = GenerateToml(model.Version, ValueScheme.UnQuoted);
-            contents += GenerateToml(model.Module, ValueScheme.UnQuoted);
+            contents += GenerateToml(model.Module, ValueScheme.UnQuoted) + Environment.NewLine;
             contents += Environment.NewLine + GenerateToml(model.Block, ValueScheme.Quoted);
 
-            return await Task.FromResult(contents);            
+            return await Task.FromResult(contents);
         }
 
+        /// <summary>
+        /// Creates from HTML asynchronous.
+        /// </summary>
+        /// <param name="device">The device.</param>
+        /// <param name="firmware">The firmware.</param>
+        /// <param name="html">The HTML.</param>
+        /// <returns></returns>
         public async Task<string> CreateFromHtmlAsync(string device, string firmware, string html)
         {
-            var dictionary = _htmlparser.ToConverted(html);
+            var dictionary = _htmlParser.ToConverted(html);
             var contents = _builder.ToTOML(dictionary, ValueScheme.Quoted);
-          
+
             return await Task.FromResult(contents);
         }
 
@@ -62,7 +70,8 @@
         {
             var dictionary = _parser.ToConverted(jsonContent);
             var contents = _builder.ToTOML(dictionary, scheme);
-            
+
+            contents = contents.Trim(Environment.NewLine.ToCharArray());
             return contents;
         }
     }

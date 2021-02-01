@@ -10,11 +10,16 @@
     public class DictionaryConverter : IJsonConverter
     {
         private readonly ConvertConfig _config;
-        private readonly ICollection<ConfigConvertRuleReadModel>_omitKeys;
+        private readonly ICollection<ConfigConvertRuleReadModel> _omitKeys;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DictionaryConverter"/> class.
+        /// </summary>
+        /// <param name="config">The configuration.</param>
         public DictionaryConverter(ConvertConfig config)
         {
             _config = config;
-            _omitKeys = _config.Rules.Where(o => o.Schema == ConversionScheme.Omit).ToList();                                     
+            _omitKeys = _config.Rules.Where(o => o.Schema == ConversionScheme.Omit).ToList();
         }
 
         #region Private Helper methods
@@ -23,11 +28,11 @@
             return (IExtractor<T>)new Extractor(_config);
         }
 
-         
-        private bool RemoveProperties<T>(T input) where T : ITree , new()
+
+        private bool RemoveProperties<T>(T input) where T : ITree, new()
         {
-           
-            var isForOmit = _omitKeys.Any(o => input.Any(u => 
+
+            var isForOmit = _omitKeys.Any(o => input.Any(u =>
                                                             u.Key.ToLower() == o.Property.ToLower() &&
                                                             u.Value.ToString().ToLower() == o.Value.ToLower()
                                                          ));
@@ -38,10 +43,10 @@
 
             T dictionary = new T();
             foreach (var item in input)
-            {                
-               
-                if (string.IsNullOrEmpty(item.Value.ToString()) || _config.Properties.Contains(item.Key.ToLower()) )
-                {                   
+            {
+
+                if (string.IsNullOrEmpty(item.Value.ToString()) || _config.Properties.Contains(item.Key.ToLower()))
+                {
                     input.Remove(item);
                     continue;
                 }
@@ -74,7 +79,7 @@
                             if (!omit) objects.Add(o);
                         }
                     });
-                   
+
                     dictionary.Add(item.Key, objects.ToArray());
                 }
 
@@ -120,7 +125,7 @@
 
             return dictionary;
         }
-       
+
         private void ConvertArray(object[] array)
         {
             array.ToList().ForEach(o =>
@@ -186,15 +191,25 @@
         }
         #endregion private helper functions
 
+        /// <summary>
+        /// Converts to converted.
+        /// </summary>
+        /// <param name="json">The json.</param>
+        /// <returns></returns>
         public ITree ToConverted(string json)
         {
             var configurationObject = JsonConvert.DeserializeObject(json);
             var dictionary = (Tree)ToDictionary(configurationObject);
 
-            RemoveProperties(dictionary);           
+            RemoveProperties(dictionary);
             return ConvertCompatibleJson((ITree)dictionary);
         }
 
+        /// <summary>
+        /// Converts to json.
+        /// </summary>
+        /// <param name="json">The json.</param>
+        /// <returns></returns>
         public string ToJson(string json)
         {
             return JsonConvert.SerializeObject(ToConverted(json));
