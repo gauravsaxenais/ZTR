@@ -1,7 +1,6 @@
 ﻿namespace Business.GitRepository.Managers
 {
     using Common.Configuration;
-    using EnsureThat;
     using Interfaces;
     using Microsoft.Extensions.Logging;
     using Nett;
@@ -11,8 +10,6 @@
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
     using ZTR.Framework.Business.File.FileReaders;
-    using ZTR.Framework.Business.Models;
-    using ZTR.Framework.Configuration;
 
     /// <summary>
     /// Device list wrapper for devices.
@@ -34,15 +31,6 @@
         /// <param name="gitRepoManager">The git repo manager.</param>
         public DeviceServiceManager(ILogger<DeviceServiceManager> logger, DeviceGitConnectionOptions deviceGitConnectionOptions, IGitRepositoryManager gitRepoManager) : base(logger, deviceGitConnectionOptions, gitRepoManager)
         {
-            EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(gitRepoManager, nameof(gitRepoManager));
-            EnsureArg.IsNotNull(deviceGitConnectionOptions, nameof(deviceGitConnectionOptions));
-
-            _logger = logger;
-            _gitRepoManager = gitRepoManager;
-            _devicesGitConnectionOptions = deviceGitConnectionOptions;
-
-            SetGitRepoConnection(_devicesGitConnectionOptions);
         }
 
         /// <summary>
@@ -91,23 +79,6 @@
             return dictionaryDevices.ToList();
         }
 
-        /// <summary>
-        /// Sets the git repo connection.
-        /// </summary>
-        /// <exception cref="CustomArgumentException">Current directory path is not valid.</exception>
-        private void SetGitRepoConnection(IGitConnectionOptions connectionOptions)
-        {
-            var currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            if (currentDirectory == null)
-            {
-                throw new CustomArgumentException("Current directory path is not valid.");
-            }
-
-            _devicesGitConnectionOptions.GitLocalFolder = Path.Combine(currentDirectory, _devicesGitConnectionOptions.GitLocalFolder);
-            _devicesGitConnectionOptions.DeviceToml = Path.Combine(_devicesGitConnectionOptions.GitLocalFolder, _devicesGitConnectionOptions.DeviceToml);
-
-            _gitRepoManager.SetConnectionOptions(connectionOptions);
-        }
+        // _devicesGitConnectionOptions.DeviceToml = Path.Combine(_devicesGitConnectionOptions.GitLocalFolder, _devicesGitConnectionOptions.DeviceToml);
     }
 }

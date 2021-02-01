@@ -1,4 +1,6 @@
-﻿namespace Business.GitRepository.Managers
+﻿using ZTR.Framework.Configuration;
+
+namespace Business.GitRepository.Managers
 {
     using Common.Configuration;
     using EnsureThat;
@@ -10,7 +12,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
-    using ZTR.Framework.Business.Models;
 
     /// <summary>
     /// BlockServiceManager
@@ -102,6 +103,10 @@
             return fileContent;
         }
 
-        // _moduleGitConnectionOptions.BlockConfig = Path.Combine(currentDirectory, moduleGitConnectionOptions.GitLocalFolder, moduleGitConnectionOptions.BlockConfig);
+        protected override void SetupDependencies()
+        {
+            _moduleGitConnectionOptions.BlockConfig = Path.Combine(currentDirectory,
+                _moduleGitConnectionOptions.GitLocalFolder, _moduleGitConnectionOptions.BlockConfig);
+        }
     }
 }
