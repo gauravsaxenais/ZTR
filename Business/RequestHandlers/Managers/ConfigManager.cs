@@ -53,7 +53,7 @@
         public async Task<string> CreateFromHtmlAsync(string device, string firmware, IFormFile htmlFile)
         {
             var html = FileReaderExtensions.ReadAsString(htmlFile);
-            return await _service.CreateFromHtmlAsync(device, firmware, html);
+            return await _service.CreateFromHtmlAsync(html);
         }
 
         /// <summary>

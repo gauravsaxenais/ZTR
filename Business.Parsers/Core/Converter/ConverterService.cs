@@ -44,11 +44,9 @@
         /// <summary>
         /// Creates from HTML asynchronous.
         /// </summary>
-        /// <param name="device">The device.</param>
-        /// <param name="firmware">The firmware.</param>
         /// <param name="html">The HTML.</param>
         /// <returns></returns>
-        public async Task<string> CreateFromHtmlAsync(string device, string firmware, string html)
+        public async Task<string> CreateFromHtmlAsync(string html)
         {
             var dictionary = _htmlParser.ToConverted(html);
             var contents = _builder.ToTOML(dictionary, ValueScheme.Quoted);

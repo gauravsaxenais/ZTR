@@ -95,10 +95,18 @@
             <param name="logger">The logger.</param>
         </member>
         <member name="M:Service.Controllers.ConfigController.CreateTomlConfig(Business.Parsers.Core.Models.ConfigReadModel)">
-            <summary>Creates the toml configuration.</summary>
-            <returns>
-              <br />
-            </returns>
+            <summary>
+            Creates the toml configuration.
+            </summary>
+            <param name="json">The json.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Service.Controllers.ConfigController.CreateFromHtml(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Creates from HTML.
+            </summary>
+            <param name="htmlFile">The html file.</param>
+            <returns></returns>
         </member>
         <member name="T:Service.Controllers.ConfigCreateFromController">
             <summary>
