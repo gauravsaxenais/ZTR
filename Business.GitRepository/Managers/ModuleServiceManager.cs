@@ -13,6 +13,7 @@
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
     using ZTR.Framework.Business.File.FileReaders;
+    using ZTR.Framework.Configuration;
 
     /// <summary>
     /// Wrapper for GitRepoManager.
@@ -35,7 +36,7 @@
         /// <param name="logger">The logger.</param>
         /// <param name="moduleGitConnectionOptions">The module git connection options.</param>
         /// <param name="gitRepoManager">The git repo manager.</param>
-        public ModuleServiceManager(ILogger<ModuleServiceManager> logger, ModuleBlockGitConnectionOptions moduleGitConnectionOptions, IGitRepositoryManager gitRepoManager) : base(logger, moduleGitConnectionOptions, gitRepoManager)
+        public ModuleServiceManager(ILogger<ModuleServiceManager> logger, IGitConnectionOptions moduleGitConnectionOptions, IGitRepositoryManager gitRepoManager) : base(logger, moduleGitConnectionOptions, gitRepoManager)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(gitRepoManager, nameof(gitRepoManager));
@@ -43,7 +44,7 @@
 
             _logger = logger;
             _gitRepoManager = gitRepoManager;
-            _moduleGitConnectionOptions = moduleGitConnectionOptions;
+            _moduleGitConnectionOptions = (ModuleBlockGitConnectionOptions)moduleGitConnectionOptions;
         }
 
         //_moduleGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder = Path.Combine(_moduleGitConnectionOptions.GitLocalFolder, _moduleGitConnectionOptions.DefaultTomlConfiguration.DeviceFolder);

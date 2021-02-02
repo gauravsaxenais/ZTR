@@ -10,6 +10,7 @@
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
     using ZTR.Framework.Business.File.FileReaders;
+    using ZTR.Framework.Configuration;
 
     /// <summary>
     /// Device list wrapper for devices.
@@ -18,7 +19,6 @@
     /// <seealso cref="IDeviceServiceManager" />
     public class DeviceServiceManager : ServiceManager, IDeviceServiceManager
     {
-        private readonly IGitRepositoryManager _gitRepoManager;
         private readonly ILogger<DeviceServiceManager> _logger;
         private const string Prefix = nameof(DeviceServiceManager);
         private readonly DeviceGitConnectionOptions _devicesGitConnectionOptions;
@@ -29,8 +29,10 @@
         /// <param name="logger">The logger.</param>
         /// <param name="deviceGitConnectionOptions">The device git connection options.</param>
         /// <param name="gitRepoManager">The git repo manager.</param>
-        public DeviceServiceManager(ILogger<DeviceServiceManager> logger, DeviceGitConnectionOptions deviceGitConnectionOptions, IGitRepositoryManager gitRepoManager) : base(logger, deviceGitConnectionOptions, gitRepoManager)
+        public DeviceServiceManager(ILogger<DeviceServiceManager> logger, IGitConnectionOptions gitConnectionOptions, IGitRepositoryManager gitRepoManager) : base(logger, gitConnectionOptions, gitRepoManager)
         {
+            _logger = logger;
+            _devicesGitConnectionOptions = (DeviceGitConnectionOptions)gitConnectionOptions;
         }
 
         /// <summary>
@@ -56,7 +58,7 @@
         public async Task CloneGitHubRepoAsync()
         {
             _logger.LogInformation($"{Prefix}: Cloning github repository.");
-            await _gitRepoManager.CloneRepositoryAsync().ConfigureAwait(false);
+            await RepoManager.CloneRepositoryAsync().ConfigureAwait(false);
             _logger.LogInformation($"{Prefix}: Github repository cloning is successful.");
         }
 
@@ -79,6 +81,9 @@
             return dictionaryDevices.ToList();
         }
 
-        // _devicesGitConnectionOptions.DeviceToml = Path.Combine(_devicesGitConnectionOptions.GitLocalFolder, _devicesGitConnectionOptions.DeviceToml);
+        protected override void SetupDependencies(IGitConnectionOptions connectionOptions)
+        {
+             _devicesGitConnectionOptions.DeviceToml = Path.Combine(_devicesGitConnectionOptions.GitLocalFolder, _devicesGitConnectionOptions.DeviceToml);
+        }
     }
 }

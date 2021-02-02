@@ -1,5 +1,7 @@
 ﻿namespace Service
 {
+    using Business.Common.Configuration;
+    using Business.GitRepository;
     using Business.GitRepository.Interfaces;
     using Business.GitRepository.Managers;
     using Business.Parsers;
@@ -7,6 +9,7 @@
     using Business.RequestHandlers.Managers;
     using EnsureThat;
     using Microsoft.Extensions.DependencyInjection;
+    using ZTR.Framework.Configuration;
     using ZTR.Framework.Service;
 
     /// <summary>
@@ -24,6 +27,7 @@
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
+            services.AddScoped<IGitConnectionOptions, DeviceGitConnectionOptions>();
             services.AddScoped<IGitRepositoryManager, GitRepositoryManager>();
             services.AddScoped<IDeviceTypeManager, DeviceTypeManager>();
             services.AddScoped<IModuleManager, ModuleManager>();
@@ -34,12 +38,6 @@
             services.AddScoped<IConfigCreateFromManager, ConfigCreateFromManager>();
             services.AddScoped<ICompatibleFirmwareVersionManager, CompatibleFirmwareVersionManager>();
 
-            // Service managers for git repository.
-            services.AddScoped<IModuleServiceManager, ModuleServiceManager>();
-            services.AddScoped<IDeviceServiceManager, DeviceServiceManager>();
-            services.AddScoped<IBlockServiceManager, BlockServiceManager>();
-            services.AddScoped<IFirmwareVersionServiceManager, FirmwareVersionServiceManager>();
-
             services.AddCors(o => o.AddPolicy(ApiConstants.ApiAllowAllOriginsPolicy, builder =>
             {
                 builder.AllowAnyOrigin()
@@ -48,6 +46,7 @@
             }));
 
             services.AddConverters();
+            services.AddGitConnections();
 
             return services;
         }

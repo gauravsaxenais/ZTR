@@ -10,16 +10,11 @@
 
     public class ServiceManager : Manager, IServiceManager
     {
-        private readonly IGitConnectionOptions _connectionOptions;
         private readonly ILogger<ServiceManager> _logger;
-        private readonly IGitRepositoryManager _repoManager;
-        private readonly string _appPath;
 
-        protected string AppPath
-        {
-            get { return _appPath; }
-            set => GetCurrentAppPath();
-        }
+        protected string AppPath { get; }
+        protected IGitRepositoryManager RepoManager { get; set; }
+        protected IGitConnectionOptions ConnectionOptions { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeviceServiceManager"/> class.
@@ -33,11 +28,11 @@
             EnsureArg.IsNotNull(repoManager, nameof(repoManager));
 
             _logger = logger;
-            _connectionOptions = gitConnectionOptions;
-            _repoManager = repoManager;
+            ConnectionOptions = gitConnectionOptions;
+            RepoManager = repoManager;
 
-            _appPath = GetCurrentAppPath();
-            SetConnection(_connectionOptions);
+            AppPath = GetCurrentAppPath();
+            SetConnection(ConnectionOptions);
         }
 
         /// <summary>
@@ -49,11 +44,10 @@
         {
             _logger.LogInformation("Setting git repository connection");
             
+            ConnectionOptions.GitLocalFolder = Path.Combine(AppPath, connectionOptions.GitLocalFolder);
 
-            _connectionOptions.GitLocalFolder = Path.Combine(currentDirectory, connectionOptions.GitLocalFolder);
-
-            SetupDependencies(_connectionOptions);
-            _repoManager.SetConnectionOptions(_connectionOptions);
+            SetupDependencies(ConnectionOptions);
+            RepoManager.SetConnectionOptions(ConnectionOptions);
         }
 
         protected virtual void SetupDependencies(IGitConnectionOptions connectionOptions)

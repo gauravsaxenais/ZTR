@@ -1,6 +1,4 @@
-﻿using ZTR.Framework.Configuration;
-
-namespace Business.GitRepository.Managers
+﻿namespace Business.GitRepository.Managers
 {
     using Common.Configuration;
     using EnsureThat;
@@ -12,6 +10,7 @@ namespace Business.GitRepository.Managers
     using System.Linq;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
+    using ZTR.Framework.Configuration;
 
     /// <summary>
     /// BlockServiceManager
@@ -32,7 +31,7 @@ namespace Business.GitRepository.Managers
         /// <param name="logger">The logger.</param>
         /// <param name="moduleGitConnectionOptions">The module git connection options.</param>
         /// <param name="gitRepoManager">The git repo manager.</param>
-        public BlockServiceManager(ILogger<BlockServiceManager> logger, ModuleBlockGitConnectionOptions moduleGitConnectionOptions, IGitRepositoryManager gitRepoManager) : base(logger, moduleGitConnectionOptions, gitRepoManager)
+        public BlockServiceManager(ILogger<BlockServiceManager> logger, IGitConnectionOptions moduleGitConnectionOptions, IGitRepositoryManager gitRepoManager) : base(logger, moduleGitConnectionOptions, gitRepoManager)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(gitRepoManager, nameof(gitRepoManager));
@@ -41,7 +40,7 @@ namespace Business.GitRepository.Managers
             _logger = logger;
             _gitRepoManager = gitRepoManager;
 
-            _moduleGitConnectionOptions = moduleGitConnectionOptions;
+            _moduleGitConnectionOptions = (ModuleBlockGitConnectionOptions)moduleGitConnectionOptions;
         }
 
         /// <summary>
@@ -103,10 +102,10 @@ namespace Business.GitRepository.Managers
             return fileContent;
         }
 
-        protected override void SetupDependencies()
-        {
-            _moduleGitConnectionOptions.BlockConfig = Path.Combine(currentDirectory,
-                _moduleGitConnectionOptions.GitLocalFolder, _moduleGitConnectionOptions.BlockConfig);
-        }
+        //protected override void SetupDependencies()
+        //{
+        //    _moduleGitConnectionOptions.BlockConfig = Path.Combine(currentDirectory,
+        //        _moduleGitConnectionOptions.GitLocalFolder, _moduleGitConnectionOptions.BlockConfig);
+        //}
     }
 }

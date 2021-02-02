@@ -7,6 +7,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
+    using ZTR.Framework.Configuration;
 
     /// <summary>
     /// FirmwareVersion Service Manager
@@ -28,7 +29,7 @@
         /// <param name="firmwareVersionGitConnection">The firmware version git connection.</param>
         /// <param name="gitRepoManager">The git repo manager.</param>
         /// <param name="deviceServiceManager">The device service manager.</param>
-        public FirmwareVersionServiceManager(ILogger<FirmwareVersionServiceManager> logger, FirmwareVersionGitConnectionOptions firmwareVersionGitConnection, IGitRepositoryManager gitRepoManager, IDeviceServiceManager deviceServiceManager) : base(logger)
+        public FirmwareVersionServiceManager(ILogger<FirmwareVersionServiceManager> logger, IGitConnectionOptions firmwareVersionGitConnection, IGitRepositoryManager gitRepoManager, IDeviceServiceManager deviceServiceManager) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(gitRepoManager, nameof(gitRepoManager));
@@ -37,7 +38,7 @@
 
             _logger = logger;
             _gitRepoManager = gitRepoManager;
-            _firmwareVersionGitConnectionOptions = firmwareVersionGitConnection;
+            _firmwareVersionGitConnectionOptions = (FirmwareVersionGitConnectionOptions)firmwareVersionGitConnection;
         }
 
         /// <summary>

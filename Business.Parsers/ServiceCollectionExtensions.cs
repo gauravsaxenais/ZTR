@@ -1,8 +1,8 @@
 ﻿namespace Business.Parsers
 {
     using Core.Converter;
-    using ProtoParser.Parser;
     using Microsoft.Extensions.DependencyInjection;
+    using ProtoParser.Parser;
     using System.Collections.Generic;
 
     public static class ServiceCollectionExtensions
