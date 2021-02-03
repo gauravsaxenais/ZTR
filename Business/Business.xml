@@ -177,6 +177,13 @@
             <param name="configTomlFileContent">Content of the configuration toml file.</param>
             <returns></returns>
         </member>
+        <member name="M:Business.RequestHandlers.Interfaces.IBlockManager.GetBlocksFromFileWithoutGitAsync(System.String)">
+            <summary>
+            Gets the blocks from file without git asynchronous.
+            </summary>
+            <param name="configTomlFileContent">Content of the configuration toml file.</param>
+            <returns></returns>
+        </member>
         <member name="T:Business.RequestHandlers.Interfaces.ICompatibleFirmwareVersionManager">
             <summary>
             This Manager returns a list of all compatible firmware versions.
@@ -207,6 +214,13 @@
             Gets the default values all modules asynchronous.
             </summary>
             <param name="configTomlFileContent">The firmware version.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Interfaces.IConfigCreateFromManager.GenerateConfigTomlModelWithoutGitAsync(System.String)">
+            <summary>
+            Generates the configuration toml model without git asynchronous.
+            </summary>
+            <param name="configTomlFileContent">Content of the configuration toml file.</param>
             <returns></returns>
         </member>
         <member name="T:Business.RequestHandlers.Interfaces.IConfigManager">
@@ -317,6 +331,13 @@
             <param name="configTomlFileContent">Content of the configuration toml file.</param>
             <returns></returns>
         </member>
+        <member name="M:Business.RequestHandlers.Managers.BlockManager.GetBlocksFromFileWithoutGitAsync(System.String)">
+            <summary>
+            Gets the list of blocks asynchronous.
+            </summary>
+            <param name="configTomlFileContent">Content of the configuration toml file.</param>
+            <returns></returns>
+        </member>
         <member name="M:Business.RequestHandlers.Managers.BlockManager.ProcessBlockFileAsync(System.Collections.Generic.IDictionary{System.String,System.String})">
             <summary>
             Processes the block file asynchronous.
@@ -397,6 +418,13 @@
             <param name="configTomlFile">config.toml as string.</param>
             <returns></returns>
         </member>
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GenerateConfigTomlModelWithoutGitAsync(System.String)">
+            <summary>
+            Returns the list of all modules and blocks from config.toml.
+            </summary>
+            <param name="configTomlFileContent">config.toml as string.</param>
+            <returns></returns>
+        </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GenerateConfigTomlModelAsync(System.String)">
             <summary>
             Returns the list of all modules and blocks from config.toml.
@@ -412,6 +440,13 @@
             <returns></returns>
         </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetBlocksAsync(System.String)">
+            <summary>
+            Gets the blocks asynchronous.
+            </summary>
+            <param name="configTomlFileContent">Content of the configuration toml file.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GetBlocksWithoutGitAsync(System.String)">
             <summary>
             Gets the blocks asynchronous.
             </summary>
