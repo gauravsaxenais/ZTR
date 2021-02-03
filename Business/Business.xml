@@ -228,13 +228,11 @@
             <param name="properties">The properties.</param>
             <returns></returns>
         </member>
-        <member name="M:Business.RequestHandlers.Interfaces.IConfigManager.CreateFromHtmlAsync(System.String,System.String,Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:Business.RequestHandlers.Interfaces.IConfigManager.CreateFromHtmlAsync(Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             Creates from HTML asynchronous.
             </summary>
-            <param name="device">The device.</param>
-            <param name="firmware">The firmware.</param>
-            <param name="htmlFile">The htmlFile.</param>
+            <param name="htmlFile">The HTML file.</param>
             <returns></returns>
         </member>
         <member name="T:Business.RequestHandlers.Interfaces.IDefaultValueManager">
@@ -286,19 +284,6 @@
             <summary>
             Gets all firmware versions asynchronous.
             </summary>
-            <param name="deviceType">Type of the device.</param>
-            <returns></returns>
-        </member>
-        <member name="T:Business.RequestHandlers.Interfaces.IModuleManager">
-            <summary>
-            get list of all the modules, their name and uuid information.
-            </summary>
-        </member>
-        <member name="M:Business.RequestHandlers.Interfaces.IModuleManager.GetAllModulesAsync(System.String,System.String)">
-            <summary>
-            Gets all modules asynchronous.
-            </summary>
-            <param name="firmwareVersion">The firmware version.</param>
             <param name="deviceType">Type of the device.</param>
             <returns></returns>
         </member>
@@ -461,13 +446,11 @@
             <param name="model">The model.</param>
             <returns></returns>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigManager.CreateFromHtmlAsync(System.String,System.String,Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:Business.RequestHandlers.Managers.ConfigManager.CreateFromHtmlAsync(Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             Creates from HTML asynchronous.
             </summary>
-            <param name="device">The device.</param>
-            <param name="firmware">The firmware.</param>
-            <param name="htmlFile">The htmlFile.</param>
+            <param name="htmlFile">The HTML file.</param>
             <returns></returns>
         </member>
         <member name="M:Business.RequestHandlers.Managers.ConfigManager.UpdateTomlConfig(System.String)">
@@ -560,28 +543,6 @@
             <summary>
             Gets all firmware versions asynchronous.
             </summary>
-            <returns></returns>
-        </member>
-        <member name="T:Business.RequestHandlers.Managers.ModuleManager">
-            <summary>
-            Returns list of all the modules.
-            </summary>
-            <seealso cref="T:ZTR.Framework.Business.Manager" />
-            <seealso cref="T:Business.RequestHandlers.Interfaces.IModuleManager" />
-        </member>
-        <member name="M:Business.RequestHandlers.Managers.ModuleManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.ModuleManager},Business.GitRepository.Interfaces.IModuleServiceManager)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.ModuleManager"/> class.
-            </summary>
-            <param name="logger">The logger.</param>
-            <param name="moduleServiceManager">The module service manager.</param>
-        </member>
-        <member name="M:Business.RequestHandlers.Managers.ModuleManager.GetAllModulesAsync(System.String,System.String)">
-            <summary>
-            Gets all modules asynchronous.
-            </summary>
-            <param name="firmwareVersion">The firmware version.</param>
-            <param name="deviceType">Type of the device.</param>
             <returns></returns>
         </member>
     </members>

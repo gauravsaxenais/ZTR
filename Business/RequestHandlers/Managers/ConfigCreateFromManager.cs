@@ -84,7 +84,7 @@
             EnsureArg.IsNotEmptyOrWhiteSpace(configTomlFileContent);
 
             // Clone repo here.
-            await _moduleServiceManager.CloneGitHubRepoAsync().ConfigureAwait(false);
+            await _moduleServiceManager.CloneGitRepoAsync().ConfigureAwait(false);
 
             // get list of all modules.
             var modules = GetListOfModules(configTomlFileContent).ToList();
