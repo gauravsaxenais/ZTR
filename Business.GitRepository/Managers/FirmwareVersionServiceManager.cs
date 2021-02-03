@@ -7,7 +7,6 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
-    using ZTR.Framework.Configuration;
 
     /// <summary>
     /// FirmwareVersion Service Manager
@@ -15,13 +14,11 @@
     /// <seealso cref="Manager" />
     /// <seealso cref="IFirmwareVersionServiceManager" />
     /// <seealso cref="IServiceManager" />
-    public class FirmwareVersionServiceManager : Manager, IFirmwareVersionServiceManager, IServiceManager
+    public class FirmwareVersionServiceManager : ServiceManager, IFirmwareVersionServiceManager
     {
-        private readonly IGitRepositoryManager _gitRepoManager;
         private readonly ILogger<FirmwareVersionServiceManager> _logger;
         private const string Prefix = nameof(FirmwareVersionServiceManager);
-        private readonly FirmwareVersionGitConnectionOptions _firmwareVersionGitConnectionOptions;
-
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="FirmwareVersionServiceManager"/> class.
         /// </summary>
@@ -29,16 +26,10 @@
         /// <param name="firmwareVersionGitConnection">The firmware version git connection.</param>
         /// <param name="gitRepoManager">The git repo manager.</param>
         /// <param name="deviceServiceManager">The device service manager.</param>
-        public FirmwareVersionServiceManager(ILogger<FirmwareVersionServiceManager> logger, IGitConnectionOptions firmwareVersionGitConnection, IGitRepositoryManager gitRepoManager, IDeviceServiceManager deviceServiceManager) : base(logger)
+        public FirmwareVersionServiceManager(ILogger<FirmwareVersionServiceManager> logger, FirmwareVersionGitConnectionOptions firmwareVersionGitConnection, IGitRepositoryManager gitRepoManager, IDeviceServiceManager deviceServiceManager) : base(logger, firmwareVersionGitConnection, gitRepoManager)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(gitRepoManager, nameof(gitRepoManager));
-            EnsureArg.IsNotNull(deviceServiceManager, nameof(deviceServiceManager));
-            EnsureArg.IsNotNull(firmwareVersionGitConnection, nameof(firmwareVersionGitConnection));
-
             _logger = logger;
-            _gitRepoManager = gitRepoManager;
-            _firmwareVersionGitConnectionOptions = (FirmwareVersionGitConnectionOptions)firmwareVersionGitConnection;
         }
 
         /// <summary>
@@ -49,7 +40,7 @@
         {
             _logger.LogInformation(
                 $"{Prefix} method name: {nameof(GetAllFirmwareVersionsAsync)}: Getting list of all firmware versions for deviceType.");
-            var firmwareVersions = await _gitRepoManager.GetAllTagNamesAsync().ConfigureAwait(false);
+            var firmwareVersions = await RepoManager.GetAllTagNamesAsync().ConfigureAwait(false);
 
             return firmwareVersions;
         }
@@ -57,11 +48,9 @@
         /// <summary>
         /// Clones the git hub repo asynchronous.
         /// </summary>
-        public async Task CloneGitHubRepoAsync()
+        public async Task CloneGitRepoAsync()
         {
-            _logger.LogInformation($"{Prefix}: Cloning github repository.");
-            await _gitRepoManager.CloneRepositoryAsync().ConfigureAwait(false);
-            _logger.LogInformation($"{Prefix}: Github repository cloning is successful.");
+            await CloneGitHubRepoAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -72,8 +61,8 @@
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(gitUrl);
 
-            _firmwareVersionGitConnectionOptions.GitRemoteLocation = gitUrl;
-            _gitRepoManager.SetConnectionOptions(_firmwareVersionGitConnectionOptions);
+            ConnectionOptions.GitRemoteLocation = gitUrl;
+            RepoManager.SetConnectionOptions(ConnectionOptions);
         }
     }
 }

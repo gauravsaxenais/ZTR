@@ -289,19 +289,6 @@
             <param name="deviceType">Type of the device.</param>
             <returns></returns>
         </member>
-        <member name="T:Business.RequestHandlers.Interfaces.IModuleManager">
-            <summary>
-            get list of all the modules, their name and uuid information.
-            </summary>
-        </member>
-        <member name="M:Business.RequestHandlers.Interfaces.IModuleManager.GetAllModulesAsync(System.String,System.String)">
-            <summary>
-            Gets all modules asynchronous.
-            </summary>
-            <param name="firmwareVersion">The firmware version.</param>
-            <param name="deviceType">Type of the device.</param>
-            <returns></returns>
-        </member>
         <member name="T:Business.RequestHandlers.Managers.BlockManager">
             <summary>
             Parses a toml file and returns arguments for a block
@@ -560,28 +547,6 @@
             <summary>
             Gets all firmware versions asynchronous.
             </summary>
-            <returns></returns>
-        </member>
-        <member name="T:Business.RequestHandlers.Managers.ModuleManager">
-            <summary>
-            Returns list of all the modules.
-            </summary>
-            <seealso cref="T:ZTR.Framework.Business.Manager" />
-            <seealso cref="T:Business.RequestHandlers.Interfaces.IModuleManager" />
-        </member>
-        <member name="M:Business.RequestHandlers.Managers.ModuleManager.#ctor(Microsoft.Extensions.Logging.ILogger{Business.RequestHandlers.Managers.ModuleManager},Business.GitRepository.Interfaces.IModuleServiceManager)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Business.RequestHandlers.Managers.ModuleManager"/> class.
-            </summary>
-            <param name="logger">The logger.</param>
-            <param name="moduleServiceManager">The module service manager.</param>
-        </member>
-        <member name="M:Business.RequestHandlers.Managers.ModuleManager.GetAllModulesAsync(System.String,System.String)">
-            <summary>
-            Gets all modules asynchronous.
-            </summary>
-            <param name="firmwareVersion">The firmware version.</param>
-            <param name="deviceType">Type of the device.</param>
             <returns></returns>
         </member>
     </members>

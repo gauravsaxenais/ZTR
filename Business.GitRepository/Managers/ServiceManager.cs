@@ -4,6 +4,7 @@
     using Interfaces;
     using Microsoft.Extensions.Logging;
     using System.IO;
+    using System.Threading.Tasks;
     using ZTR.Framework.Business;
     using ZTR.Framework.Business.Models;
     using ZTR.Framework.Configuration;
@@ -14,14 +15,14 @@
 
         protected string AppPath { get; }
         protected IGitRepositoryManager RepoManager { get; set; }
-        protected IGitConnectionOptions ConnectionOptions { get; set; }
+        protected GitConnectionOptions ConnectionOptions { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeviceServiceManager"/> class.
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="gitConnectionOptions">The device git connection options.</param>
-        public ServiceManager(ILogger<ServiceManager> logger, IGitConnectionOptions gitConnectionOptions, IGitRepositoryManager repoManager) : base(logger)
+        public ServiceManager(ILogger<ServiceManager> logger, GitConnectionOptions gitConnectionOptions, IGitRepositoryManager repoManager) : base(logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(gitConnectionOptions, nameof(gitConnectionOptions));
@@ -32,7 +33,18 @@
             RepoManager = repoManager;
 
             AppPath = GetCurrentAppPath();
+            SetupDependencies(ConnectionOptions);
             SetConnection(ConnectionOptions);
+        }
+
+        /// <summary>
+        /// Clones the git hub repo asynchronous.
+        /// </summary>
+        protected async Task CloneGitHubRepoAsync()
+        {
+            _logger.LogInformation($"Cloning github repository.");
+            await RepoManager.CloneRepositoryAsync().ConfigureAwait(false);
+            _logger.LogInformation($"Github repository cloning is successful.");
         }
 
         /// <summary>
@@ -40,17 +52,14 @@
         /// </summary>
         /// <param name="connectionOptions">The connection options.</param>
         /// <exception cref="CustomArgumentException">Current directory path is not valid.</exception>
-        public void SetConnection(IGitConnectionOptions connectionOptions)
+        public void SetConnection(GitConnectionOptions connectionOptions)
         {
-            _logger.LogInformation("Setting git repository connection");
-            
+            _logger.LogInformation("Setting git repository connection");          
             ConnectionOptions.GitLocalFolder = Path.Combine(AppPath, connectionOptions.GitLocalFolder);
-
-            SetupDependencies(ConnectionOptions);
             RepoManager.SetConnectionOptions(ConnectionOptions);
         }
 
-        protected virtual void SetupDependencies(IGitConnectionOptions connectionOptions)
+        protected virtual void SetupDependencies(GitConnectionOptions connectionOptions)
         {
         }
 

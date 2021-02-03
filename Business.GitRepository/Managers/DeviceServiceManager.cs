@@ -1,6 +1,7 @@
 ﻿namespace Business.GitRepository.Managers
 {
     using Common.Configuration;
+    using EnsureThat;
     using Interfaces;
     using Microsoft.Extensions.Logging;
     using Nett;
@@ -21,18 +22,25 @@
     {
         private readonly ILogger<DeviceServiceManager> _logger;
         private const string Prefix = nameof(DeviceServiceManager);
-        private readonly DeviceGitConnectionOptions _devicesGitConnectionOptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeviceServiceManager"/> class.
         /// </summary>
         /// <param name="logger">The logger.</param>
-        /// <param name="deviceGitConnectionOptions">The device git connection options.</param>
+        /// <param name="gitConnectionOptions">The git connection options.</param>
         /// <param name="gitRepoManager">The git repo manager.</param>
-        public DeviceServiceManager(ILogger<DeviceServiceManager> logger, IGitConnectionOptions gitConnectionOptions, IGitRepositoryManager gitRepoManager) : base(logger, gitConnectionOptions, gitRepoManager)
+        public DeviceServiceManager(ILogger<DeviceServiceManager> logger, DeviceGitConnectionOptions gitConnectionOptions, IGitRepositoryManager gitRepoManager) : base(logger, gitConnectionOptions, gitRepoManager)
         {
+            EnsureArg.IsNotNull(logger, nameof(logger));
             _logger = logger;
-            _devicesGitConnectionOptions = (DeviceGitConnectionOptions)gitConnectionOptions;
+        }
+
+        /// <summary>
+        /// Clones the git repo asynchronous.
+        /// </summary>
+        public async Task CloneGitRepoAsync()
+        {
+            await CloneGitHubRepoAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -53,22 +61,12 @@
         }
 
         /// <summary>
-        /// Clones the git hub repo asynchronous.
-        /// </summary>
-        public async Task CloneGitHubRepoAsync()
-        {
-            _logger.LogInformation($"{Prefix}: Cloning github repository.");
-            await RepoManager.CloneRepositoryAsync().ConfigureAwait(false);
-            _logger.LogInformation($"{Prefix}: Github repository cloning is successful.");
-        }
-
-        /// <summary>
         /// Gets the list of devices asynchronous.
         /// </summary>
         /// <returns></returns>
         public async Task<List<Dictionary<string, object>>> GetListOfDevicesAsync()
         {
-            string filePath = _devicesGitConnectionOptions.DeviceToml;
+            string filePath = ((DeviceGitConnectionOptions)ConnectionOptions).DeviceToml;
             var tomlSettings = TomlFileReader.LoadLowerCaseTomlSettings();
             var fileContent
                 = await File.ReadAllTextAsync(filePath);
@@ -81,9 +79,10 @@
             return dictionaryDevices.ToList();
         }
 
-        protected override void SetupDependencies(IGitConnectionOptions connectionOptions)
+        protected override void SetupDependencies(GitConnectionOptions connectionOptions)
         {
-             _devicesGitConnectionOptions.DeviceToml = Path.Combine(_devicesGitConnectionOptions.GitLocalFolder, _devicesGitConnectionOptions.DeviceToml);
+            var deviceGitConnectionOptions = (DeviceGitConnectionOptions)connectionOptions;
+            deviceGitConnectionOptions.DeviceToml = Path.Combine(AppPath, deviceGitConnectionOptions.GitLocalFolder, deviceGitConnectionOptions.DeviceToml);
         }
     }
 }

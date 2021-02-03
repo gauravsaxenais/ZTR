@@ -14,7 +14,7 @@
         /// Sets the connection options.
         /// </summary>
         /// <param name="gitConnection">The git connection.</param>
-        void SetConnectionOptions(IGitConnectionOptions gitConnection);
+        void SetConnectionOptions(GitConnectionOptions gitConnection);
 
         /// <summary>
         /// Clones the repository asynchronous.

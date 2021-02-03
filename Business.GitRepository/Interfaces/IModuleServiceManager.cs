@@ -1,7 +1,6 @@
 ﻿namespace Business.GitRepository.Interfaces
 {
     using Business.Common.Models;
-    using Common.Configuration;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -44,6 +43,6 @@
         /// Clones the git hub repo asynchronous.
         /// </summary>
         /// <returns></returns>
-        Task CloneGitHubRepoAsync();
+        Task CloneGitRepoAsync();
     }
 }
