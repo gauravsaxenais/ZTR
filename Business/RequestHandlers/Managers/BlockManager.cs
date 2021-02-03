@@ -84,6 +84,18 @@
             return blocks;
         }
 
+        /// <summary>
+        /// Gets the list of blocks asynchronous.
+        /// </summary>
+        /// <param name="configTomlFileContent">Content of the configuration toml file.</param>
+        /// <returns></returns>
+        public async Task<List<BlockJsonModel>> GetBlocksFromFileWithoutGitAsync(string configTomlFileContent)
+        {
+            var blocks = await GetBlocksAsync(configTomlFileContent);
+
+            return blocks;
+        }
+
         private async Task<List<BlockJsonModel>> GetBlocksAsync(string configTomlFileContent)
         {
             var blocksFromGitRepository = await BatchProcessBlockFilesAsync().ConfigureAwait(false);
