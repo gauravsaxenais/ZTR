@@ -18,6 +18,8 @@
 
         public string DataType { get; set; }
 
+        public bool IsRepeated { get; set; }
+
         public object Clone()
         {
             var other = (Field)MemberwiseClone();

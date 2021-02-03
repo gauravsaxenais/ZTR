@@ -33,8 +33,18 @@
 
                 if (field != null)
                 {
-                    field.Value = GetFieldValue(dicItem.Kvp.Value);
-                    field.IsVisible = true;
+                    if (!field.IsRepeated)
+                    {
+                        field.Value = GetFieldValue(dicItem.Kvp.Value);
+                        field.IsVisible = true;
+                    }
+
+                    else
+                    {
+                        var listOfFields = GetFieldsFromValue(field, dicItem.Kvp.Value);
+                        listOfData.RemoveAll(item => item.Name == field.Name);
+                        listOfData.AddRange(listOfFields);
+                    }
                 }
 
                 // we have a repeated / non repeated protoParsedMessage.
@@ -133,7 +143,8 @@
                     Max = newField.Max,
                     DataType = newField.DataType,
                     DefaultValue = newField.DefaultValue,
-                    IsVisible = false
+                    IsVisible = false,
+                    IsRepeated = newField.IsRepeated
                 })
                 .ToList();
         }
@@ -173,47 +184,20 @@
             // fix the indexes
             FixIndex(listOfData);
         }
-        private bool IsValueType(object obj)
-        {
-            var objType = obj.GetType();
-            return objType.GetTypeInfo().IsValueType;
-        }
         private object GetFieldValue(object field)
         {
             object result;
 
-            var stringType = typeof(string);
             var fieldType = field.GetType();
 
             if (fieldType.IsArray)
             {
                 var arrayResult = "[";
-                var element = ((IEnumerable)field).Cast<object>().FirstOrDefault();
 
-                if (element != null)
-                {
-                    if (IsValueType(element))
-                    {
-                        var fields = (IEnumerable)field;
-
-                        foreach (var tempItem in fields)
-                        {
-                            arrayResult += tempItem + ",";
-                        }
-
-                        arrayResult += arrayResult.TrimEnd(',');
-                    }
-
-                    else if (stringType.IsInstanceOfType(element))
-                    {
-                        var stringFields = ((IEnumerable)field).Cast<object>()
+                var stringFields = ((IEnumerable)field).Cast<object>()
                                                                     .Select(x => x.ToString())
                                                                     .ToArray();
-
-                        arrayResult += string.Join(",", stringFields);
-                    }
-                }
-
+                arrayResult += string.Join(",", stringFields);
                 arrayResult += "]";
 
                 result = arrayResult;
@@ -226,6 +210,41 @@
 
             return result;
         }
-        #endregion
+
+        private List<JsonField> GetFieldsFromValue(JsonField jsonField, object field)
+        {
+            var fields = ((IEnumerable)field).Cast<object>().Select(x => x).ToList(); 
+
+            var listofFields = new List<JsonField>();
+            var fieldType = field.GetType();
+
+            // just a sanity check to ensure field is an array.
+            if (fieldType.IsArray)
+            {
+                if(!fields.Any())
+                {
+                    listofFields.Add(jsonField);
+                }
+
+                foreach (var tempItem in fields)
+                {
+                    var newField = new JsonField()
+                    {
+                        Name = jsonField.Name,
+                        Value = tempItem,
+                        Min = jsonField.Min,
+                        Max = jsonField.Max,
+                        DataType = jsonField.DataType,
+                        DefaultValue = jsonField.DefaultValue,
+                        IsVisible = true,
+                        IsRepeated = jsonField.IsRepeated
+                    };
+                    listofFields.Add(newField);
+                }
+            }
+
+            return listofFields;
+            #endregion
+        }
     }
 }
