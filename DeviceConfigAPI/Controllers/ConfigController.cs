@@ -6,7 +6,6 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
-    using System;
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
     using ZTR.Framework.Business;
@@ -15,7 +14,7 @@
     /// <summary>Config Controller - This service is responsible for generating the config toml.</summary>
     [System.ComponentModel.Description("Config Controller Service")]
     [Produces(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
-    [Consumes(SupportedContentTypes.Json, SupportedContentTypes.Xml)]
+    [Consumes(SupportedContentTypes.Json, SupportedContentTypes.Xml, SupportedContentTypes.MultipartFormData)]
     [QueryRoute]
     public class ConfigController : ApiControllerBase
     {
@@ -39,22 +38,36 @@
             _creator = creator;
         }
 
-        /// <summary>Creates the toml configuration.</summary>
-        /// <returns>
-        ///   <br />
-        /// </returns>
+        /// <summary>
+        /// Creates the toml configuration.
+        /// </summary>
+        /// <param name="json">The json.</param>
+        /// <returns></returns>
         [HttpPost(nameof(CreateTomlConfig))]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateTomlConfig([FromBody] ConfigReadModel json)
         {
             var result = await _manager.CreateConfigAsync(json);
             return Ok(result);
         }
-        //
+
+        /// <summary>
+        /// Creates from HTML.
+        /// </summary>
+        /// <param name="htmlFile">The html file.</param>
+        /// <returns></returns>
         [HttpPost(nameof(CreateFromHtml))]
-        [Consumes(SupportedContentTypes.MultipartFormData)]
-        public async Task<IActionResult> CreateFromHtml(IFormFile htmlfile)
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateFromHtml([Required]
+            [MaxFileSize(1 * 1024 * 1024)]
+            [AllowedExtensions(new[] { ".html" })] IFormFile htmlFile)
         {
-            var toml = await _manager.CreateFromHtmlAsync("", "", htmlfile);
+            var toml = await _manager.CreateFromHtmlAsync(htmlFile);
+
             var result = await _creator.GenerateConfigTomlModelAsync(toml);
             return Ok(result);
         }
