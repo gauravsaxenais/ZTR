@@ -79,7 +79,7 @@
             }           
 
             var tags = setting.Split(Environment.NewLine);
-            Properties = tags.Where(o => o.StartsWith("rm:")).Select(o => o.Replace("rm:", string.Empty).RemoveNewline()).ToArray();
+            Properties = tags.Where(o => o.StartsWith("rm:")).Select(o => o.Replace("rm:", string.Empty).ToLower().RemoveNewline()).ToArray();
             JsonProperties = tags.Where(o => o.StartsWith("json:")).Select(o => MapConfig(o));
             Rules = tags.Where(o => o.StartsWith("rule:")).Select(o => MapConfig(o));
             HTMLTags = tags.Where(o => o.StartsWith("html:")).Select(o => new ConfigTag(o)).First();
