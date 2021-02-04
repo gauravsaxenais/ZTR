@@ -86,30 +86,30 @@
             switch (descriptor.FieldType)
             {
                 case FieldType.Bool:
-                    return new Field() { DataType = "bool", DefaultValue = false, Min = 0, Max = 0, Value = false };
+                    return new Field() { DataType = "bool", DefaultValue = false, Min = 0, Max = 0, Value = false, IsRepeated = descriptor.IsRepeated };
                 case FieldType.Bytes:
                 case FieldType.String:
-                    return new Field() { DataType = "string", DefaultValue = string.Empty, Min = string.Empty, Max = string.Empty, Value = string.Empty };
+                    return new Field() { DataType = "string", DefaultValue = string.Empty, Min = string.Empty, Max = string.Empty, Value = string.Empty, IsRepeated = descriptor.IsRepeated };
                 case FieldType.Double:
-                    return new Field() { DataType = "double", DefaultValue = 0.0, Min = double.MinValue, Max = double.MaxValue, Value = 0.0 };
+                    return new Field() { DataType = "double", DefaultValue = 0.0, Min = double.MinValue, Max = double.MaxValue, Value = 0.0, IsRepeated = descriptor.IsRepeated };
                 case FieldType.SInt32:
                 case FieldType.Int32:
                 case FieldType.SFixed32:
-                    return new Field() { DataType = "integer", DefaultValue = 0, Min = int.MinValue, Max = int.MaxValue, Value = 0 };
+                    return new Field() { DataType = "integer", DefaultValue = 0, Min = int.MinValue, Max = int.MaxValue, Value = 0, IsRepeated = descriptor.IsRepeated };
                 case FieldType.Fixed32:
                 case FieldType.UInt32:
-                    return new Field() { DataType = "integer", DefaultValue = 0, Min = uint.MinValue, Max = uint.MaxValue, Value = 0 };
+                    return new Field() { DataType = "integer", DefaultValue = 0, Min = uint.MinValue, Max = uint.MaxValue, Value = 0, IsRepeated = descriptor.IsRepeated };
                 case FieldType.Fixed64:
                 case FieldType.UInt64:
-                    return new Field() { DataType = "integer", DefaultValue = 0, Min = ulong.MinValue, Max = ulong.MaxValue, Value = 0 };
+                    return new Field() { DataType = "integer", DefaultValue = 0, Min = ulong.MinValue, Max = ulong.MaxValue, Value = 0, IsRepeated = descriptor.IsRepeated };
                 case FieldType.SFixed64:
                 case FieldType.Int64:
                 case FieldType.SInt64:
-                    return new Field() { DataType = "integer", DefaultValue = 0, Min = long.MinValue, Max = long.MaxValue, Value = 0 };
+                    return new Field() { DataType = "integer", DefaultValue = 0, Min = long.MinValue, Max = long.MaxValue, Value = 0, IsRepeated = descriptor.IsRepeated };
                 case FieldType.Enum:
-                    return new Field() { DataType = "enum", DefaultValue = 0, Min = 0, Max = 0, Value = 0 };
+                    return new Field() { DataType = "enum", DefaultValue = 0, Min = 0, Max = 0, Value = 0, IsRepeated = descriptor.IsRepeated };
                 case FieldType.Float:
-                    return new Field() { DataType = "float", DefaultValue = 0.0, Min = float.MinValue, Max = float.MaxValue, Value = 0.0 };
+                    return new Field() { DataType = "float", DefaultValue = 0.0, Min = float.MinValue, Max = float.MaxValue, Value = 0.0, IsRepeated = descriptor.IsRepeated };
                 default:
                     return null;
             }

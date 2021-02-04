@@ -209,7 +209,7 @@
             <param name="configTomlFileContent">The firmware version.</param>
             <returns></returns>
         </member>
-        <member name="M:Business.RequestHandlers.Interfaces.IConfigCreateFromManager.GenerateConfigTomlModelWithoutGitAsync(Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:Business.RequestHandlers.Interfaces.IConfigCreateFromManager.GenerateConfigTomlModelWithoutGitAsync(System.String)">
             <summary>
             Generates the configuration toml model without git asynchronous.
             </summary>
@@ -235,7 +235,7 @@
             <param name="properties">The properties.</param>
             <returns></returns>
         </member>
-        <member name="M:Business.RequestHandlers.Interfaces.IConfigManager.CreateFromHtmlAsync(Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:Business.RequestHandlers.Interfaces.IConfigManager.CreateFromHtmlAsync(Microsoft.AspNetCore.Http.IFormFile,System.Collections.Generic.IEnumerable{Business.Common.Models.ModuleReadModel})">
             <summary>
             Creates from HTML asynchronous.
             </summary>
@@ -404,7 +404,7 @@
             <param name="configTomlFile">config.toml as string.</param>
             <returns></returns>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GenerateConfigTomlModelWithoutGitAsync(Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:Business.RequestHandlers.Managers.ConfigCreateFromManager.GenerateConfigTomlModelWithoutGitAsync(System.String)">
             <summary>
             Returns the list of all modules and blocks from config.toml.
             </summary>
@@ -460,7 +460,7 @@
             <param name="model">The model.</param>
             <returns></returns>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.ConfigManager.CreateFromHtmlAsync(Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:Business.RequestHandlers.Managers.ConfigManager.CreateFromHtmlAsync(Microsoft.AspNetCore.Http.IFormFile,System.Collections.Generic.IEnumerable{Business.Common.Models.ModuleReadModel})">
             <summary>
             Creates from HTML asynchronous.
             </summary>
