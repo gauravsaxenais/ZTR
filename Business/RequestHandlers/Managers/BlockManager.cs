@@ -85,8 +85,7 @@
             var blocksFromGitRepository = await BatchProcessBlockFilesAsync().ConfigureAwait(false);
 
             var dataFromFile = TomlFileReader.ReadDataFromString<ConfigurationReadModel>(configTomlFileContent);
-            dataFromFile.Network.TryGetValue("blocks", out var blocksContent);
-            var blocksFromFile = new List<BlockJsonModel>();
+            dataFromFile.Network.TryGetValue("blocks", out var blocksContent);        
 
             if (blocksContent is Dictionary<string, object>[] dictionaries)
             {
@@ -95,14 +94,14 @@
                     dictionary.TryGetValue("type", out var type);
                     dictionary.TryGetValue("tag", out var tag);
                     dictionary.TryGetValue("args", out var argument);
-
+                    
                     var tempBlock = blocksFromGitRepository.FirstOrDefault(x => x.Type == (string)type);
 
                     if (tempBlock != null)
                     {
-                        var block = (BlockJsonModel)tempBlock.Clone();
+                        tempBlock.Tag = tag == null ? string.Empty : tag.ToString();
 
-                        var arguments = block.Args;
+                        var arguments = tempBlock.Args;
                         if (argument is Dictionary<string, object> args)
                         {
                             foreach (var (key, value) in args)
@@ -115,14 +114,12 @@
                                 }
                             }
                         }
-
-                        blocksFromFile.Add(block);
                     }
                 }
             }
 
-            FixIndex(blocksFromFile);
-            return blocksFromFile;
+            FixIndex(blocksFromGitRepository);
+            return blocksFromGitRepository;
         }
 
         /// <summary>
@@ -140,7 +137,7 @@
                 var blockReadModel = Toml.ReadString<BlockReadModel>(data.Value, tomlSettings);
                 var blockFileName = Path.GetFileNameWithoutExtension(data.Key);
 
-                var blockTask = GetBlockAsync(blockReadModel, tag: string.Empty, blockFileName);
+                var blockTask = GetBlockAsync(blockReadModel, blockFileName);
                 var modulesTask = GetModulesAsync(blockReadModel);
 
                 await Task.WhenAll(blockTask, modulesTask);
@@ -183,8 +180,6 @@
                                                         .OrderBy(item => item.Type)
                                                         .ToList();
 
-            FixIndex(blocks);
-
             return blocks;
         }
 
@@ -224,12 +219,11 @@
         /// Gets the block asynchronous.
         /// </summary>
         /// <param name="blockReadModel">The block read model.</param>
-        /// <param name="tag">The tag.</param>
         /// <param name="blockName">Name of the block.</param>
         /// <returns></returns>
-        private async Task<BlockJsonModel> GetBlockAsync(BlockReadModel blockReadModel, string tag, string blockName)
+        private async Task<BlockJsonModel> GetBlockAsync(BlockReadModel blockReadModel, string blockName)
         {
-            var jsonModel = new BlockJsonModel() { Type = blockName, Tag = string.IsNullOrWhiteSpace(tag) ? string.Empty : tag };
+            var jsonModel = new BlockJsonModel() { Type = blockName };
 
             if (blockReadModel?.Arguments != null && blockReadModel.Arguments.Any())
             {

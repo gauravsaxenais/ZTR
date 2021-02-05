@@ -33,14 +33,6 @@
             The modules.
             </value>
         </member>
-        <member name="M:Business.Models.BlockJsonModel.Clone">
-            <summary>
-            Creates a new object that is a copy of the current instance.
-            </summary>
-            <returns>
-            A new object that is a copy of this instance.
-            </returns>
-        </member>
         <member name="T:Business.Models.BlockReadModel">
             <summary>
             Block - This class maps to toml file.
@@ -344,12 +336,11 @@
             </summary>
             <returns>list of modules</returns>
         </member>
-        <member name="M:Business.RequestHandlers.Managers.BlockManager.GetBlockAsync(Business.Models.BlockReadModel,System.String,System.String)">
+        <member name="M:Business.RequestHandlers.Managers.BlockManager.GetBlockAsync(Business.Models.BlockReadModel,System.String)">
             <summary>
             Gets the block asynchronous.
             </summary>
             <param name="blockReadModel">The block read model.</param>
-            <param name="tag">The tag.</param>
             <param name="blockName">Name of the block.</param>
             <returns></returns>
         </member>
