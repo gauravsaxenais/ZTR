@@ -9,11 +9,6 @@ Note: Steps 1-6 are not required for first time.
 2. Enter command - docker stop "m7-prod"
 4. Enter command - docker rm "m7-prod"
 5. Enter command - docker images
-You can see the images that are currently present:
-root@SEZZRT-VM1:# docker images
-REPOSITORY                             TAG               IMAGE ID       CREATED             SIZE
-api                                    prod               2bd6320d3a3d   About an hour ago   540MB
-<none>                                 <none>            e818098a076a   About an hour ago   1.41GB
 6. Remove image using command - docker image rm -f "api:prod"
 7. Build image using command  - docker build -t api:prod -f DeviceConfigApi/Dockerfile . (there is a . at the end)
 8. The following command will run app in a container that you can access in your web browser at http://<<VM IP>:5000.
