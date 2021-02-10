@@ -59,8 +59,7 @@
         {
             lock (_syncRoot)
             {
-                try
-                {
+                
                     // clone only when there is a change.
                     if (IsExistsContentRepositoryDirectory())
                     {
@@ -80,11 +79,7 @@
 
                         _repository = new Repository(_gitConnection.GitLocalFolder);
                     }
-                }
-                catch (LibGit2SharpException ex)
-                {
-                    throw new CustomArgumentException("System is unable to retrieve git repository information. Please try after sometime.", ex);
-                }
+               
             }
 
             await Task.CompletedTask;
