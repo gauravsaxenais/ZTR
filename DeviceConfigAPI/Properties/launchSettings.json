@@ -33,7 +33,6 @@
       "publishAllPorts": true,
       "useSSL": false,
       "runArgs": [ "--privileged" ]
-      }
     }
   }
 }
