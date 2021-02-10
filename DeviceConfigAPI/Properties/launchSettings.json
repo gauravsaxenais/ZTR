@@ -22,7 +22,7 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Staging"
       },
       "applicationUrl": "http://localhost:5000"
     },
@@ -33,6 +33,7 @@
       "publishAllPorts": true,
       "useSSL": false,
       "runArgs": [ "--privileged" ]
+      }
     }
   }
 }
