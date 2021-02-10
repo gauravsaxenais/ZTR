@@ -135,8 +135,7 @@
         /// <returns></returns>
         public static int ToInt(this string input)
         {
-            int val;
-            return int.TryParse(input, out val) ? val : 0;
+            return int.TryParse(input, out int val) ? val : 0;
         }
 
         /// <summary>
