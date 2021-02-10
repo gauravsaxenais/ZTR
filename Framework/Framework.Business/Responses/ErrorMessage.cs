@@ -28,7 +28,7 @@
 
             if (exception != null)
             {
-               // Detail = GenerateMessageFromException(exception);
+                Detail = exception.Message;
                 Exception = ApplicationConfiguration.IsDevelopment ? exception.StackTrace.ToString() : null;
             }
         }
