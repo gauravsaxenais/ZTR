@@ -3,11 +3,12 @@
     using EnsureThat;
     using Interfaces;
     using LibGit2Sharp;
-    using LibGit2Sharp.Handlers;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
+    using System.Net.Security;
     using System.Threading.Tasks;
     using ZTR.Framework.Business.File;
     using ZTR.Framework.Business.Models;
@@ -59,7 +60,6 @@
         {
             lock (_syncRoot)
             {
-
                 // clone only when there is a change.
                 if (IsExistsContentRepositoryDirectory())
                 {
@@ -67,8 +67,11 @@
                 }
                 else
                 {
-                    Directory.CreateDirectory(_gitConnection.GitLocalFolder);
+                    RemoteCertificateValidationCallback certificateValidationCallback = (sender, certificate, chain, errors) => { return true; };
+                    ServicePointManager.ServerCertificateValidationCallback = certificateValidationCallback;
+                    GlobalSettings.RegisterSmartSubtransport<MockSmartSubtransport>("https");
 
+                    Directory.CreateDirectory(_gitConnection.GitLocalFolder);
                     var cloneOptions = new CloneOptions();
                     cloneOptions.CertificateCheck += (certificate, valid, host) => true;
                     try
@@ -77,7 +80,7 @@
                         Repository.Clone(_gitConnection.GitRemoteLocation, _gitConnection.GitLocalFolder,
                         cloneOptions);
                     }
-                    catch (Exception)
+                    catch (LibGit2SharpException)
                     {
                         cloneOptions.CredentialsProvider = (_url, _user, _cred) => _userNamePasswordCredentials;
                         Repository.Clone(_gitConnection.GitRemoteLocation, _gitConnection.GitLocalFolder,
@@ -85,6 +88,7 @@
                     }
 
                     _repository = new Repository(_gitConnection.GitLocalFolder);
+                    ServicePointManager.ServerCertificateValidationCallback -= certificateValidationCallback;
                 }
             }
 
@@ -97,17 +101,9 @@
         /// <returns></returns>
         public async Task<List<string>> GetAllTagNamesAsync()
         {
-            try
-            {
-                var tags = await GetAllTagsAsync().ConfigureAwait(false);
-                var tagNames = tags.Select(x => x.Item1).ToList();
-
-                return tagNames;
-            }
-            catch (LibGit2SharpException ex)
-            {
-                throw new CustomArgumentException("Unable to get all tag names.", ex);
-            }
+            var tags = await GetAllTagsAsync().ConfigureAwait(false);
+            var tagNames = tags.Select(x => x.Item1).ToList();
+            return tagNames;
         }
 
         /// <summary>
@@ -204,20 +200,15 @@
         {
             return Directory.Exists(_gitConnection.GitLocalFolder) && IsGitSubDirPresent(_gitConnection.GitLocalFolder);
         }
-
         #endregion
 
         #region Private methods
-
         private void GetLatestFromRepository()
         {
             _repository = new Repository(_gitConnection.GitLocalFolder);
-
             var network = _repository.Network.Remotes.First();
             var refSpecs = new List<string>() { network.FetchRefSpecs.First().Specification };
-
             var fetchOptions = new FetchOptions { TagFetchMode = TagFetchMode.All };
-
             try
             {
                 fetchOptions.CredentialsProvider += (_url, _user, _cred) => new DefaultCredentials();
@@ -318,6 +309,193 @@
         private bool IsGitSubDirPresent(string pathToRep)
         {
             return Directory.Exists(Path.Combine(pathToRep, GitFolder));
+        }
+
+        private class MockSmartSubtransport : RpcSmartSubtransport
+        {
+            protected override SmartSubtransportStream Action(String url, GitSmartSubtransportAction action)
+            {
+                String endpointUrl, contentType = null;
+                bool isPost = false;
+
+                switch (action)
+                {
+                    case GitSmartSubtransportAction.UploadPackList:
+                        endpointUrl = String.Concat(url, "/info/refs?service=git-upload-pack");
+                        break;
+
+                    case GitSmartSubtransportAction.UploadPack:
+                        endpointUrl = String.Concat(url, "/git-upload-pack");
+                        contentType = "application/x-git-upload-pack-request";
+                        isPost = true;
+                        break;
+
+                    case GitSmartSubtransportAction.ReceivePackList:
+                        endpointUrl = String.Concat(url, "/info/refs?service=git-receive-pack");
+                        break;
+
+                    case GitSmartSubtransportAction.ReceivePack:
+                        endpointUrl = String.Concat(url, "/git-receive-pack");
+                        contentType = "application/x-git-receive-pack-request";
+                        isPost = true;
+                        break;
+
+                    default:
+                        throw new InvalidOperationException();
+                }
+
+                return new MockSmartSubtransportStream(this, endpointUrl, isPost, contentType);
+            }
+
+            private class MockSmartSubtransportStream : SmartSubtransportStream
+            {
+                private static int MAX_REDIRECTS = 5;
+
+                private MemoryStream postBuffer = new MemoryStream();
+                private Stream responseStream;
+
+                public MockSmartSubtransportStream(MockSmartSubtransport parent, string endpointUrl, bool isPost, string contentType)
+                    : base(parent)
+                {
+                    EndpointUrl = endpointUrl;
+                    IsPost = isPost;
+                    ContentType = contentType;
+                }
+
+                private string EndpointUrl
+                {
+                    get;
+                    set;
+                }
+
+                private bool IsPost
+                {
+                    get;
+                    set;
+                }
+
+                private string ContentType
+                {
+                    get;
+                    set;
+                }
+
+                public override int Write(Stream dataStream, long length)
+                {
+                    byte[] buffer = new byte[4096];
+                    long writeTotal = 0;
+
+                    while (length > 0)
+                    {
+                        int readLen = dataStream.Read(buffer, 0, (int)Math.Min(buffer.Length, length));
+
+                        if (readLen == 0)
+                        {
+                            break;
+                        }
+
+                        postBuffer.Write(buffer, 0, readLen);
+                        length -= readLen;
+                        writeTotal += readLen;
+                    }
+
+                    if (writeTotal < length)
+                    {
+                        throw new EndOfStreamException("Could not write buffer (short read)");
+                    }
+
+                    return 0;
+                }
+
+                private static HttpWebRequest CreateWebRequest(string endpointUrl, bool isPost, string contentType)
+                {
+                    HttpWebRequest webRequest = (HttpWebRequest)HttpWebRequest.Create(endpointUrl);
+                    webRequest.UserAgent = "git/1.0 (libgit2 custom transport)";
+                    webRequest.ServicePoint.Expect100Continue = false;
+                    webRequest.AllowAutoRedirect = false;
+
+                    if (isPost)
+                    {
+                        webRequest.Method = "POST";
+                        webRequest.ContentType = contentType;
+                    }
+
+                    return webRequest;
+                }
+
+                private HttpWebResponse GetResponseWithRedirects()
+                {
+                    HttpWebRequest request = CreateWebRequest(EndpointUrl, IsPost, ContentType);
+                    HttpWebResponse response = null;
+
+                    for (int i = 0; i < MAX_REDIRECTS; i++)
+                    {
+                        if (IsPost && postBuffer.Length > 0)
+                        {
+                            postBuffer.Seek(0, SeekOrigin.Begin);
+
+                            using (Stream requestStream = request.GetRequestStream())
+                            {
+                                postBuffer.WriteTo(requestStream);
+                            }
+                        }
+
+                        response = (HttpWebResponse)request.GetResponse();
+
+                        if (response.StatusCode == HttpStatusCode.Moved || response.StatusCode == HttpStatusCode.Redirect)
+                        {
+                            request = CreateWebRequest(response.Headers["Location"], IsPost, ContentType);
+                            continue;
+                        }
+
+                        break;
+                    }
+
+                    if (response == null)
+                    {
+                        throw new Exception("Too many redirects");
+                    }
+
+                    return response;
+                }
+
+                public override int Read(Stream dataStream, long length, out long readTotal)
+                {
+                    byte[] buffer = new byte[4096];
+                    readTotal = 0;
+
+                    if (responseStream == null)
+                    {
+                        HttpWebResponse response = GetResponseWithRedirects();
+                        responseStream = response.GetResponseStream();
+                    }
+
+                    while (length > 0)
+                    {
+                        int readLen = responseStream.Read(buffer, 0, (int)Math.Min(buffer.Length, length));
+
+                        if (readLen == 0)
+                            break;
+
+                        dataStream.Write(buffer, 0, readLen);
+                        readTotal += readLen;
+                        length -= readLen;
+                    }
+
+                    return 0;
+                }
+
+                protected override void Free()
+                {
+                    if (responseStream != null)
+                    {
+                        responseStream.Dispose();
+                        responseStream = null;
+                    }
+
+                    base.Free();
+                }
+            }
         }
 
         #endregion
