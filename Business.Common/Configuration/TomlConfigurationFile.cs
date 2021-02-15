@@ -6,14 +6,6 @@
     public class TomlConfigurationFile
     {
         /// <summary>
-        /// Gets or sets the device folder.
-        /// </summary>
-        /// <value>
-        /// The device folder.
-        /// </value>
-        public string DeviceFolder { get; set; }
-
-        /// <summary>
         /// Gets or sets the toml configuration folder.
         /// </summary>
         /// <value>
@@ -43,7 +35,7 @@
         /// <returns></returns>
         public override string ToString()
         {
-            return $"TomlConfigurationFile($ {DeviceFolder} {TomlConfigFolder} {DeviceTomlFile} {DeviceFolder})";
+            return $"TomlConfigurationFile($ TomlConfigFolder: {TomlConfigFolder} DeviceTomlFile: {DeviceTomlFile} DefaultTomlFile: {DefaultTomlFile})";
         }
     }
 }

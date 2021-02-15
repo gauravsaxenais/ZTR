@@ -76,7 +76,6 @@
             _logger.LogInformation($"{Prefix}: methodName: {nameof(GetDefaultValuesAllModulesAsync)} Cloning git repository for {firmwareVersion} and {deviceType}.");
 
             // Clone repository here.
-            await _moduleServiceManager.CloneGitRepoAsync().ConfigureAwait(false);
             await _firmwareVersionServiceManager.CloneGitRepoAsync().ConfigureAwait(false);
 
             // read default values from toml file defaults.toml
@@ -84,12 +83,12 @@
                 await _firmwareVersionServiceManager.GetDefaultTomlFileContentAsync(firmwareVersion, deviceType).ConfigureAwait(false);
 
             _logger.LogInformation($"{Prefix}: methodName: {nameof(GetDefaultValuesAllModulesAsync)} Getting list of modules {firmwareVersion} and {deviceType}.");
-
             var listOfModules = await _firmwareVersionServiceManager.GetListOfModulesAsync(firmwareVersion, deviceType).ConfigureAwait(false);
 
+            // clone git repo when we need it.
+            await _moduleServiceManager.CloneGitRepoAsync().ConfigureAwait(false);
             // get list of all modules.
             await _moduleServiceManager.UpdateMetaTomlAsync(listOfModules).ConfigureAwait(false);
-
             _logger.LogInformation($"{Prefix}: methodName: {nameof(GetDefaultValuesAllModulesAsync)} Merging default values with module information. {firmwareVersion} and {deviceType}.");
             await MergeValuesWithModulesAsync(defaultValueFromTomlFile, listOfModules);
 
