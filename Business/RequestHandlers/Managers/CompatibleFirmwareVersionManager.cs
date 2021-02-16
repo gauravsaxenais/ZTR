@@ -6,6 +6,7 @@
     using Interfaces;
     using Microsoft.Extensions.Logging;
     using Models;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -52,14 +53,14 @@
             var firmwareVersions = new List<string>();
 
             _logger.LogInformation($"{prefix}: methodName: {nameof(GetCompatibleFirmwareVersionsAsync)} Getting list of compatible firmware versions based on a firmware version.");
-            var listOfTags = await _firmwareVersionServiceManager.GetTagsEarlierThanThisTagAsync(module.FirmwareVersion).ConfigureAwait(false);
-            
-            foreach (var tag in listOfTags)
+            var listOfTags = await _firmwareVersionServiceManager.GetAllFirmwareVersionsAsync().ConfigureAwait(false);
+            var filteredList = listOfTags.Where(x => !string.Equals(x, module.FirmwareVersion, StringComparison.OrdinalIgnoreCase));
+
+            var tagsWithNoDeviceFileModified = await _firmwareVersionServiceManager.GetTagsWithNoDeviceFileModified(filteredList, module.FirmwareVersion);
+            foreach (var tag in tagsWithNoDeviceFileModified)
             {
                 var moduleList = await _firmwareVersionServiceManager.GetListOfModulesAsync(tag, module.DeviceType).ConfigureAwait(false);
-
                 var contained = module.Modules.Intersect(moduleList, new ModuleReadModelComparer()).Count() == module.Modules.Count();
-
                 if (contained)
                 {
                     firmwareVersions.Add(tag);
