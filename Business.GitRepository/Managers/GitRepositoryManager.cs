@@ -189,50 +189,6 @@
         #endregion
 
         #region Private methods
-
-        // git log HEAD..master --reverse
-        public void GetCommitListBetweenTags(Tag from, Tag to)
-        {
-            var commitFilter = new CommitFilter
-            {
-                SortBy = CommitSortStrategies.Reverse | CommitSortStrategies.Time,
-                ExcludeReachableFrom = to,
-                IncludeReachableFrom = from
-            };
-
-            var results = _repository.Commits.QueryBy(commitFilter);
-
-            foreach (var result in results)
-            {
-                //Process commits here.
-            }
-        }
-
-        /// <summary>
-        /// Gets the previous commit of the file.
-        /// </summary>
-        /// <param name="repository">The repository.</param>
-        /// <param name="filePathRelativeToRepository">The file path relative to repository.</param>
-        /// <param name="commitSha">The commit sha to start the search for the previous version from. If null, the latest commit of the file will be returned.</param>
-        /// <returns></returns>
-        private Commit GetPreviousCommitOfFile(Repository repository, string filePathRelativeToRepository, string commitSha = null)
-        {
-            bool versionMatchesGivenVersion = false;
-            var fileHistory = repository.Commits.QueryBy(filePathRelativeToRepository);
-            foreach (var version in fileHistory)
-            {
-                // If they want the latest commit or we have found the "previous" commit that they were after, return it.
-                if (string.IsNullOrWhiteSpace(commitSha) || versionMatchesGivenVersion)
-                    return version.Commit;
-
-                // If this commit version matches the version specified, we want to return the next commit in the list, as it will be the previous commit.
-                if (version.Commit.Sha.Equals(commitSha))
-                    versionMatchesGivenVersion = true;
-            }
-
-            return null;
-        }
-
         private async Task<List<ExportFileResultModel>> GetAllFilesForTag(string tag)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(tag);
