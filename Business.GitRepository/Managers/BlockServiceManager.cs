@@ -61,8 +61,10 @@
         /// <returns></returns>
         public async Task CloneGitRepoAsync()
         {
+            _logger.LogInformation($"Cloning github repository for blocks.");
             SetConnection((BlockGitConnectionOptions)ConnectionOptions);
             await CloneGitHubRepoAsync().ConfigureAwait(false);
+            _logger.LogInformation($"Github repository cloning is successful for blocks.");
         }
 
         /// <summary>

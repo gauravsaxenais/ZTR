@@ -46,8 +46,8 @@
                 $"{Prefix} method name: {nameof(GetAllFirmwareVersionsAsync)}: Getting list of all firmware versions for deviceType.");
             var specConfigFolder = ((FirmwareVersionGitConnectionOptions)ConnectionOptions).DefaultTomlConfiguration.TomlConfigFolder;
             var firmwareVersions = await RepoManager.GetAllTagNamesAsync().ConfigureAwait(false);
-            var firmwareVersionsWithSpecFolder = new List<string>();         
-            Parallel.ForEach(firmwareVersions, async firmwareVersion => 
+            var firmwareVersionsWithSpecFolder = new List<string>();
+            Parallel.ForEach(firmwareVersions, async firmwareVersion =>
             {
                 var isPresent = await RepoManager.IsFolderPresentInTag(firmwareVersion, specConfigFolder).ConfigureAwait(false);
                 if (isPresent)
@@ -55,7 +55,7 @@
                     firmwareVersionsWithSpecFolder.Add(firmwareVersion);
                 }
             });
-            
+
             return firmwareVersionsWithSpecFolder;
         }
 
@@ -65,7 +65,9 @@
         public async Task CloneGitRepoAsync()
         {
             SetConnection((FirmwareVersionGitConnectionOptions)ConnectionOptions);
+            _logger.LogInformation($"Cloning github repository for firmware version.");
             await CloneGitHubRepoAsync().ConfigureAwait(false);
+            _logger.LogInformation($"Github repository cloning is successful for firmware version.");
         }
 
         /// <summary>
@@ -89,8 +91,9 @@
             _logger.LogInformation($"{Prefix} method name: {nameof(GetDefaultTomlFileContentAsync)}: Getting default value from toml file for {firmwareVersion}.");
             var firmwareVersionConnectionOptions = ((FirmwareVersionGitConnectionOptions)ConnectionOptions);
             var defaultPath = Path.Combine(firmwareVersionConnectionOptions.DefaultTomlConfiguration.TomlConfigFolder, firmwareVersionConnectionOptions.DefaultTomlConfiguration.DefaultTomlFile);
-
             var defaultValueFromTomlFile = await GetFileContentFromPath(firmwareVersion, defaultPath).ConfigureAwait(false);
+            _logger.LogInformation($"{Prefix} method name: {nameof(GetDefaultTomlFileContentAsync)}: Successfully retrieved default value from toml file for {firmwareVersion}.");
+
             return defaultValueFromTomlFile;
         }
 

@@ -55,18 +55,15 @@
         /// Gets the blocks asynchronous.
         /// </summary>
         /// <param name="firmwareVersion">The firmware version.</param>
-        /// <param name="deviceType">Type of the device.</param>
         /// <returns></returns>
-        public async Task<object> GetBlocksAsync(string firmwareVersion, string deviceType)
+        public async Task<object> GetBlocksAsync(string firmwareVersion)
         {
-            _logger.LogInformation($"{Prefix}: methodName: {nameof(GetBlocksAsync)} Getting list of blocks for {firmwareVersion} and {deviceType}.");
+            _logger.LogInformation($"{Prefix}: methodName: {nameof(GetBlocksAsync)} Getting list of blocks for {firmwareVersion}.");
 
             // clone repo here.
-            await _blockServiceManager.CloneGitRepoAsync().ConfigureAwait(false);
-            
+            await _blockServiceManager.CloneGitRepoAsync().ConfigureAwait(false);            
             // clone repo here.
             await _firmwareVersionServiceManager.CloneGitRepoAsync().ConfigureAwait(false);
-
             // read default values from toml file defaults.toml
             var defaultValueFromTomlFile =
                 await _firmwareVersionServiceManager.GetDefaultTomlFileContentAsync(firmwareVersion).ConfigureAwait(false);
@@ -191,7 +188,6 @@
 
             // This will run all the calls in parallel to gain some performance
             var allFinishedTasks = await Task.WhenAll(listOfRequests).ConfigureAwait(false);
-
             var blocks = allFinishedTasks.SelectMany(x => x).OrderBy(item => item.Type).ToList();
 
             return blocks;
