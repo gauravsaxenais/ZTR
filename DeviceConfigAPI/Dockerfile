@@ -1,10 +1,16 @@
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS base
-
 # Update and install required dependencies
 RUN apt-get update && apt-get install -y protobuf-compiler
 
+#add user instead of running from root.
+RUN adduser \
+  --disabled-password \
+  --home /app \
+  --gecos '' app \
+  && chown -R app /app
+USER app
 WORKDIR /app
-EXPOSE 80
+EXPOSE 8080
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
@@ -27,7 +33,10 @@ FROM build AS publish
 RUN dotnet publish "Service.csproj" -c Release -o /app/publish
 
 FROM base AS final
-ENV ASPNETCORE_ENVIRONMENT "Production"
+ENV ASPNETCORE_ENVIRONMENT "Production" \
+  DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
+  DOTNET_RUNNING_IN_CONTAINER=true \
+  ASPNETCORE_URLS=http://+:8080
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Service.dll"]
+ENTRYPOINT ["dotnet", "Service.dll", "--urls", "http://0.0.0.0:8080"]
