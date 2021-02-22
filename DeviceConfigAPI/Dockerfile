@@ -34,9 +34,9 @@ RUN dotnet publish "Service.csproj" -c Release -o /app/publish
 
 FROM base AS final
 ENV ASPNETCORE_ENVIRONMENT "Production" \
-  DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
-  DOTNET_RUNNING_IN_CONTAINER=true \
-  ASPNETCORE_URLS=http://+:8080
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
+    DOTNET_RUNNING_IN_CONTAINER=true \
+    ASPNETCORE_URLS=http://+:8080
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Service.dll", "--urls", "http://0.0.0.0:8080"]
+ENTRYPOINT ["dotnet", "Service.dll"]
