@@ -98,6 +98,28 @@ namespace Business.Parsers.Core.Converter
             return (T)dictionary;
 
         }
+        private bool ValidateValues<T>(T input) where T : ITree
+        {
+            bool valid = false;
+            foreach(var item in input)
+            {
+                if(item.Value is T t)
+                {
+                    valid = ValidateValues(t);
+                    if(valid)
+                    {
+                        break;
+                    }
+                   
+                }
+                else if(!string.IsNullOrEmpty(item.Value.ToString()))
+                {
+                    valid = true;
+                    break;
+                }
+            }
+            return valid;
+        }
         private object TryMerge<T>(T input, KeyValuePair<string, object> source, object target) where T : ITree
         {
 
@@ -105,7 +127,15 @@ namespace Business.Parsers.Core.Converter
             {
                 if (tar.First() is T to)
                 { 
-                 var converted = s.Select(o => CreateDictionary(to, o))
+                 var converted = s.Select(o =>
+                                 {
+                                    var d = CreateDictionary(to, o);
+                                    if( ValidateValues(d))
+                                    {
+                                        return d;
+                                    }
+                                    return(ITree) new Tree();
+                                 })
                                  .Where(o => o.Count > 0)
                                  .ToArray();
 

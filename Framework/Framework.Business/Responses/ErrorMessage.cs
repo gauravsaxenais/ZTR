@@ -41,7 +41,7 @@
             if (exception != null)
             {
                 Detail = exception.Message;
-                Exception = ApplicationConfiguration.IsDevelopment ? exception.StackTrace.ToString() : null;
+                Exception = ApplicationConfiguration.IsProduction ? null: exception.StackTrace.ToString();
             }
         }
 
