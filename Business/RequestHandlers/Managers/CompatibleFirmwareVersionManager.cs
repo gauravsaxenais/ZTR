@@ -57,15 +57,15 @@
             await _firmwareVersionServiceManager.CloneGitRepoAsync().ConfigureAwait(false);
 
             var listOfTags = await _firmwareVersionServiceManager.GetAllFirmwareVersionsAsync().ConfigureAwait(false);
-            var filteredList = listOfTags.Where(x => !string.Equals(x, module.FirmwareVersion, StringComparison.OrdinalIgnoreCase));
-            var tagsWithNoDeviceFileModified = await _firmwareVersionServiceManager.GetTagsWithNoDeviceFileModified(filteredList, module.FirmwareVersion);
+            var tagsWithNoDeviceFileModified = await _firmwareVersionServiceManager.GetTagsWithNoDeviceFileModified1(listOfTags, module.FirmwareVersion);
             firmwareVersions.UnionWith(tagsWithNoDeviceFileModified);
-            filteredList = filteredList.Except(tagsWithNoDeviceFileModified);
+            listOfTags = listOfTags.Except(tagsWithNoDeviceFileModified).ToList();
+            listOfTags = listOfTags.Where(x => !string.Equals(x, module.FirmwareVersion, StringComparison.OrdinalIgnoreCase)).ToList();
 
-            foreach (var tag in filteredList)
+            foreach (var tag in listOfTags)
             {
                 var moduleList = await _firmwareVersionServiceManager.GetListOfModulesAsync(tag, module.DeviceType).ConfigureAwait(false);
-                var contained = module.Modules.Intersect(moduleList, new ModuleReadModelComparer()).Count() == module.Modules.Count();
+                var contained = module.Modules.Intersect(moduleList, new ModuleReadModelComparer()).Count() == module.Modules.Count;
                 if (contained)
                 {
                     firmwareVersions.Add(tag);

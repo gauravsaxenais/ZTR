@@ -73,8 +73,8 @@
             [MaxFileSize(1 * 1024 * 1024)]
             [AllowedExtensions(new[] { ".html", ".xml" })] IFormFile file, [Required, FromForm] string device, [Required, FromForm] string firmware)
         {
-            var json = await _defaultmanager.GetDefaultValuesAllModulesAsync(firmware, device);
-            var toml = await _manager.CreateFromHtmlAsync(file, json);
+            var listOfModules = await _defaultmanager.GetDefaultValuesAllModulesAsync(firmware, device);
+            var toml = await _manager.CreateFromHtmlAsync(htmlFile, listOfModules);
             var result = await _creator.GenerateConfigTomlModelWithoutGitAsync(toml);
 
             return Ok(result);

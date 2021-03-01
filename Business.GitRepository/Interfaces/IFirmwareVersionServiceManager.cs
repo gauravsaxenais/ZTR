@@ -13,7 +13,7 @@
         /// Gets all firmware versions asynchronous.
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<string>> GetAllFirmwareVersionsAsync();
+        Task<List<string>> GetAllFirmwareVersionsAsync();
 
         /// <summary>
         /// Clones the git hub repo asynchronous.
@@ -56,6 +56,13 @@
         /// <param name="fromTags">From tags.</param>
         /// <param name="mainTag">The main tag.</param>
         /// <returns></returns>
-        Task<List<string>> GetTagsWithNoDeviceFileModified(IEnumerable<string> fromTags, string mainTag);
+        Task<List<string>> GetTagsWithNoDeviceFileModified(List<string> fromTags, string mainTag);
+        /// <summary>
+        /// Gets the tags with no device file modified1.
+        /// </summary>
+        /// <param name="fromTags">From tags.</param>
+        /// <param name="mainTag">The main tag.</param>
+        /// <returns></returns>
+        Task<List<string>> GetTagsWithNoDeviceFileModified1(List<string> fromTags, string mainTag);
     }
 }
