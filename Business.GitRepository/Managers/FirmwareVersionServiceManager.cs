@@ -112,38 +112,38 @@
         /// <param name="tagList">The tag list.</param>
         /// <param name="mainTag">The main tag.</param>
         /// <param name="deviceType">Type of the device.</param>
-        /// <param name="modules">The modules.</param>
+        /// <param name="mainModuleList">The modules.</param'
         /// <returns></returns>
-        public async Task<List<string>> GetCompatibleFirmwareVersions(List<string> tagList, string mainTag, string deviceType, List<ModuleReadModel> modules)
+        public async Task<List<string>> GetCompatibleFirmwareVersions(List<string> tagList, string mainTag, string deviceType, List<ModuleReadModel> mainModuleList)
         {
             var firmwareVersionConnectionOptions = (FirmwareVersionGitConnectionOptions)ConnectionOptions;
             var devicesPath = Path.Combine(firmwareVersionConnectionOptions.TomlConfiguration.TomlConfigFolder, firmwareVersionConnectionOptions.TomlConfiguration.DeviceTomlFile);
             var finalList = new List<string>();
-            tagList = tagList.Where(x => x != mainTag).ToList();
 
+            string current;
             for (int index = 0; index < tagList.Count; index++)
             {
-                var current = tagList[index];
+                current = tagList[index];
+                var main = mainTag;
+                bool changed = IsDeviceFileChanged(current, main, devicesPath);
+                var currentFirmwareVersionModuleList = await GetListOfModulesAsync(current, deviceType).ConfigureAwait(false);
 
-                var moduleList = await GetListOfModulesAsync(current, deviceType).ConfigureAwait(false);
-                var valid = modules.Intersect(moduleList, new ModuleReadModelComparer()).Count() == modules.Count;
-                if (valid)
+                if (!changed)
                 {
-                    finalList.Add(current);
-                    bool changed = false;
-
-                    while (!changed && index < tagList.Count - 1)
+                    var valid = IsCompatibleFirmwareVersion(mainModuleList, currentFirmwareVersionModuleList);
+                    if (valid)
                     {
-                        ++index;
-                        changed = RepoManager.IsFileChangedBetweenTags(current, tagList[index], devicesPath);
-
-                        if (!changed)
-                            finalList.Add(tagList[index]);
+                        finalList.Add(current);
                     }
-                    if (index != tagList.Count - 1)
-                    { 
-                        index -= 1; 
+                }
+                else
+                {
+                    var valid = IsCompatibleFirmwareVersion(mainModuleList, currentFirmwareVersionModuleList);
+                    if (valid)
+                    {
+                        finalList.Add(current);
                     }
+                    main = current;
                 }
             }
 
@@ -176,6 +176,15 @@
             return listOfModules;
         }
 
+        private static bool IsCompatibleFirmwareVersion(List<ModuleReadModel> mainFirmwareVersionModules, List<ModuleReadModel> modules)
+        {
+            return mainFirmwareVersionModules.Intersect(modules, new ModuleReadModelComparer()).Count() == mainFirmwareVersionModules.Count;
+        }
+
+        private bool IsDeviceFileChanged(string fromTag, string toTag, string devicesPath)
+        {
+            return RepoManager.IsFileChangedBetweenTags(fromTag, toTag, devicesPath);
+        }
         /// <summary>
         /// Gets the file content from path.
         /// </summary>
