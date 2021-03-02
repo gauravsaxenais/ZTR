@@ -31,6 +31,7 @@
         private const string GitFolder = ".git";
         private const string TextMimeType = "text/plain";
         private Repository _repository;
+        private UsernamePasswordCredentials _userNamePasswordCredentials;
         private readonly object _syncRoot = new object();
         #endregion
 
@@ -46,6 +47,12 @@
             EnsureArg.IsNotEmptyOrWhiteSpace(gitConnection.GitRemoteLocation);
 
             _gitConnection = gitConnection;
+
+            _userNamePasswordCredentials = new UsernamePasswordCredentials()
+            {
+                Username = gitConnection.UserName,
+                Password = gitConnection.Password
+            };
         }
 
         /// <summary>
@@ -299,6 +306,7 @@
             cloneOptions.CertificateCheck += (certificate, valid, host) => true;
 
             cloneOptions.CredentialsProvider = (_url, _user, _cred) => new DefaultCredentials();
+            cloneOptions.CredentialsProvider += (_url, _user, _cred) => _userNamePasswordCredentials;
             Repository.Clone(_gitConnection.GitRemoteLocation, _gitConnection.GitLocalFolder,
             cloneOptions);
 
@@ -329,6 +337,8 @@
             var refSpecs = new List<string>() { network.FetchRefSpecs.First().Specification };
             var fetchOptions = new FetchOptions { TagFetchMode = TagFetchMode.All };
             fetchOptions.CredentialsProvider = (_url, _user, _cred) => new DefaultCredentials();
+            fetchOptions.CredentialsProvider += (_url, _user, _cred) => _userNamePasswordCredentials;
+
             _repository.Network.Fetch(network.Name, refSpecs, fetchOptions);
         }
 
