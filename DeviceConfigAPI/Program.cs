@@ -14,7 +14,7 @@ namespace Service
     public class Program
     {
         
-        /// <summary> hello world  folder  123
+        /// <summary>
         /// Defines the entry point of the application.
         /// </summary>
         /// <param name="args">The arguments.</param>
