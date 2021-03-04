@@ -13,6 +13,7 @@ namespace Service
     /// </summary>
     public class Program
     {
+        
         /// <summary>
         /// Defines the entry point of the application.
         /// </summary>
