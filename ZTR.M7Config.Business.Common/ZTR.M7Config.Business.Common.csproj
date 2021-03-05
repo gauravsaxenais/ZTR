@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <Company>ZTR</Company>
+    <Copyright>© 2021 ZTR Control Systems, LLC</Copyright>
+    <Authors>ZTR</Authors>
+    <Product>M7 Configuration tool</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Collections" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Framework\Framework.Configuration\Framework.Configuration.csproj" />
+    <ProjectReference Include="..\Framework\Framework.Business\Framework.Business.csproj" />
+  </ItemGroup>
+
+</Project>

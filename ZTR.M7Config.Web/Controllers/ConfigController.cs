@@ -1,0 +1,83 @@
+﻿namespace Service.Controllers
+{
+    using EnsureThat;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
+    using Swashbuckle.AspNetCore.Annotations;
+    using System.ComponentModel.DataAnnotations;
+    using System.Threading.Tasks;
+    using ZTR.Framework.Business;
+    using ZTR.Framework.Service;
+    using ZTR.M7Config.Business.Parsers.Core.Models;
+    using ZTR.M7Config.Business.RequestHandlers.Interfaces;
+
+    /// <summary>Config Controller - This service is responsible for generating the config toml.</summary>
+    [System.ComponentModel.Description("Config Controller Service")]
+    [Produces(SupportedContentTypes.Json)]
+    [Consumes(SupportedContentTypes.Json, SupportedContentTypes.MultipartFormData)]
+    [QueryRoute]
+    [SwaggerTag("This service is responsible for generating the config.toml.")]
+    public class ConfigController : ApiControllerBase
+    {
+        private readonly IConfigManager _manager;
+        private readonly ILogger<ConfigController> _logger;
+        private readonly IConfigCreateFromManager _creator;
+        private readonly IDefaultValueManager _defaultmanager;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConfigController"/> class.
+        /// </summary>
+        /// <param name="defaultmanager">The defaultmanager.</param>
+        /// <param name="creator">The creator.</param>
+        /// <param name="manager">The manager.</param>
+        /// <param name="logger">The logger.</param>
+        public ConfigController(IDefaultValueManager defaultmanager, IConfigCreateFromManager creator, IConfigManager manager, ILogger<ConfigController> logger)
+        {
+            EnsureArg.IsNotNull(manager, nameof(manager));
+            EnsureArg.IsNotNull(logger, nameof(logger));
+
+            _manager = manager;
+            _logger = logger;
+            _creator = creator;
+            _defaultmanager = defaultmanager;
+        }
+
+        /// <summary>
+        /// Creates the toml configuration.
+        /// </summary>
+        /// <param name="json">The json.</param>
+        /// <returns></returns>
+        [HttpPost(nameof(CreateTomlConfig))]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateTomlConfig([FromBody] ConfigReadModel json)
+        {
+            var result = await _manager.CreateConfigAsync(json);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Creates from HTML.
+        /// </summary>
+        /// <param name="htmlFile">The HTML/XML file.</param>
+        /// <param name="device">The device.</param>
+        /// <param name="firmware">The firmware.</param>
+        /// <returns></returns>
+        [HttpPost(nameof(CreateFromHtml))]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateFromHtml([Required]
+            [MaxFileSize(1 * 1024 * 1024)]
+            [AllowedExtensions(new[] { ".html", ".xml" })] IFormFile htmlFile, [Required, FromForm] string device, [Required, FromForm] string firmware)
+        {
+            var listOfModules = await _defaultmanager.GetDefaultValuesAllModulesAsync(firmware, device);
+            var toml = await _manager.CreateFromHtmlAsync(htmlFile, listOfModules);
+            var result = await _creator.GenerateConfigTomlModelWithoutGitAsync(toml);
+
+            return Ok(result);
+        }
+    }
+}
