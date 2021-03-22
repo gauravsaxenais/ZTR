@@ -72,7 +72,7 @@
         {
             lock (_syncRoot)
             {
-                //// clone only when there is a change.
+                // clone only when there is a change.
                 // and local repository matches remote repo details
                 if (IsExistsLocalRepositoryDirectory() && IsLocalRepositorySameAsRemote())
                 {
@@ -343,7 +343,7 @@
             _repository = new Repository(_gitConnection.GitLocalFolder);
             var network = _repository.Network.Remotes.First();
             var refSpecs = new List<string>() { network.FetchRefSpecs.First().Specification };
-            var fetchOptions = new FetchOptions { TagFetchMode = TagFetchMode.Auto };
+            var fetchOptions = new FetchOptions { TagFetchMode = TagFetchMode.All };
             fetchOptions.CredentialsProvider = (_url, _user, _cred) => new DefaultCredentials();
             fetchOptions.CredentialsProvider += (_url, _user, _cred) => _userNamePasswordCredentials;
 
