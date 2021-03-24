@@ -1,0 +1,3 @@
+[submodule "spork"]
+	path = spork
+	url = https://ztrldgit01.ztr.biz/environment/spork.git

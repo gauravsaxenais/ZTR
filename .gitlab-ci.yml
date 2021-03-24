@@ -1,0 +1,31 @@
+before_script:
+  - git submodule update .
+
+stages:
+  - build
+  - release
+
+release:
+  stage: build
+  variables:
+    DOCKER_HOST: "tcp://ztr:2375"
+    DOCKER_DRIVER: overlay
+  services:
+    - ztr:dind
+  except:
+    - tags
+  script:
+    - make
+
+package:
+  stage: release
+  variables:
+    DOCKER_HOST: "tcp://ztr:2375"
+    DOCKER_DRIVER: overlay
+  services:
+    - ztr:dind
+  only:
+    - tags
+  script:
+    - make push
+

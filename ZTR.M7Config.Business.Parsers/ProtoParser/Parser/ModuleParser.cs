@@ -25,16 +25,10 @@
             // in case there is no data, just return fields, repeated and non-repeated messages
             // as basic data.
             listOfData.AddRange(AddEmptyFieldsAndArrays(protoParsedMessage));
-            if (configValues.Any())
-            {
-                // remove repeated and non-repeated messages from the list
-                // and keep fields only.
-                RemoveEmptyArrays(listOfData);
-            }
             foreach (var dicItem in configValues.Select((kvp, index) => new { Kvp = kvp, Index = index }))
             {
                 var field = listOfData.FirstOrDefault(x =>
-                     string.Equals(x.Name, dicItem.Kvp.Key, StringComparison.OrdinalIgnoreCase));
+                     string.Equals(x.Name, dicItem.Kvp.Key, StringComparison.OrdinalIgnoreCase) && x.DataType != "array");
 
                 if (field != null)
                 {
@@ -42,46 +36,47 @@
                     field.IsVisible = true;
                     field.IsFieldRepeated = field.IsRepeated;
                 }
+
                 // we have a repeated / non repeated protoParsedMessage.
                 else
                 {
-                    foreach (var message in protoParsedMessage.Messages)
+                    var message = protoParsedMessage.Messages.FirstOrDefault(x => string.Equals(x.Name, dicItem.Kvp.Key, StringComparison.OrdinalIgnoreCase));
+
+                    if (message != null)
                     {
-                        if (string.Equals(message.Name, dicItem.Kvp.Key, StringComparison.OrdinalIgnoreCase))
+                        var tempJsonModel = new JsonField
                         {
-                            var tempJsonModel = new JsonField
+                            Name = message.Name,
+                            IsVisible = true,
+                            DataType = "array"
+                        };
+                        var jsonField = listOfData.RemoveAll(x => x.Name == message.Name);
+
+                        if (dicItem.Kvp.Value is T[] repeatedValues)
+                        {
+                            repeatedValues.ToList().ForEach(item =>
+                                tempJsonModel.Arrays.Add(MergeTomlWithProtoMessage(item, message)));
+                        }
+                        else if (dicItem.Kvp.Value is T nonRepeatedValues)
+                        {
+                            var subArrayData = MergeTomlWithProtoMessage(nonRepeatedValues, message);
+                            tempJsonModel.Fields.AddRange(subArrayData);
+                        }
+                        else
+                        {
+                            tempJsonModel.IsVisible = false;
+                            if (message.IsRepeated)
                             {
-                                Name = message.Name,
-                                IsVisible = true,
-                                DataType = "array"
-                            };
-                            if (dicItem.Kvp.Value is T[] repeatedValues)
-                            {
-                                repeatedValues.ToList().ForEach(item =>
-                                    tempJsonModel.Arrays.Add(MergeTomlWithProtoMessage(item, message)));
+                                tempJsonModel.Arrays.Add(MergeTomlWithProtoMessage(new Dictionary<string, object>(), message));
                             }
-                            else if (dicItem.Kvp.Value is T nonRepeatedValues)
-                            {
-                                var subArrayData = MergeTomlWithProtoMessage(nonRepeatedValues, message);
-                                tempJsonModel.Fields.AddRange(subArrayData);
-                            }
+
                             else
                             {
-                                tempJsonModel.IsVisible = false;
-                                if (message.IsRepeated)
-                                {
-                                    tempJsonModel.Arrays.Add(MergeTomlWithProtoMessage(new Dictionary<string, object>(), message));
-                                }
-
-                                else
-                                {
-                                    tempJsonModel.Fields.AddRange(MergeTomlWithProtoMessage(new Dictionary<string, object>(), message));
-                                }
+                                tempJsonModel.Fields.AddRange(MergeTomlWithProtoMessage(new Dictionary<string, object>(), message));
                             }
-
-                            listOfData.Add(tempJsonModel);
-                            break;
                         }
+
+                        listOfData.Add(tempJsonModel);
                     }
                 }
             }
