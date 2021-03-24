@@ -72,7 +72,7 @@
         {
             lock (_syncRoot)
             {
-                // clone only when there is a change.
+                //// clone only when there is a change.
                 // and local repository matches remote repo details
                 if (IsExistsLocalRepositoryDirectory() && IsLocalRepositorySameAsRemote())
                 {
@@ -343,9 +343,15 @@
             _repository = new Repository(_gitConnection.GitLocalFolder);
             var network = _repository.Network.Remotes.First();
             var refSpecs = new List<string>() { network.FetchRefSpecs.First().Specification };
-            var fetchOptions = new FetchOptions { TagFetchMode = TagFetchMode.All };
+            var fetchOptions = new FetchOptions { TagFetchMode = TagFetchMode.Auto };
             fetchOptions.CredentialsProvider = (_url, _user, _cred) => new DefaultCredentials();
             fetchOptions.CredentialsProvider += (_url, _user, _cred) => _userNamePasswordCredentials;
+
+            // remove existing tags from repository.
+            foreach(var tag in _repository.Tags)
+            {
+                _repository.Tags.Remove(tag);
+            }
 
             Commands.Pull(_repository, new Signature(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), DateTime.Now), new PullOptions()
             {
@@ -356,12 +362,6 @@
                     CommitOnSuccess = true
                 }
             });
-
-            //foreach (Remote remote in _repository.Network.Remotes)
-            //{
-            //    Commands.Fetch(_repository, remote.Name, new string[0], fetchOptions, null);
-            //    _repository.Network.Fetch(remote.Name, remote.FetchRefSpecs.Select(r => r.Specification), fetchOptions);
-            //}
 
             _repository.Network.Fetch(network.Name, refSpecs, fetchOptions);
         }
