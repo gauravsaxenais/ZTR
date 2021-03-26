@@ -15,6 +15,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
+
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
 COPY ["ZTR.M7Config.Web/ZTR.M7Config.Web.csproj", "ZTR.M7Config.Web/"]
